@@ -3,24 +3,48 @@ import path from "node:path";
 import type { JobDetail } from "@/data/job-types";
 import { seedJobs } from "@/data/seed-jobs";
 
-const DATA_PATH = path.join(process.cwd(), "data", "jobs.json");
+/**
+ * Local dev: `data/jobs.json` under the project root.
+ * Serverless (Netlify, Vercel, Lambda): only `/tmp` is writable — avoid ENOENT on `mkdir` under `/var/task`.
+ * Optional override: `JOBS_DATA_PATH` (absolute path to `jobs.json`).
+ */
+function getJobsJsonPath(): string {
+  if (process.env.JOBS_DATA_PATH) {
+    return process.env.JOBS_DATA_PATH;
+  }
+  const serverless =
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+    Boolean(process.env.AWS_EXECUTION_ENV) ||
+    Boolean(process.env.LAMBDA_TASK_ROOT) ||
+    Boolean(process.env.NETLIFY) ||
+    Boolean(process.env.VERCEL);
+  if (serverless) {
+    return path.join("/tmp", "meridian-talent-jobs", "jobs.json");
+  }
+  return path.join(process.cwd(), "data", "jobs.json");
+}
 
 function ensureFile(): void {
+  const DATA_PATH = getJobsJsonPath();
   if (!fs.existsSync(DATA_PATH)) {
     fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true });
     fs.writeFileSync(DATA_PATH, JSON.stringify(seedJobs, null, 2), "utf-8");
   }
 }
 
+function dataPath(): string {
+  return getJobsJsonPath();
+}
+
 export function readJobs(): JobDetail[] {
   ensureFile();
-  const raw = fs.readFileSync(DATA_PATH, "utf-8");
+  const raw = fs.readFileSync(dataPath(), "utf-8");
   return JSON.parse(raw) as JobDetail[];
 }
 
 export function writeJobs(jobs: JobDetail[]): void {
   ensureFile();
-  fs.writeFileSync(DATA_PATH, JSON.stringify(jobs, null, 2), "utf-8");
+  fs.writeFileSync(dataPath(), JSON.stringify(jobs, null, 2), "utf-8");
 }
 
 export function addJob(job: JobDetail): void {
