@@ -66,7 +66,7 @@ export function Nav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
             className="fixed inset-0 z-30 bg-zinc-50/95 backdrop-blur-2xl md:hidden"
           >
             <nav className="flex min-h-[100dvh] flex-col gap-2 px-8 pb-12 pt-28">
@@ -77,10 +77,10 @@ export function Nav() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 12 }}
                   transition={{
-                    delay: 0.08 + i * 0.06,
+                    delay: 0.04 + i * 0.035,
                     type: "spring",
-                    stiffness: 120,
-                    damping: 22,
+                    stiffness: 200,
+                    damping: 28,
                   }}
                 >
                   <Link

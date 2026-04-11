@@ -42,7 +42,7 @@ function HeroRoleRotator() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "110%", opacity: 0 }}
           transition={{
-            duration: 0.42,
+            duration: 0.3,
             ease: [0.32, 0.72, 0, 1],
           }}
           className="absolute inset-0 flex items-center justify-center whitespace-nowrap"
@@ -76,7 +76,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 120, damping: 26 }}
+            transition={{ type: "spring", stiffness: 180, damping: 28 }}
             className="inline-flex items-center gap-1.5 rounded-md border border-violet-200/90 bg-violet-50/90 px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-violet-700 shadow-sm backdrop-blur-sm"
           >
             <span className="text-violet-500">For job seekers</span>
@@ -88,7 +88,7 @@ export function Hero() {
           <motion.h1
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 22, delay: 0.04 }}
+            transition={{ type: "spring", stiffness: 180, damping: 28, delay: 0.02 }}
             className="mt-8 max-w-[22rem] text-balance text-4xl font-extrabold leading-[1.15] tracking-[-0.03em] text-[#1A1A1A] sm:max-w-none sm:text-5xl sm:leading-[1.12] sm:tracking-[-0.035em] md:text-6xl md:leading-[1.08] md:tracking-[-0.04em]"
           >
             Find, Match, and Land
@@ -99,7 +99,7 @@ export function Hero() {
           <motion.p
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 22, delay: 0.1 }}
+            transition={{ type: "spring", stiffness: 180, damping: 28, delay: 0.05 }}
             className="mt-7 max-w-xl rounded-xl border border-white/80 bg-white/75 px-4 py-2.5 text-base font-medium leading-snug text-zinc-900 shadow-[0_8px_32px_-16px_rgba(24,24,27,0.12)] backdrop-blur-md sm:mt-8 sm:px-5 sm:py-3 sm:text-lg sm:leading-relaxed"
           >
             One recruiter. One process. Roles that fit.
@@ -108,7 +108,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 22, delay: 0.14 }}
+            transition={{ type: "spring", stiffness: 180, damping: 28, delay: 0.08 }}
             className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
           >
             <Link
@@ -133,7 +133,7 @@ export function Hero() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ type: "spring", stiffness: 100, damping: 22, delay: 0.2 }}
+            transition={{ type: "spring", stiffness: 180, damping: 28, delay: 0.11 }}
             className="mt-8 max-w-md text-xs leading-relaxed text-zinc-500"
           >
             <Link

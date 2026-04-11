@@ -2,15 +2,14 @@ import type { JobDetail, JobSizeBand } from "@/data/jobs";
 
 export type TypeFilter = "all" | "full-time" | "contract";
 export type WorkFilter = "all" | "remote" | "hybrid" | "onsite";
-export type SkillsMatchMode = "any" | "all";
 
 export type JobFilterState = {
   q: string;
   type: TypeFilter;
   work: WorkFilter;
   industry: string;
+  /** Tech stack: role matches if it includes any selected skill (OR) */
   skills: string[];
-  skillsMode: SkillsMatchMode;
   regions: string[];
   sizeBands: JobSizeBand[];
   experienceLevels: string[];
@@ -43,17 +42,10 @@ function matchesIndustry(job: JobDetail, industry: string): boolean {
   return job.industries.includes(industry);
 }
 
-function matchesSkills(
-  job: JobDetail,
-  selected: string[],
-  mode: SkillsMatchMode,
-): boolean {
+function matchesSkills(job: JobDetail, selected: string[]): boolean {
   if (selected.length === 0) return true;
   const names = new Set(job.skills.map((s) => s.name));
-  if (mode === "any") {
-    return selected.some((s) => names.has(s));
-  }
-  return selected.every((s) => names.has(s));
+  return selected.some((s) => names.has(s));
 }
 
 function matchesRegions(job: JobDetail, selected: string[]): boolean {
@@ -105,7 +97,7 @@ export function filterJobs(jobs: JobDetail[], opts: JobFilterState): JobDetail[]
       matchesType(job, opts.type) &&
       matchesWork(job, opts.work) &&
       matchesIndustry(job, opts.industry) &&
-      matchesSkills(job, opts.skills, opts.skillsMode) &&
+      matchesSkills(job, opts.skills) &&
       matchesRegions(job, opts.regions) &&
       matchesSizeBands(job, opts.sizeBands) &&
       matchesExperienceLevels(job, opts.experienceLevels),

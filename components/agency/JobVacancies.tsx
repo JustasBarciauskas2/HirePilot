@@ -5,18 +5,18 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   CaretDown,
+  CaretUp,
   Funnel,
   MagnifyingGlass,
   SlidersHorizontal,
   X,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { jobs } from "@/data/jobs";
 import {
   filterJobs,
   hasAnyFilter,
   type JobFilterState,
-  type SkillsMatchMode,
   type TypeFilter,
   type WorkFilter,
   SIZE_BAND_LABELS,
@@ -40,12 +40,13 @@ function toggleInArray<T>(arr: T[], value: T): T[] {
 const SIZE_BAND_ORDER: JobSizeBand[] = ["1-100", "101-250", "201-500"];
 
 export function JobVacancies() {
+  const advancedDetailsRef = useRef<HTMLDetailsElement>(null);
+  const rolesSectionRef = useRef<HTMLElement>(null);
   const [q, setQ] = useState("");
   const [type, setType] = useState<TypeFilter>("all");
   const [work, setWork] = useState<WorkFilter>("all");
   const [industry, setIndustry] = useState("all");
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillsMode, setSkillsMode] = useState<SkillsMatchMode>("any");
   const [regions, setRegions] = useState<string[]>([]);
   const [sizeBands, setSizeBands] = useState<JobSizeBand[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
@@ -62,12 +63,11 @@ export function JobVacancies() {
       work,
       industry,
       skills,
-      skillsMode,
       regions,
       sizeBands,
       experienceLevels,
     }),
-    [q, type, work, industry, skills, skillsMode, regions, sizeBands, experienceLevels],
+    [q, type, work, industry, skills, regions, sizeBands, experienceLevels],
   );
 
   const filtered = useMemo(() => filterJobs(jobs, filterState), [filterState]);
@@ -80,14 +80,17 @@ export function JobVacancies() {
     setWork("all");
     setIndustry("all");
     setSkills([]);
-    setSkillsMode("any");
     setRegions([]);
     setSizeBands([]);
     setExperienceLevels([]);
   }
 
   return (
-    <section id="roles" className="relative z-10 border-b border-zinc-200/80 bg-white py-24 sm:py-32">
+    <section
+      ref={rolesSectionRef}
+      id="roles"
+      className="relative z-10 scroll-mt-24 border-b border-zinc-200/80 bg-white py-24 sm:scroll-mt-28 sm:py-32"
+    >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <Reveal>
           <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#7107E7]">
@@ -203,7 +206,10 @@ export function JobVacancies() {
               </div>
             </div>
 
-            <details className="group mt-4 border-t border-zinc-200/80 pt-4">
+            <details
+              ref={advancedDetailsRef}
+              className="group mt-4 border-t border-zinc-200/80 pt-4"
+            >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-1 py-2 text-sm font-semibold text-zinc-900 transition hover:text-[#7107E7] [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4 text-[#7107E7]" weight="duotone" aria-hidden />
@@ -225,8 +231,7 @@ export function JobVacancies() {
                     Tech stack
                   </p>
                   <p className="mt-1 text-xs text-zinc-500">
-                    Tap any combination of skills first—you can switch between &ldquo;Match any&rdquo; and
-                    &ldquo;Match all&rdquo; anytime without losing your selection.
+                    Select any technologies you care about—roles that include <strong className="font-medium text-zinc-700">at least one</strong> of your picks will show.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {skillOptions.map((name) => {
@@ -251,48 +256,6 @@ export function JobVacancies() {
                       );
                     })}
                   </div>
-
-                  <fieldset className="mt-4">
-                    <legend className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                      Combine selected skills
-                    </legend>
-                    <div
-                      className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
-                      role="radiogroup"
-                      aria-label="How to combine selected tech stack skills"
-                    >
-                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:border-zinc-300 has-[:checked]:border-[#7107E7]/45 has-[:checked]:bg-[#7107E7]/8 has-[:checked]:text-[#4c0599]">
-                        <input
-                          type="radio"
-                          name="skills-mode"
-                          value="any"
-                          checked={skillsMode === "any"}
-                          onChange={() => setSkillsMode("any")}
-                          className="h-4 w-4 border-zinc-300 text-[#7107E7] focus:ring-[#7107E7]/30"
-                        />
-                        <span>
-                          Match any <span className="font-normal text-zinc-500">(OR — role has at least one)</span>
-                        </span>
-                      </label>
-                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:border-zinc-300 has-[:checked]:border-[#7107E7]/45 has-[:checked]:bg-[#7107E7]/8 has-[:checked]:text-[#4c0599]">
-                        <input
-                          type="radio"
-                          name="skills-mode"
-                          value="all"
-                          checked={skillsMode === "all"}
-                          onChange={() => setSkillsMode("all")}
-                          className="h-4 w-4 border-zinc-300 text-[#7107E7] focus:ring-[#7107E7]/30"
-                        />
-                        <span>
-                          Match all <span className="font-normal text-zinc-500">(AND — role has every selected)</span>
-                        </span>
-                      </label>
-                    </div>
-                  </fieldset>
-                  <p className="mt-2 text-xs text-zinc-500">
-                    With &ldquo;Match all,&rdquo; pick multiple skills—roles must list each one. Switch back to
-                    &ldquo;Match any&rdquo; whenever you want a looser match.
-                  </p>
                 </div>
 
                 <div>
@@ -381,6 +344,26 @@ export function JobVacancies() {
                   </div>
                 </div>
               </div>
+
+              <div className="mt-8 flex justify-center border-t border-zinc-200/60 pt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const details = advancedDetailsRef.current;
+                    if (details) details.open = false;
+                    requestAnimationFrame(() => {
+                      rolesSectionRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    });
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-[#7107E7]/35 hover:bg-[#7107E7]/5 hover:text-[#5b06c2]"
+                >
+                  <CaretUp className="h-4 w-4" weight="bold" aria-hidden />
+                  Hide advanced filters
+                </button>
+              </div>
             </details>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/80 pt-4">
@@ -411,8 +394,7 @@ export function JobVacancies() {
               <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 px-6 py-14 text-center">
                 <p className="font-medium text-zinc-800">No roles match your filters</p>
                 <p className="mt-2 text-sm text-zinc-500">
-                  Try clearing advanced filters, switching skill mode to &ldquo;Match any,&rdquo; or
-                  shortening your search.
+                  Try clearing tech stack or other advanced filters, or shortening your search.
                 </p>
                 <button
                   type="button"
