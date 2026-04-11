@@ -72,6 +72,11 @@ export function Footer() {
                     Contact
                   </Link>
                 </li>
+                <li>
+                  <Link href="/portal" className="transition hover:text-[#7107E7]">
+                    Recruiter portal
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

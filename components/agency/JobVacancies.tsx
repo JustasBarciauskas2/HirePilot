@@ -12,7 +12,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
-import { jobs } from "@/data/jobs";
+import type { JobDetail } from "@/data/jobs";
 import {
   filterJobs,
   hasAnyFilter,
@@ -39,7 +39,7 @@ function toggleInArray<T>(arr: T[], value: T): T[] {
 
 const SIZE_BAND_ORDER: JobSizeBand[] = ["1-100", "101-250", "201-500"];
 
-export function JobVacancies() {
+export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
   const advancedDetailsRef = useRef<HTMLDetailsElement>(null);
   const rolesSectionRef = useRef<HTMLElement>(null);
   const [q, setQ] = useState("");
@@ -51,10 +51,10 @@ export function JobVacancies() {
   const [sizeBands, setSizeBands] = useState<JobSizeBand[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
 
-  const industries = useMemo(() => uniqueIndustries(jobs), []);
-  const skillOptions = useMemo(() => uniqueSkills(jobs), []);
-  const regionOptions = useMemo(() => uniqueRegions(jobs), []);
-  const experienceOptions = useMemo(() => uniqueExperienceLevels(jobs), []);
+  const industries = useMemo(() => uniqueIndustries(jobs), [jobs]);
+  const skillOptions = useMemo(() => uniqueSkills(jobs), [jobs]);
+  const regionOptions = useMemo(() => uniqueRegions(jobs), [jobs]);
+  const experienceOptions = useMemo(() => uniqueExperienceLevels(jobs), [jobs]);
 
   const filterState: JobFilterState = useMemo(
     () => ({
@@ -70,7 +70,7 @@ export function JobVacancies() {
     [q, type, work, industry, skills, regions, sizeBands, experienceLevels],
   );
 
-  const filtered = useMemo(() => filterJobs(jobs, filterState), [filterState]);
+  const filtered = useMemo(() => filterJobs(jobs, filterState), [jobs, filterState]);
 
   const hasFilters = hasAnyFilter(filterState);
 

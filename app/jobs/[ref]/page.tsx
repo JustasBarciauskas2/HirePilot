@@ -1,15 +1,13 @@
 import { Footer } from "@/components/agency/Footer";
 import { Nav } from "@/components/agency/Nav";
 import { JobDetailView } from "@/components/jobs/JobDetailView";
-import { getAllJobSlugs, getJobBySlug } from "@/data/jobs";
+import { getJobBySlug } from "@/data/jobs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-type Props = { params: Promise<{ ref: string }> };
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return getAllJobSlugs().map((ref) => ({ ref }));
-}
+type Props = { params: Promise<{ ref: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ref } = await params;

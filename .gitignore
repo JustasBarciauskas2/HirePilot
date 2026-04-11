@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Job store (created from data/seed-jobs.ts on first read)
+data/jobs.json

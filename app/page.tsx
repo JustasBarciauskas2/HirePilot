@@ -10,15 +10,19 @@ import { MarqueeRoles } from "@/components/agency/MarqueeRoles";
 import { Nav } from "@/components/agency/Nav";
 import { ServicesZigZag } from "@/components/agency/ServicesZigZag";
 import { Testimonials } from "@/components/agency/Testimonials";
+import { getAllJobs } from "@/data/jobs";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
+  const jobs = getAllJobs();
   return (
     <>
       <Nav />
       <main className="relative z-10 flex-1">
         <Hero />
         <MarqueeRoles />
-        <JobVacancies />
+        <JobVacancies jobs={jobs} />
         <BrandStudio />
         <FocusStrip />
         <ServicesZigZag />
