@@ -1,7 +1,9 @@
-import { auth0 } from "@/lib/auth0";
+import { forwardVacancyToBackend, type VacancyUser } from "@/lib/forward-vacancy";
 import type { JobSizeBand } from "@/data/job-types";
 import { buildJobFromPortalInput } from "@/lib/create-job-from-input";
 import { addJob, readJobs } from "@/lib/jobs-store";
+import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+import { getFirebaseUserFromRequest } from "@/lib/verify-firebase-request";
 import { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -12,9 +14,26 @@ function parseSizeBand(v: FormDataEntryValue | null): JobSizeBand | undefined {
   return SIZE_BANDS.includes(s as JobSizeBand) ? (s as JobSizeBand) : undefined;
 }
 
+function bearerFromRequest(req: NextRequest): string | null {
+  const header = req.headers.get("authorization");
+  const m = header?.match(/^Bearer\s+(.+)$/i);
+  const t = m?.[1]?.trim();
+  return t || null;
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
-  const session = await auth0.getSession(req);
-  if (!session) {
+  if (!isFirebaseAdminConfigured()) {
+    return Response.json(
+      {
+        error:
+          "Server auth not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON (JSON string) or FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
+      },
+      { status: 503 },
+    );
+  }
+
+  const decoded = await getFirebaseUserFromRequest(req);
+  if (!decoded) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -72,11 +91,45 @@ export async function POST(req: NextRequest): Promise<Response> {
     sizeBand: parseSizeBand(form.get("sizeBand")),
   });
 
+  const idToken = bearerFromRequest(req);
+
+  if (process.env.DEBUG_PRINT_ACCESS_TOKEN === "true") {
+    console.log(
+      "[portal/jobs] Firebase ID token (sent as Authorization: Bearer when non-null):",
+      idToken ?? "(null)",
+    );
+  }
+
+  const vacancyUser: VacancyUser = {
+    sub: decoded.uid,
+    email: decoded.email,
+    name: decoded.name,
+    picture: typeof decoded.picture === "string" ? decoded.picture : undefined,
+  };
+
+  const backend = await forwardVacancyToBackend(vacancyUser, job, idToken);
+
+  const backendOptional =
+    process.env.BACKEND_OPTIONAL === "true" || process.env.BACKEND_OPTIONAL === "1";
+
+  if (!backend.ok) {
+    if (!backendOptional) {
+      const hint = "hint" in backend && typeof backend.hint === "string" ? backend.hint : "";
+      return Response.json(
+        {
+          error: `Your backend did not accept this listing (or could not be reached).${hint ? ` ${hint}` : ""} Or set BACKEND_OPTIONAL=true to save locally anyway.`,
+          backend,
+        },
+        { status: 502 },
+      );
+    }
+  }
+
   addJob(job);
 
   revalidatePath("/");
   revalidatePath("/portal");
   revalidatePath(`/jobs/${job.slug}`);
 
-  return Response.json({ ok: true, job });
+  return Response.json({ ok: true, job, backend });
 }
