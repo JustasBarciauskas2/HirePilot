@@ -1,0 +1,80 @@
+import { JOB_SIZE_BANDS, type JobSizeBand } from "@/data/job-types";
+import type { VacancyNormalizedFromDocument } from "@/data/vacancy-normalized-from-document";
+
+/** Map older document/API values onto current bands */
+const LEGACY_SIZE_BAND: Record<string, JobSizeBand> = {
+  "1-100": "51-200",
+  "101-250": "201-500",
+};
+
+/** Coerce parsed JSON / legacy portal values to a valid {@link JobSizeBand}. */
+export function normalizeSizeBand(v: unknown): JobSizeBand {
+  const s = typeof v === "string" ? v.trim() : "";
+  if ((JOB_SIZE_BANDS as readonly string[]).includes(s)) return s as JobSizeBand;
+  if (s in LEGACY_SIZE_BAND) return LEGACY_SIZE_BAND[s]!;
+  return "51-200";
+}
+
+/** Fill missing fields so the editor always has a complete object. */
+export function mergeVacancyDefaults(
+  partial: Partial<VacancyNormalizedFromDocument>,
+): VacancyNormalizedFromDocument {
+  return {
+    title: partial.title?.trim() || "",
+    companyName: partial.companyName?.trim() || "",
+    companyTagline: partial.companyTagline?.trim() || "",
+    companySize: partial.companySize?.trim() || "",
+    clientLine: partial.clientLine?.trim(),
+    type: partial.type?.trim() || "",
+    comp: partial.comp?.trim() || "",
+    salaryHighlight: partial.salaryHighlight?.trim() || "",
+    compensationCurrency: partial.compensationCurrency?.trim() || undefined,
+    equityHighlight: partial.equityHighlight?.trim() || undefined,
+    equityCurrency: partial.equityCurrency?.trim() || undefined,
+    equityNote: partial.equityNote?.trim() || "",
+    location: partial.location?.trim() || "",
+    locationTag: partial.locationTag?.trim() || "",
+    regions: Array.isArray(partial.regions) ? partial.regions.map((r) => String(r).trim()).filter(Boolean) : [],
+    sizeBand: normalizeSizeBand(partial.sizeBand),
+    skills: Array.isArray(partial.skills)
+      ? partial.skills.map((s) =>
+          typeof s === "object" && s !== null && "name" in s
+            ? { name: String((s as { name: string }).name) }
+            : { name: String(s) },
+        )
+      : [],
+    experienceLevel: partial.experienceLevel?.trim() || "",
+    industries: Array.isArray(partial.industries)
+      ? partial.industries.map((x) => String(x).trim()).filter(Boolean)
+      : [],
+    ourTake: partial.ourTake?.trim() || "",
+    whoYouAre: Array.isArray(partial.whoYouAre)
+      ? partial.whoYouAre.map((x) => String(x).trim()).filter(Boolean)
+      : [],
+    desirable: Array.isArray(partial.desirable)
+      ? partial.desirable.map((x) => String(x).trim()).filter(Boolean)
+      : [],
+    whatJobInvolves: Array.isArray(partial.whatJobInvolves)
+      ? partial.whatJobInvolves.map((x) => String(x).trim()).filter(Boolean)
+      : [],
+    insights: {
+      tags: Array.isArray(partial.insights?.tags)
+        ? partial.insights!.tags.map((x) => String(x).trim()).filter(Boolean)
+        : ["New listing"],
+      growthStat: partial.insights?.growthStat?.trim() || "Growing team",
+      glassdoorRating:
+        typeof partial.insights?.glassdoorRating === "number" && Number.isFinite(partial.insights.glassdoorRating)
+          ? Math.min(5, Math.max(1, Math.round(partial.insights.glassdoorRating)))
+          : 4,
+    },
+    companyBenefits: Array.isArray(partial.companyBenefits)
+      ? partial.companyBenefits.map((x) => String(x).trim()).filter(Boolean)
+      : [],
+    funding: Array.isArray(partial.funding) ? partial.funding : [],
+    totalFunding: partial.totalFunding?.trim() || "—",
+    specialist: {
+      name: partial.specialist?.name?.trim() || "Nina Kovac",
+      title: partial.specialist?.title?.trim() || "Lead recruiter · Meridian Talent",
+    },
+  };
+}

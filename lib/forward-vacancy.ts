@@ -1,5 +1,16 @@
 import type { JobDetail } from "@/data/job-types";
-import { backendEnvLooksInvalid, getBackendVacancyUrl } from "@/lib/backend-url";
+import {
+  backendEnvLooksInvalid,
+  getBackendVacancyDeleteUrl,
+  getBackendVacancyUrl,
+  isBackendVacancyDeleteConfigured,
+} from "@/lib/backend-url";
+import { getTenantInstancePayload, type TenantInstancePayload } from "@/lib/tenant-instance";
+
+type ForwardOpts = {
+  /** If set, POST to this URL instead of {@link getBackendVacancyUrl}. */
+  url?: string | null;
+};
 
 export type VacancyUser = {
   sub: string;
@@ -11,12 +22,47 @@ export type VacancyUser = {
 export type VacancyBackendPayload = {
   user: VacancyUser;
   vacancy: JobDetail;
+  /** Always set — use `tenant.id` as partition key in a shared DB (see `getTenantInstancePayload`). */
+  tenant: TenantInstancePayload;
 };
 
 export type ForwardResult =
-  | { ok: true; skipped: true }
-  | { ok: true; skipped?: false }
+  | { ok: true; skipped: true; vacancyId?: undefined }
+  | { ok: true; skipped?: false; vacancyId?: string }
   | { ok: false; status?: number; error?: string; hint?: string };
+
+/** Parse your API JSON after a successful POST — we persist this on `JobDetail.id` for DELETE. */
+function pickBackendVacancyIdFromJson(obj: Record<string, unknown>): string | undefined {
+  if (typeof obj.id === "string" && obj.id.trim()) return obj.id.trim();
+  if (typeof obj.vacancyId === "string" && obj.vacancyId.trim()) return obj.vacancyId.trim();
+  const job = obj.job;
+  if (job && typeof job === "object" && job !== null) {
+    const j = job as Record<string, unknown>;
+    if (typeof j.id === "string" && j.id.trim()) return j.id.trim();
+  }
+  const vacancy = obj.vacancy;
+  if (vacancy && typeof vacancy === "object" && vacancy !== null) {
+    const v = vacancy as Record<string, unknown>;
+    if (typeof v.id === "string" && v.id.trim()) return v.id.trim();
+  }
+  return undefined;
+}
+
+async function readVacancyIdFromOkResponse(res: Response): Promise<string | undefined> {
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("json")) return undefined;
+  const text = await res.text();
+  if (!text.trim()) return undefined;
+  try {
+    const obj = JSON.parse(text) as unknown;
+    if (obj && typeof obj === "object" && obj !== null) {
+      return pickBackendVacancyIdFromJson(obj as Record<string, unknown>);
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
 
 /** Unwrap Node/undici fetch error chains (often only "fetch failed" at top). */
 function describeFetchError(err: unknown, backendUrl: string): string {
@@ -63,8 +109,9 @@ export async function forwardVacancyToBackend(
   user: VacancyUser,
   job: JobDetail,
   idToken: string | null,
+  opts?: ForwardOpts,
 ): Promise<ForwardResult> {
-  const url = getBackendVacancyUrl();
+  const url = opts?.url !== undefined ? opts.url : getBackendVacancyUrl();
   if (!url) {
     if (backendEnvLooksInvalid()) {
       return {
@@ -76,6 +123,7 @@ export async function forwardVacancyToBackend(
     return { ok: true, skipped: true };
   }
 
+  const tenant = getTenantInstancePayload();
   const body: VacancyBackendPayload = {
     user: {
       sub: String(user.sub ?? ""),
@@ -84,6 +132,7 @@ export async function forwardVacancyToBackend(
       picture: typeof user.picture === "string" ? user.picture : undefined,
     },
     vacancy: job,
+    tenant,
   };
 
   const headers: Record<string, string> = {
@@ -98,6 +147,68 @@ export async function forwardVacancyToBackend(
       method: "POST",
       headers,
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      let hint: string | undefined;
+      if (res.status === 401) {
+        hint = idToken
+          ? "Bearer token was rejected. On your API, validate Firebase ID tokens (issuer, project ID, and JWKS from Google)."
+          : "No Firebase ID token was sent. Sign in on the portal; the client sends Authorization: Bearer <idToken>.";
+      }
+      return { ok: false, status: res.status, error: text.slice(0, 500), hint };
+    }
+    const vacancyId = await readVacancyIdFromOkResponse(res);
+    return vacancyId ? { ok: true, vacancyId } : { ok: true };
+  } catch (e) {
+    return { ok: false, error: describeFetchError(e, url) };
+  }
+}
+
+export type DeleteVacancyOnBackendOpts = {
+  /** Stored `JobDetail.id` (vacancy UUID) — sent as path segment `/api/vacancy/{id}` with `tenantId` query. */
+  vacancyId?: string | null;
+};
+
+/**
+ * DELETE vacancy on the backend (see `getBackendVacancyDeleteUrl` in lib/backend-url.ts) with optional Bearer token.
+ */
+export async function deleteVacancyOnBackend(
+  ref: string,
+  idToken: string | null,
+  opts?: DeleteVacancyOnBackendOpts,
+): Promise<ForwardResult> {
+  const url = getBackendVacancyDeleteUrl(ref, opts?.vacancyId);
+  if (!url) {
+    if (backendEnvLooksInvalid()) {
+      return {
+        ok: false,
+        error:
+          "Invalid backend URL in environment. Check BACKEND_URL, or BACKEND_ORIGIN + BACKEND_VACANCY_PATH, or BACKEND_HOST + BACKEND_PORT.",
+      };
+    }
+    if (isBackendVacancyDeleteConfigured() && !opts?.vacancyId?.trim()) {
+      return {
+        ok: false,
+        status: 400,
+        error:
+          "Missing vacancy id (UUID). The backend expects DELETE /api/vacancy/{id}?tenantId=… — ensure the listing includes `id` from your API.",
+      };
+    }
+    return { ok: true, skipped: true };
+  }
+
+  const headers: Record<string, string> = {};
+  if (idToken) {
+    headers.Authorization = `Bearer ${idToken}`;
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers,
       signal: AbortSignal.timeout(15_000),
     });
 

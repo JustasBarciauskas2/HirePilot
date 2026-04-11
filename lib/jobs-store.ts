@@ -53,10 +53,22 @@ export function addJob(job: JobDetail): void {
   writeJobs(jobs);
 }
 
-export function removeJobByRef(ref: string): boolean {
+/**
+ * Remove from local `jobs.json`.
+ * When `vacancyId` is set, only removes the row whose `id` matches (and `ref` matches).
+ * When omitted, removes every row with that `ref` (legacy; avoid if refs can repeat).
+ */
+export function removeJobByRef(ref: string, vacancyId?: string | null): boolean {
   const jobs = readJobs();
   const norm = ref.toLowerCase();
-  const next = jobs.filter((j) => j.ref.toLowerCase() !== norm);
+  const vid = vacancyId?.trim();
+  const next = jobs.filter((j) => {
+    if (j.ref.toLowerCase() !== norm) return true;
+    if (vid) {
+      return j.id?.trim() !== vid;
+    }
+    return false;
+  });
   if (next.length === jobs.length) return false;
   writeJobs(next);
   return true;

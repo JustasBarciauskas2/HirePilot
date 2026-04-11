@@ -69,9 +69,7 @@ export function buildJobFromPortalInput(existing: JobDetail[], input: PortalJobF
   const regions = parseList(input.regionsText);
   const industries = parseList(input.industriesText);
   const skillNames = parseList(input.skillsText);
-  const skills = skillNames.length
-    ? skillNames.map((name, i) => ({ name, highlight: i === 0 }))
-    : [{ name: "Role-specific skills", highlight: true }];
+  const skills = skillNames.length ? skillNames.map((name) => ({ name })) : [{ name: "Role-specific skills" }];
 
   const compTrim = input.comp.trim();
   const firstComp = compTrim.split(/[–-]/)[0]?.trim() || "Competitive";
@@ -84,11 +82,11 @@ export function buildJobFromPortalInput(existing: JobDetail[], input: PortalJobF
     type: input.type.trim(),
     comp: compTrim,
     salaryHighlight: input.salaryHighlight?.trim() || firstComp,
-    equityNote: input.equityNote?.trim() || "Discussed with shortlisted candidates.",
+    equityNote: input.equityNote?.trim() || "",
     location: input.location.trim(),
     locationTag: input.locationTag?.trim() || input.location.trim(),
     regions: regions.length ? regions : ["Remote"],
-    sizeBand: input.sizeBand ?? "101-250",
+    sizeBand: input.sizeBand ?? "51-200",
     skills,
     experienceLevel: input.experienceLevel?.trim() || "Mid–senior level",
     industries: industries.length ? industries : ["Technology"],

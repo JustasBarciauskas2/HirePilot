@@ -1,4 +1,5 @@
 import type { JobDetail, JobSizeBand } from "@/data/jobs";
+import { JOB_SIZE_BAND_LABELS } from "@/data/job-types";
 
 export type TypeFilter = "all" | "full-time" | "contract";
 export type WorkFilter = "all" | "remote" | "hybrid" | "onsite";
@@ -24,7 +25,7 @@ export function getWorkStyle(job: JobDetail): Exclude<WorkFilter, "all"> {
   return "onsite";
 }
 
-function matchesType(job: JobDetail, type: TypeFilter): boolean {
+export function matchesType(job: JobDetail, type: TypeFilter): boolean {
   if (type === "all") return true;
   const t = job.type.toLowerCase();
   if (type === "full-time") return t.includes("full");
@@ -73,6 +74,9 @@ export function jobSearchText(job: JobDetail): string {
     job.location,
     job.locationTag,
     job.comp,
+    job.salaryHighlight,
+    job.equityHighlight ?? "",
+    job.equityNote,
     job.type,
     job.experienceLevel,
     job.sizeBand,
@@ -128,11 +132,7 @@ export function uniqueExperienceLevels(jobs: JobDetail[]): string[] {
   );
 }
 
-export const SIZE_BAND_LABELS: Record<JobSizeBand, string> = {
-  "1-100": "1–100 employees",
-  "101-250": "101–250 employees",
-  "201-500": "201–500 employees",
-};
+export const SIZE_BAND_LABELS: Record<JobSizeBand, string> = JOB_SIZE_BAND_LABELS;
 
 export function hasActiveAdvancedFilters(
   opts: Pick<JobFilterState, "skills" | "regions" | "sizeBands" | "experienceLevels">,

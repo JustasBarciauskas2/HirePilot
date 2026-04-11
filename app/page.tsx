@@ -10,12 +10,12 @@ import { MarqueeRoles } from "@/components/agency/MarqueeRoles";
 import { Nav } from "@/components/agency/Nav";
 import { ServicesZigZag } from "@/components/agency/ServicesZigZag";
 import { Testimonials } from "@/components/agency/Testimonials";
-import { getAllJobs } from "@/data/jobs";
+import { getPublicJobs } from "@/lib/public-jobs";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const jobs = getAllJobs();
+export default async function Home() {
+  const jobs = await getPublicJobs();
   return (
     <>
       <Nav />

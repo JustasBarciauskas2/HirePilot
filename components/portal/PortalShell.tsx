@@ -22,9 +22,11 @@ export function PortalShell({ initialJobs }: { initialJobs: JobDetail[] }) {
               <span className="font-mono text-xs">.env.local</span> and set the{" "}
               <span className="font-mono text-xs">NEXT_PUBLIC_FIREBASE_*</span> keys from your Firebase project
               (Project settings → Your apps). For API routes, add a service account via{" "}
-              <span className="font-mono text-xs">FIREBASE_SERVICE_ACCOUNT_JSON</span> or{" "}
-              <span className="font-mono text-xs">FIREBASE_PROJECT_ID</span>,{" "}
-              <span className="font-mono text-xs">FIREBASE_CLIENT_EMAIL</span>, and{" "}
+              <span className="font-mono text-xs">GOOGLE_APPLICATION_CREDENTIALS</span> pointing at your
+              downloaded service account JSON, or{" "}
+              <span className="font-mono text-xs">FIREBASE_SERVICE_ACCOUNT_JSON</span> / separate{" "}
+              <span className="font-mono text-xs">FIREBASE_PROJECT_ID</span> +{" "}
+              <span className="font-mono text-xs">FIREBASE_CLIENT_EMAIL</span> +{" "}
               <span className="font-mono text-xs">FIREBASE_PRIVATE_KEY</span>.
             </p>
           </div>

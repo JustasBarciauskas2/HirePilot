@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "vacancy": {
+    "title": "ML ENGINEER — INFERENCE",
+    "companyName": "Lattice Inference",
+    "companyTagline": "Inference stack for production GenAI workloads.",
+    "companySize": "21–100 employees",
+    "clientLine": "Posted via Meridian Talent portal",
+    "type": "FULL-TIME",
+    "comp": "$228k–$260k",
+    "salaryHighlight": "$228k",
+    "equityNote": "Equity band competitive with top decile ML infra startups.",
+    "location": "San Francisco Bay Area",
+    "locationTag": "SF Bay hybrid",
+    "regions": ["United States", "California"],
+    "sizeBand": "51-200",
+    "skills": [
+      { "name": "Python" },
+      { "name": "CUDA" },
+      { "name": "TensorRT" },
+      { "name": "K8s" }
+    ],
+    "experienceLevel": "Senior and expert level",
+    "industries": ["AI", "B2B", "SaaS", "Developer tools"],
+    "ourTake": "Lattice Inference is building the inference layer teams need for reliable GenAI in production.",
+    "whoYouAre": [
+      "You have shipped high-performance inference or ML systems.",
+      "You are comfortable owning latency, cost, and reliability tradeoffs."
+    ],
+    "desirable": [
+      "Experience with GPU kernels or TensorRT optimization.",
+      "Exposure to large-scale Kubernetes deployments."
+    ],
+    "whatJobInvolves": [
+      "Design and optimize inference paths for production workloads.",
+      "Partner with research and product on model deployment."
+    ],
+    "insights": {
+      "tags": ["New listing", "Inference"],
+      "growthStat": "Growing team",
+      "glassdoorRating": 4
+    },
+    "companyBenefits": [
+      "Competitive salary and equity.",
+      "Hybrid work with SF Bay office."
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · Meridian Talent"
+    }
+  }
+}

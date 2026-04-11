@@ -1,17 +1,17 @@
 import { forwardVacancyToBackend, type VacancyUser } from "@/lib/forward-vacancy";
-import type { JobSizeBand } from "@/data/job-types";
+import { JOB_SIZE_BANDS, type JobSizeBand } from "@/data/job-types";
 import { buildJobFromPortalInput } from "@/lib/create-job-from-input";
 import { addJob, readJobs } from "@/lib/jobs-store";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+import { getTenantInstancePayload } from "@/lib/tenant-instance";
 import { getFirebaseUserFromRequest } from "@/lib/verify-firebase-request";
 import { NextRequest } from "next/server";
-import { revalidatePath } from "next/cache";
-
-const SIZE_BANDS: JobSizeBand[] = ["1-100", "101-250", "201-500"];
+import { revalidatePath, revalidateTag } from "next/cache";
+import { VACANCIES_LIST_FETCH_TAG } from "@/lib/fetch-tenant-vacancies";
 
 function parseSizeBand(v: FormDataEntryValue | null): JobSizeBand | undefined {
   const s = typeof v === "string" ? v : "";
-  return SIZE_BANDS.includes(s as JobSizeBand) ? (s as JobSizeBand) : undefined;
+  return (JOB_SIZE_BANDS as readonly string[]).includes(s) ? (s as JobSizeBand) : undefined;
 }
 
 function bearerFromRequest(req: NextRequest): string | null {
@@ -125,11 +125,16 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  addJob(job);
+  const jobToSave =
+    backend.ok && "vacancyId" in backend && typeof backend.vacancyId === "string" && backend.vacancyId.trim()
+      ? { ...job, id: backend.vacancyId.trim() }
+      : job;
+  addJob(jobToSave);
 
+  revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
   revalidatePath("/");
   revalidatePath("/portal");
-  revalidatePath(`/jobs/${job.slug}`);
+  revalidatePath(`/jobs/${jobToSave.slug}`);
 
-  return Response.json({ ok: true, job, backend });
+  return Response.json({ ok: true, job: jobToSave, backend, tenant: getTenantInstancePayload() });
 }

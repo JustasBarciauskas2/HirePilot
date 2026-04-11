@@ -1,5 +1,5 @@
 import { PortalShell } from "@/components/portal/PortalShell";
-import { getAllJobs } from "@/data/jobs";
+import { getPublicJobs } from "@/lib/public-jobs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function PortalPage() {
-  const jobs = getAllJobs();
+export default async function PortalPage() {
+  const jobs = await getPublicJobs();
   return <PortalShell initialJobs={jobs} />;
 }

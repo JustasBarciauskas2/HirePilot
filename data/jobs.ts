@@ -4,8 +4,9 @@ export type {
   JobSizeBand,
   JobSkill,
 } from "./job-types";
-export { jobBase } from "./job-types";
+export { JOB_SIZE_BANDS, JOB_SIZE_BAND_LABELS, jobBase } from "./job-types";
 export { seedJobs } from "./seed-jobs";
+export { getPublicJobs, getPublicJobBySlug } from "@/lib/public-jobs";
 
 import type { JobDetail } from "./job-types";
 import { readJobs } from "@/lib/jobs-store";
