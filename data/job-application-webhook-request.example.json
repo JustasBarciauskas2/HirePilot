@@ -1,0 +1,51 @@
+{
+  "_about": "Next.js POSTs this to your BACKEND_JOB_APPLICATION_WEBHOOK_URL (or BACKEND_ORIGIN + BACKEND_JOB_APPLICATION_PATH). Default path segment: /api/job-applications — align your @PostMapping.",
+  "method": "POST",
+  "request": {
+    "headers": {
+      "Accept": "application/json",
+      "X-Tenant-Id": "Same value as form field tenantId — tenant / site instance id.",
+      "Content-Type": "multipart/form-data; boundary=----WebKitBoundary..."
+    },
+    "body": "multipart/form-data with the following parts (all string parts are UTF-8 text unless noted):"
+  },
+  "multipartParts": {
+    "file": {
+      "type": "file",
+      "description": "Candidate CV (PDF or Word). Same bytes Next stored in Firebase Storage."
+    },
+    "applicationId": {
+      "type": "string",
+      "description": "Firestore document id for this application (jobApplications collection)."
+    },
+    "tenantId": {
+      "type": "string",
+      "description": "Tenant id for scoping rows in your DB (matches X-Tenant-Id header)."
+    },
+    "vacancyId": {
+      "type": "string",
+      "description": "Primary key UUID of the vacancy in YOUR database — maps from the public job’s JobDetail.id when the listing was published with an id from your API. Use this to load the vacancy row when processing. Empty string \"\" when the job has no id (e.g. local-only listing without backend UUID)."
+    },
+    "jobRef": {
+      "type": "string",
+      "description": "Human-readable listing code (e.g. MT-2026-014). Fallback key if vacancyId is empty."
+    },
+    "jobSlug": { "type": "string", "description": "URL slug for the public job page." },
+    "jobTitle": { "type": "string" },
+    "companyName": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" },
+    "email": { "type": "string" },
+    "phone": { "type": "string", "description": "May be empty string." },
+    "cvStoragePath": {
+      "type": "string",
+      "description": "Firebase Storage object path on the Next.js/Firebase project (reference only)."
+    },
+    "cvFileName": { "type": "string" },
+    "cvContentType": { "type": "string", "description": "MIME type of the uploaded CV." }
+  },
+  "springBindingExample": {
+    "vacancyId": "Bind to JobApplicationRequest.vacancyId — parse as UUID when non-empty: UUID.fromString(request.getVacancyId())",
+    "note": "If vacancyId is blank, resolve vacancy by tenantId + jobRef (or jobSlug) in your service."
+  }
+}

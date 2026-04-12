@@ -3,6 +3,8 @@
  * Server-only logic lives in `job-applications.ts`.
  */
 
+import type { CandidateScreeningResult } from "@/lib/candidate-screening-result";
+
 export const JOB_APPLICATIONS_COLLECTION = "jobApplications";
 
 export const JOB_APPLICATION_STATUSES = [
@@ -42,8 +44,10 @@ export type JobApplicationRecord = {
   status: JobApplicationStatus;
   /** ISO string for JSON APIs */
   createdAt: string;
-  /** Your Java/API person id when the apply webhook returned one (field `id` in JSON, etc.). */
+  /** Your backend’s persisted applicant id (from webhook JSON `backendPersonId` or `id`). */
   backendPersonId?: string;
+  /** AI screening from your tenant applications API merge — not stored in Firestore. */
+  screening?: CandidateScreeningResult;
 };
 
 export function isJobApplicationStatusString(v: unknown): v is JobApplicationStatus {

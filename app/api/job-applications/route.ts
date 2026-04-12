@@ -1,10 +1,11 @@
-import { NextRequest } from "next/server";
+import { after, NextRequest } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import {
   assertCvSizeOk,
   createJobApplicationDoc,
   isAllowedCvMime,
-  setBackendPersonIdForApplication,
+  markJobApplicationWebhookFinished,
+  setJobApplicationWebhookResult,
   uploadApplicationCv,
   getTenantIdForApplications,
 } from "@/lib/job-applications";
@@ -176,7 +177,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const webhook = await forwardJobApplicationToBackend({
+  const webhookPayload = {
     applicationId: id,
     tenantId,
     jobRef: job.ref,
@@ -191,23 +192,66 @@ export async function POST(req: NextRequest): Promise<Response> {
     cvStoragePath: storagePath,
     cvFileName: fileName,
     cvContentType: contentType,
-  });
-  if (!webhook.ok) {
-    console.error("[job-applications] backend webhook failed", webhook.status, webhook.hint);
-  }
+  };
 
-  let backendPersonId: string | undefined =
-    webhook.ok && "backendPersonId" in webhook ? webhook.backendPersonId : undefined;
-  if (backendPersonId) {
-    const saved = await setBackendPersonIdForApplication(id, tenantId, backendPersonId);
-    if (!saved) {
-      console.error("[job-applications] could not persist backendPersonId on application doc", id);
+  /** When true, wait for the Java webhook before responding (may include screening in-body for the JSON response). When false (default), respond immediately and process in `after()`; screening is not stored in Firestore — the portal loads it from your tenant applications API when configured. */
+  const syncWebhook =
+    process.env.JOB_APPLICATION_WEBHOOK_SYNC === "true" || process.env.JOB_APPLICATION_WEBHOOK_SYNC === "1";
+
+  async function runWebhookAndPersist(): Promise<void> {
+    try {
+      const webhook = await forwardJobApplicationToBackend(webhookPayload, buffer);
+      if (!webhook.ok) {
+        console.error("[job-applications] backend webhook failed", webhook.status, webhook.hint);
+        return;
+      }
+      if (webhook.skipped) return;
+      await setJobApplicationWebhookResult(id, tenantId, {
+        backendPersonId: webhook.backendPersonId,
+      });
+    } catch (e) {
+      console.error("[job-applications] backend webhook error", e);
+    } finally {
+      await markJobApplicationWebhookFinished(id, tenantId);
     }
   }
+
+  if (syncWebhook) {
+    let backendPersonId: string | undefined;
+    let screening: import("@/lib/candidate-screening-result").CandidateScreeningResult | undefined;
+    try {
+      const webhook = await forwardJobApplicationToBackend(webhookPayload, buffer);
+      if (!webhook.ok) {
+        console.error("[job-applications] backend webhook failed", webhook.status, webhook.hint);
+      } else if (!webhook.skipped) {
+        backendPersonId = webhook.backendPersonId;
+        screening = webhook.screening;
+        const saved = await setJobApplicationWebhookResult(id, tenantId, {
+          backendPersonId,
+        });
+        if (!saved) {
+          console.error("[job-applications] could not persist webhook result on application doc", id);
+        }
+      }
+    } catch (e) {
+      console.error("[job-applications] backend webhook unexpected error", e);
+    } finally {
+      await markJobApplicationWebhookFinished(id, tenantId);
+    }
+    return Response.json({
+      ok: true,
+      id,
+      screeningStatus: "complete" as const,
+      ...(backendPersonId ? { backendPersonId } : {}),
+      ...(screening ? { screening } : {}),
+    });
+  }
+
+  after(() => runWebhookAndPersist());
 
   return Response.json({
     ok: true,
     id,
-    ...(backendPersonId ? { backendPersonId } : {}),
+    screeningStatus: "pending" as const,
   });
 }

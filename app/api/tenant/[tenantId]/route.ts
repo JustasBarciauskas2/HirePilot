@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { authorizeApplicationsFetch } from "@/lib/applications-list-auth";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+import { mergeScreeningFromBackendTenantApplications } from "@/lib/merge-backend-screening";
 import { listJobApplicationsForTenant } from "@/lib/job-applications";
 
 export const runtime = "nodejs";
@@ -29,7 +30,8 @@ export async function GET(
   }
 
   try {
-    const applications = await listJobApplicationsForTenant(tid);
+    let applications = await listJobApplicationsForTenant(tid);
+    applications = await mergeScreeningFromBackendTenantApplications(tid, applications);
     return Response.json({ applications });
   } catch (e) {
     console.error("[api/tenant/[tenantId]]", e);

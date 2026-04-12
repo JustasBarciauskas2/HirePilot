@@ -193,6 +193,33 @@ export async function getJobApplicationForTenant(
   return docToRecord(doc);
 }
 
+/** For public screening poll: record + whether deferred webhook has finished (success or skip/fail). */
+export async function getJobApplicationWebhookPollState(
+  id: string,
+  tenantId: string,
+): Promise<{ record: JobApplicationRecord; webhookCompletedAt: string | null } | null> {
+  const db = getFirebaseAdminFirestore();
+  const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return null;
+  const d = doc.data();
+  if (!d || String(d.tenantId) !== tenantId) return null;
+  const record = docToRecord(doc);
+  const ts = d.webhookCompletedAt as Timestamp | undefined;
+  const webhookCompletedAt = ts?.toDate ? ts.toDate().toISOString() : null;
+  return { record, webhookCompletedAt };
+}
+
+export async function markJobApplicationWebhookFinished(applicationId: string, tenantId: string): Promise<void> {
+  const db = getFirebaseAdminFirestore();
+  const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(applicationId);
+  const doc = await ref.get();
+  if (!doc.exists) return;
+  const d = doc.data();
+  if (!d || String(d.tenantId) !== tenantId) return;
+  await ref.update({ webhookCompletedAt: FieldValue.serverTimestamp() });
+}
+
 /** Firestore allows a limited number of documents per `getAll` call — batch to stay under the quota. */
 const GET_ALL_CHUNK = 10;
 
@@ -237,13 +264,29 @@ export async function setBackendPersonIdForApplication(
   tenantId: string,
   backendPersonId: string,
 ): Promise<boolean> {
+  return setJobApplicationWebhookResult(applicationFirestoreId, tenantId, { backendPersonId });
+}
+
+/** Persists webhook outcome (your backend applicant id) on the application document. Screening is not stored — return it from your tenant applications API (see `mergeScreeningFromBackendTenantApplications`). */
+export async function setJobApplicationWebhookResult(
+  applicationFirestoreId: string,
+  tenantId: string,
+  data: {
+    backendPersonId?: string;
+  },
+): Promise<boolean> {
   const db = getFirebaseAdminFirestore();
   const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(applicationFirestoreId);
   const doc = await ref.get();
   if (!doc.exists) return false;
   const d = doc.data();
   if (!d || String(d.tenantId) !== tenantId) return false;
-  await ref.update({ backendPersonId });
+  const patch: Record<string, unknown> = {};
+  if (data.backendPersonId?.trim()) {
+    patch.backendPersonId = data.backendPersonId.trim();
+  }
+  if (Object.keys(patch).length === 0) return true;
+  await ref.update(patch);
   return true;
 }
 

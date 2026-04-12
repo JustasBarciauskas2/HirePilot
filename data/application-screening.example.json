@@ -1,0 +1,20 @@
+{
+  "_comment": "Return this inside your apply webhook JSON (POST target: BACKEND_JOB_APPLICATION_WEBHOOK_URL). Next.js reads `id` / person id and optional `screening` — persisted on the Firestore jobApplications doc and returned to the candidate browser.",
+  "id": "backend-person-or-candidate-uuid",
+  "screening": {
+    "matchScore": 78,
+    "fitLevel": "good_fit",
+    "fitLabel": "Good fit for this role",
+    "summary": "Strong alignment with the stack and seniority; location and contract preferences match the listing.",
+    "insight": "Eight years shipping React and Node in product teams; leadership experience is lighter than the JD’s ideal but the technical bar is clearly met. Remote in UK matches the role.",
+    "attributes": {
+      "skills": ["TypeScript", "React", "Node.js", "PostgreSQL"],
+      "experience": "8 years full-stack product engineering; 3 years staff-level scope",
+      "location": "United Kingdom · Remote"
+    },
+    "screenedAt": "2026-04-12T14:30:00.000Z",
+    "model": "your-model-or-pipeline-id"
+  },
+  "_fitLevel_values": ["strong_fit", "good_fit", "moderate_fit", "weak_fit"],
+  "_matchScore": "Integer 0–100. If fitLevel is omitted, the app derives it from the score."
+}

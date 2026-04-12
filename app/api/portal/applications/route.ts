@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getBackendApplicationsPortalListUrl } from "@/lib/backend-url";
+import { getBackendApplicationsPortalListUrl, getBackendTenantApplicationsUrl } from "@/lib/backend-url";
 import { fetchBackendFirestoreApplicationIds } from "@/lib/fetch-backend-application-ids";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import {
@@ -8,6 +8,7 @@ import {
   listJobApplicationsForTenant,
   listJobApplicationsForVacancy,
 } from "@/lib/job-applications";
+import { mergeScreeningFromBackendTenantApplications } from "@/lib/merge-backend-screening";
 import { getFirebaseUserFromRequest } from "@/lib/verify-firebase-request";
 
 export const runtime = "nodejs";
@@ -53,6 +54,10 @@ export async function GET(req: NextRequest): Promise<Response> {
       source = "firestore";
     }
 
+    applications = await mergeScreeningFromBackendTenantApplications(tenantId, applications);
+
+    const screeningMergeUrl = getBackendTenantApplicationsUrl(tenantId);
+
     return Response.json(
       {
         applications,
@@ -64,6 +69,15 @@ export async function GET(req: NextRequest): Promise<Response> {
          * `firestore`: direct Firestore query (no backend list URL configured).
          */
         source,
+        /** Development only: confirms `BACKEND_TENANT_APPLICATIONS_URL` resolved for screening merge. */
+        ...(process.env.NODE_ENV === "development"
+          ? {
+              _debugScreeningMerge: {
+                resolvedUrl: screeningMergeUrl,
+                envVarSet: Boolean(process.env.BACKEND_TENANT_APPLICATIONS_URL?.trim()),
+              },
+            }
+          : {}),
       },
       { headers: noStoreJson },
     );

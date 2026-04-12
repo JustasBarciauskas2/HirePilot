@@ -1,0 +1,128 @@
+{
+  "_comment": "Job application + screening: one round-trip. Remove _comment keys before strict JSON parsing.",
+  "flow": {
+    "step1_browserToNext": "Candidate POSTs multipart to Next.js POST /api/job-applications (field cv = file, plus jobSlug, firstName, lastName, email, phone).",
+    "step2_asyncDefault": "By default (JOB_APPLICATION_WEBHOOK_SYNC unset/false), Next responds immediately with { ok, id, screeningStatus: \"pending\" } and runs the Java webhook in the background (next/server after). Next stores backendPersonId on the Firestore doc only — not screening. webhookCompletedAt marks completion.",
+    "step3_portal": "Recruiters see screening in the portal when GET BACKEND_TENANT_APPLICATIONS_* returns screening keyed by Firestore applicationId (merge). The public apply form does not show screening.",
+    "step4_syncOption": "Set JOB_APPLICATION_WEBHOOK_SYNC=true to wait for the webhook before responding; then the first response may include screening and backendPersonId inline (screeningStatus: \"complete\") — same JSON shape as browserResponseExample.",
+    "step5_backendWebhook": "Next POSTs multipart to BACKEND_JOB_APPLICATION_* URL: field file = CV, plus applicationId, tenantId, jobRef, jobSlug, jobTitle, companyName, vacancyId, firstName, lastName, email, phone, cvStoragePath, cvFileName, cvContentType. Header X-Tenant-Id.",
+    "step6_backendResponse": "Webhook JSON (JobApplicationResponse): id, optional screening — only applicant id is written to Firestore. For portal screening, your GET /api/tenant/{tenantId}/applications (or BACKEND_TENANT_APPLICATIONS_URL) should return applications[] with applicationId + screening per row.",
+    "step7_display": "Recruiter: ApplicationsPanel + CandidateScreeningCard (screening merged from tenant GET). Public apply: thank-you only."
+  },
+  "multipartFieldNames": [
+    "file",
+    "applicationId",
+    "tenantId",
+    "jobRef",
+    "jobSlug",
+    "jobTitle",
+    "companyName",
+    "vacancyId",
+    "firstName",
+    "lastName",
+    "email",
+    "phone",
+    "cvStoragePath",
+    "cvFileName",
+    "cvContentType"
+  ],
+  "webhookResponseExample": {
+    "ok": true,
+    "id": "persisted-applicant-id-from-your-backend",
+    "backendPersonId": "optional-use-if-you-prefer-this-field-instead-of-id",
+    "screening": {
+      "schemaVersion": 1,
+      "candidateName": "Sam Rivera",
+      "jobAppliedFor": {
+        "jobRef": "MT-2026-014",
+        "jobTitle": "Senior Software Engineer",
+        "companyName": "Meridian Labs",
+        "jobSlug": "senior-software-engineer-meridian-labs"
+      },
+      "match": {
+        "score": 78,
+        "scoreMax": 100,
+        "experienceScore": 82,
+        "fitLabel": "strong_fit",
+        "headline": "Strong alignment on backend ownership and scale",
+        "summary": "Sam shows eight years of backend experience with clear ownership of high-traffic services. The stack overlaps strongly with this role (TypeScript, Postgres, Kubernetes). Leadership experience is lighter than the ideal profile but coaching and code quality practices are evident.",
+        "insights": [
+          "Seniority and years of experience match the job level.",
+          "Domain overlap with B2B SaaS and billing systems is a plus.",
+          "Limited evidence of cross-team technical leadership at director level — flag for interview focus."
+        ],
+        "rationale": "Recommend phone screen: technical fit is high; validate people leadership expectations in first conversation."
+      },
+      "attributes": {
+        "skills": [
+          { "name": "TypeScript", "relevance": "high" },
+          { "name": "PostgreSQL", "relevance": "high" },
+          { "name": "Kubernetes", "relevance": "medium" }
+        ],
+        "experience": "8+ years backend; 2 years as tech lead",
+        "location": "London, UK (remote EU)"
+      },
+      "meta": {
+        "generatedAt": "2026-04-12T14:32:01.000Z",
+        "model": "your-model-id",
+        "processingMs": 1850
+      }
+    }
+  },
+  "asyncFirstResponseExample": {
+    "_note": "Default (async webhook): candidate gets this immediately after apply — no screening yet.",
+    "ok": true,
+    "id": "firestore-jobApplications-doc-id",
+    "screeningStatus": "pending"
+  },
+  "browserResponseExample": {
+    "ok": true,
+    "id": "firestore-jobApplications-doc-id",
+    "backendPersonId": "person-or-candidate-id-from-your-backend",
+    "screeningStatus": "complete",
+    "screening": {
+      "schemaVersion": 1,
+      "candidateName": "Sam Rivera",
+      "jobAppliedFor": {
+        "jobRef": "MT-2026-014",
+        "jobTitle": "Senior Software Engineer",
+        "companyName": "Meridian Labs",
+        "jobSlug": "senior-software-engineer-meridian-labs"
+      },
+      "match": {
+        "score": 78,
+        "scoreMax": 100,
+        "experienceScore": 82,
+        "fitLabel": "strong_fit",
+        "headline": "Strong alignment on backend ownership and scale",
+        "summary": "Sam shows eight years of backend experience with clear ownership of high-traffic services. The stack overlaps strongly with this role (TypeScript, Postgres, Kubernetes). Leadership experience is lighter than the ideal profile but coaching and code quality practices are evident.",
+        "insights": [
+          "Seniority and years of experience match the job level.",
+          "Domain overlap with B2B SaaS and billing systems is a plus.",
+          "Limited evidence of cross-team technical leadership at director level — flag for interview focus."
+        ],
+        "rationale": "Recommend phone screen: technical fit is high; validate people leadership expectations in first conversation."
+      },
+      "attributes": {
+        "skills": [
+          { "name": "TypeScript", "relevance": "high" },
+          { "name": "PostgreSQL", "relevance": "high" },
+          { "name": "Kubernetes", "relevance": "medium" }
+        ],
+        "experience": "8+ years backend; 2 years as tech lead",
+        "location": "London, UK (remote EU)"
+      },
+      "meta": {
+        "generatedAt": "2026-04-12T14:32:01.000Z",
+        "model": "your-model-id",
+        "processingMs": 1850
+      }
+    }
+  },
+  "_fitLabelValues": ["strong_fit", "moderate_fit", "weak_fit", "not_a_fit"],
+  "_notes": [
+    "screening is produced by your backend after it receives the CV (multipart) and runs your screening engine.",
+    "If screening is omitted or invalid, apply still succeeds; the UI falls back to the generic thank-you message.",
+    "Return screening next to id at the webhook root, or nested under data.screening — see parseCandidateScreeningFromBackendPayload in lib/candidate-screening-result.ts."
+  ]
+}

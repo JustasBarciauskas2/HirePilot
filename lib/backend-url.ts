@@ -222,8 +222,11 @@ export function getBackendVacancyDeleteUrl(_ref: string, vacancyId?: string | nu
 }
 
 /**
- * Optional webhook: Next POSTs JSON after a candidate applies (Firestore + Storage already saved).
- * Set a full URL, or combine `BACKEND_ORIGIN` + `BACKEND_JOB_APPLICATION_PATH`.
+ * Optional webhook: after a candidate applies (Firestore + Storage saved), Next POSTs **multipart/form-data**
+ * to this URL — CV field name `file`, plus string fields `applicationId`, `tenantId`, `jobRef`, `jobSlug`, `jobTitle`,
+ * `companyName`, `vacancyId`, `firstName`, `lastName`, `email`, `phone`, `cvStoragePath`, `cvFileName`, `cvContentType`
+ * (see `appendJobApplicationFormFields` in `lib/forward-job-application.ts`). Header `X-Tenant-Id` is set.
+ * Response: JSON with optional `id` / `screening` (screening is not written to Firestore; portal uses `getBackendTenantApplicationsUrl`).
  *
  * Full URL wins: `BACKEND_JOB_APPLICATION_WEBHOOK_URL=https://api.example.com/v1/applications`
  * Or: `BACKEND_ORIGIN=http://localhost:8080` + `BACKEND_JOB_APPLICATION_PATH=/api/applications` (default path if omitted: `/api/job-applications`)
@@ -274,6 +277,52 @@ export function getBackendApplicationsPortalListUrl(): string | null {
   const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
   try {
     return new URL(path, `${base}/`).href;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * GET URL your Java/backend exposes: **tenant-scoped applications** with optional `screening` per row
+ * (same shape as the apply webhook). Next merges this into portal / API responses — screening is **not** stored in Firestore.
+ *
+ * 1) `BACKEND_TENANT_APPLICATIONS_URL` — full URL; use `{tenantId}` placeholder, e.g.
+ *    `http://localhost:8080/api/tenant/{tenantId}/applications`
+ * 2) `BACKEND_TENANT_APPLICATIONS_USE_ORIGIN=true` + `BACKEND_ORIGIN` + `BACKEND_TENANT_APPLICATIONS_PATH`
+ *    (default `/api/tenant/{tenantId}/applications`)
+ */
+export function getBackendTenantApplicationsUrl(tenantId: string): string | null {
+  const tid = tenantId?.trim();
+  if (!tid) return null;
+
+  const full = process.env.BACKEND_TENANT_APPLICATIONS_URL?.trim();
+  if (full) {
+    try {
+      const replaced = full.replace(/\{tenantId\}/g, encodeURIComponent(tid));
+      new URL(replaced);
+      return replaced;
+    } catch (e) {
+      console.error(
+        "[BACKEND_TENANT_APPLICATIONS_URL] invalid URL after {tenantId} substitution:",
+        full,
+        e instanceof Error ? e.message : e,
+      );
+      return null;
+    }
+  }
+
+  const useOrigin =
+    process.env.BACKEND_TENANT_APPLICATIONS_USE_ORIGIN?.trim() === "1" ||
+    process.env.BACKEND_TENANT_APPLICATIONS_USE_ORIGIN?.trim().toLowerCase() === "true";
+  if (!useOrigin) return null;
+  const base = resolveBackendOriginBase();
+  if (!base) return null;
+  const rawPath =
+    process.env.BACKEND_TENANT_APPLICATIONS_PATH?.trim() || "/api/tenant/{tenantId}/applications";
+  const path = rawPath.replace(/\{tenantId\}/g, encodeURIComponent(tid));
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  try {
+    return new URL(normalized, `${base}/`).href;
   } catch {
     return null;
   }
