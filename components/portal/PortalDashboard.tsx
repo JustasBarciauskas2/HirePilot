@@ -4,7 +4,7 @@ import type { JobDetail } from "@/data/jobs";
 import { getApp } from "firebase/app";
 import type { User } from "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
-import { EnvelopeSimple, FileText, SignOut, Trash, UploadSimple } from "@phosphor-icons/react";
+import { Copy, EnvelopeSimple, FileText, SignOut, Trash, UploadSimple } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -28,6 +28,7 @@ export function PortalDashboard({
   const [jobs, setJobs] = useState(initialJobs);
   const [pending, startTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [copiedRef, setCopiedRef] = useState<string | null>(null);
 
   useEffect(() => {
     setJobs(initialJobs);
@@ -58,6 +59,31 @@ export function PortalDashboard({
       job.id ? list.filter((j) => j.id !== job.id) : list.filter((j) => j.ref !== job.ref),
     );
     startTransition(() => router.refresh());
+  }
+
+  async function copyJobPublicLink(job: JobDetail) {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/jobs/${job.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedRef(job.ref);
+      window.setTimeout(() => setCopiedRef((r) => (r === job.ref ? null : r)), 2000);
+    } catch {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setCopiedRef(job.ref);
+        window.setTimeout(() => setCopiedRef((r) => (r === job.ref ? null : r)), 2000);
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   return (
@@ -147,20 +173,29 @@ export function PortalDashboard({
           {jobs.map((job) => (
             <li
               key={job.ref}
-              className="flex items-start justify-between gap-4 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3"
+              className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3"
             >
               <div className="min-w-0">
                 <p className="font-mono text-[10px] text-zinc-400">{job.ref}</p>
                 <p className="truncate text-sm font-medium text-zinc-900">{job.title}</p>
                 <p className="truncate text-xs text-zinc-500">{job.companyName}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-3">
                 <Link
                   href={`/jobs/${job.slug}`}
                   className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
                 >
                   View
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => void copyJobPublicLink(job)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
+                  title="Copy public link to this vacancy"
+                >
+                  <Copy className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
+                  {copiedRef === job.ref ? "Copied" : "Copy link"}
+                </button>
                 <button
                   type="button"
                   aria-label={`Delete ${job.ref}`}

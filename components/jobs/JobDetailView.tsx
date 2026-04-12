@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { JobDetail } from "@/data/jobs";
+import { JobShareBlock } from "@/components/jobs/JobShareBlock";
 import { JOB_COMP_PILL_HERO } from "@/components/jobs/job-comp-pill-styles";
 import { equityPillText, showEquityNoteParagraph } from "@/lib/job-equity-pill";
 import { salaryDisplayLine } from "@/lib/job-salary-display";
@@ -318,7 +319,7 @@ export function JobDetailView({
 
       {/* Tabs */}
       <div className="sticky top-0 z-20 border-b border-zinc-200/90 bg-[#f6f5f2]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 sm:gap-2">
             <button
               type="button"
@@ -363,6 +364,10 @@ export function JobDetailView({
             <CompanySidebarCard job={job} tab={tab} />
             <SpecialistCard job={job} />
           </div>
+        </div>
+
+        <div className="mt-10 border-t border-zinc-200/80 pt-8">
+          <JobShareBlock job={job} />
         </div>
       </div>
     </div>

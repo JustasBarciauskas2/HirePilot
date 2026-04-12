@@ -4,7 +4,11 @@ import { salaryDisplayLine } from "@/lib/job-salary-display";
 const GENERIC_BOILERPLATE =
   /competitive salary|discussed at offer|package discussed|tbd|DOE|dependent on experience/i;
 
-function parseSalaryRangeFromString(raw: string): { min: number; max: number } | null {
+/**
+ * Best-effort parse of a free-text comp line into min/max **thousands** (e.g. 80 = £80k).
+ * Used by the portal form and job filters.
+ */
+export function parseSalaryRangeStringToK(raw: string): { min: number; max: number } | null {
   const trimmed = raw.replace(/,/g, " ").replace(/\s+/g, " ").trim();
   if (!trimmed || GENERIC_BOILERPLATE.test(trimmed)) return null;
 
@@ -39,8 +43,13 @@ function parseSalaryRangeFromString(raw: string): { min: number; max: number } |
  * "$175k–$205k" in `comp` aren’t lost when `salaryHighlight` is a single anchor.
  */
 export function parseSalaryRangeKFromJob(job: JobDetail): { min: number; max: number } | null {
-  const fromPill = parseSalaryRangeFromString(salaryDisplayLine(job));
-  const fromComp = parseSalaryRangeFromString(job.comp.trim());
+  const a = job.salaryMinK;
+  const b = job.salaryMaxK;
+  if (typeof a === "number" && typeof b === "number" && Number.isFinite(a) && Number.isFinite(b)) {
+    return { min: Math.min(a, b), max: Math.max(a, b) };
+  }
+  const fromPill = parseSalaryRangeStringToK(salaryDisplayLine(job));
+  const fromComp = parseSalaryRangeStringToK(job.comp.trim());
   if (!fromPill && !fromComp) return null;
   if (!fromPill) return fromComp;
   if (!fromComp) return fromPill;

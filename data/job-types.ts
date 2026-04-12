@@ -52,6 +52,12 @@ export type JobDetail = {
    */
   salaryHighlight: string;
   /**
+   * When set, annual pay band in **thousands** (e.g. `80` = $80k / £80k). Canonical for filters; display still uses `comp` / `salaryHighlight`.
+   */
+  salaryMinK?: number;
+  /** Upper bound in thousands; equals `salaryMinK` for a single published figure. */
+  salaryMaxK?: number;
+  /**
    * Optional ISO 4217 code so the pill icon matches when `salaryHighlight` has no symbol (e.g. `"Competitive"` only).
    * If omitted, `$` / `£` / `€` are inferred from `salaryHighlight`.
    */

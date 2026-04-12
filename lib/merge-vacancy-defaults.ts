@@ -2,6 +2,28 @@ import { JOB_SIZE_BANDS, type JobSizeBand } from "@/data/job-types";
 import { normalizeFundingRounds } from "@/lib/funding-round";
 import type { VacancyNormalizedFromDocument } from "@/data/vacancy-normalized-from-document";
 
+function coerceSalaryK(v: unknown): number | undefined {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const t = v.trim().replace(/,/g, "");
+    if (!t) return undefined;
+    const n = Number(t);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
+}
+
+/** Both min and max must be valid numbers to store a structured band. */
+function mergeSalaryKPair(partial: Partial<VacancyNormalizedFromDocument>): {
+  salaryMinK?: number;
+  salaryMaxK?: number;
+} {
+  const lo = coerceSalaryK(partial.salaryMinK);
+  const hi = coerceSalaryK(partial.salaryMaxK);
+  if (lo !== undefined && hi !== undefined) return { salaryMinK: Math.min(lo, hi), salaryMaxK: Math.max(lo, hi) };
+  return {};
+}
+
 /** Map older document/API values onto current bands */
 const LEGACY_SIZE_BAND: Record<string, JobSizeBand> = {
   "1-100": "51-200",
@@ -29,6 +51,7 @@ export function mergeVacancyDefaults(
     type: partial.type?.trim() || "",
     comp: partial.comp?.trim() || "",
     salaryHighlight: partial.salaryHighlight?.trim() || "",
+    ...mergeSalaryKPair(partial),
     compensationCurrency: partial.compensationCurrency?.trim() || undefined,
     equityHighlight: partial.equityHighlight?.trim() || undefined,
     equityCurrency: partial.equityCurrency?.trim() || undefined,

@@ -10,9 +10,18 @@ import {
 import type { VacancyNormalizedFromDocument } from "@/data/vacancy-normalized-from-document";
 import type { User } from "firebase/auth";
 import { CaretRight, Plus, X } from "@phosphor-icons/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { portalAuthHeaders } from "@/lib/portal-auth";
+import { parseSalaryRangeStringToK } from "@/lib/job-salary-range";
+import {
+  type PayCurrency,
+  PAY_CURRENCY_OPTIONS,
+  inferPayCurrencyFromText,
+  parseSalaryKInput,
+  sanitizeSalaryKDigits,
+  structuredSalaryFromRangeK,
+} from "@/lib/portal-salary-form";
 import { FieldLabel } from "@/components/portal/FieldLabel";
 import {
   FieldGroup,
@@ -30,13 +39,70 @@ import {
   textareaPanelClass,
 } from "@/components/portal/portal-form-primitives";
 
-/** Salary/range in `salaryHighlight`+`comp` vs competitive-style copy in `equityNote` (short pill). */
+/**
+ * Non-parseable pay copy (not a k figure or band) belongs on the competitive tab — move into `equityNote`
+ * so the form shows it, and clear `comp` / `salaryHighlight` to avoid mixed modes.
+ */
+function mergeCompetitiveTabFromComp(v: VacancyNormalizedFromDocument): VacancyNormalizedFromDocument {
+  const compText = (v.salaryHighlight || v.comp).trim();
+  if (!compText) return v;
+  if (parseSalaryRangeStringToK(compText) !== null) return v;
+
+  const note = v.equityNote.trim();
+  const cleared = { ...v, salaryHighlight: "", comp: "", salaryMinK: undefined, salaryMaxK: undefined };
+  if (!note) {
+    return { ...cleared, equityNote: compText };
+  }
+  return {
+    ...cleared,
+    equityNote: `${note} · ${compText}`.trim(),
+  };
+}
+
+const DEFAULT_COMPETITIVE_NOTE = "Competitive salary";
+
+/** Set salary tab when comp parses to thousands; competitive tab otherwise (default when nothing to parse). */
 function inferCompMode(v: VacancyNormalizedFromDocument): "range" | "note" {
-  const hasSalary = Boolean(v.salaryHighlight.trim() || v.comp.trim());
-  const hasNote = Boolean(v.equityNote.trim());
-  if (hasSalary) return "range";
-  if (hasNote && !hasSalary) return "note";
-  return "range";
+  const compText = (v.salaryHighlight || v.comp).trim();
+  const parsed = parseSalaryRangeStringToK(compText);
+  if (parsed !== null) return "range";
+  if (compText.trim()) return "note";
+  if (v.equityNote.trim()) return "note";
+  return "note";
+}
+
+type SalaryNumericMode = "single" | "range";
+
+function inferSalaryNumericMode(v: VacancyNormalizedFromDocument): SalaryNumericMode {
+  const parsed = parseSalaryRangeStringToK((v.comp || v.salaryHighlight).trim());
+  if (!parsed) return "single";
+  return parsed.min === parsed.max ? "single" : "range";
+}
+
+function getInitialVacancyEditorState(raw: VacancyNormalizedFromDocument) {
+  let merged = mergeCompetitiveTabFromComp(raw);
+  const mode = inferCompMode(merged);
+  if (mode === "note" && !merged.equityNote.trim()) {
+    merged = { ...merged, equityNote: DEFAULT_COMPETITIVE_NOTE };
+  }
+  const parsed = parseSalaryRangeStringToK((merged.comp || merged.salaryHighlight).trim());
+  if (parsed) {
+    merged = {
+      ...merged,
+      salaryMinK: Math.min(parsed.min, parsed.max),
+      salaryMaxK: Math.max(parsed.min, parsed.max),
+    };
+  }
+  const salaryNumericMode = inferSalaryNumericMode(merged);
+  return {
+    vacancy: merged,
+    compMode: mode,
+    payCurrency: inferPayCurrencyFromText(merged.comp + merged.salaryHighlight),
+    salaryMinKInput: parsed ? String(parsed.min) : "",
+    salaryMaxKInput: parsed ? String(parsed.max) : "",
+    salarySingleKInput: parsed && parsed.min === parsed.max ? String(parsed.min) : "",
+    salaryNumericMode,
+  };
 }
 
 const CATEGORIES = [
@@ -210,7 +276,8 @@ type Props = {
 
 export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublished }: Props) {
   const router = useRouter();
-  const [vacancy, setVacancy] = useState<VacancyNormalizedFromDocument>(initialVacancy);
+  const initialEditor = useMemo(() => getInitialVacancyEditorState(initialVacancy), [initialVacancy]);
+  const [vacancy, setVacancy] = useState<VacancyNormalizedFromDocument>(initialEditor.vacancy);
   const [cat, setCat] = useState(0);
   const [pending, setPending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -218,7 +285,12 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
   const [industryDraft, setIndustryDraft] = useState("");
   const [insightTagDraft, setInsightTagDraft] = useState("");
   const [showFundingDetails, setShowFundingDetails] = useState(() => hasFundingFromInitial(initialVacancy));
-  const [compMode, setCompMode] = useState<"range" | "note">(() => inferCompMode(initialVacancy));
+  const [compMode, setCompMode] = useState<"range" | "note">(initialEditor.compMode);
+  const [payCurrency, setPayCurrency] = useState<PayCurrency>(initialEditor.payCurrency);
+  const [salaryMinKInput, setSalaryMinKInput] = useState(initialEditor.salaryMinKInput);
+  const [salaryMaxKInput, setSalaryMaxKInput] = useState(initialEditor.salaryMaxKInput);
+  const [salarySingleKInput, setSalarySingleKInput] = useState(initialEditor.salarySingleKInput);
+  const [salaryNumericMode, setSalaryNumericMode] = useState<SalaryNumericMode>(initialEditor.salaryNumericMode);
   const formAnchorRef = useRef<HTMLDivElement>(null);
   const skipScrollIntoView = useRef(true);
 
@@ -250,12 +322,42 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
     if (next === compMode) return;
     setCompMode(next);
     if (next === "note") {
-      /** Drop salary lines; clear equity too so “competitive” isn’t mixed with old optional equity copy. */
-      setVacancy((v) => ({ ...v, salaryHighlight: "", comp: "", equityNote: "" }));
+      setVacancy((v) => ({
+        ...v,
+        salaryHighlight: "",
+        comp: "",
+        equityNote: v.equityNote.trim() || DEFAULT_COMPETITIVE_NOTE,
+        salaryMinK: undefined,
+        salaryMaxK: undefined,
+      }));
     } else {
-      /** Switching to salary/range: drop the note-only pill copy. */
-      setVacancy((v) => ({ ...v, equityNote: "" }));
+      setVacancy((v) => ({
+        ...v,
+        equityNote: "",
+        salaryMinK: undefined,
+        salaryMaxK: undefined,
+      }));
+      setSalaryNumericMode("single");
+      setSalaryMinKInput("");
+      setSalaryMaxKInput("");
+      setSalarySingleKInput("");
+      setPayCurrency("USD");
     }
+  }
+
+  function commitStructuredRangeToVacancy() {
+    const a = parseSalaryKInput(salaryMinKInput);
+    const b = parseSalaryKInput(salaryMaxKInput);
+    if (a == null || b == null) return;
+    const s = structuredSalaryFromRangeK(a, b, payCurrency);
+    setVacancy((v) => ({ ...v, ...s }));
+  }
+
+  function commitSingleSalaryToVacancy() {
+    const k = parseSalaryKInput(salarySingleKInput);
+    if (k == null) return;
+    const s = structuredSalaryFromRangeK(k, k, payCurrency);
+    setVacancy((v) => ({ ...v, ...s }));
   }
 
   useEffect(() => {
@@ -272,6 +374,39 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
       setCat(0);
       return;
     }
+    let vacancyToPublish = vacancy;
+    if (compMode === "range") {
+      if (salaryNumericMode === "single") {
+        const k = parseSalaryKInput(salarySingleKInput);
+        if (k == null) {
+          setErr(
+            "Enter a salary in thousands using digits only (e.g. 80 for about £80k / $80k), or switch to competitive salary if you don’t have a figure.",
+          );
+          setCat(0);
+          return;
+        }
+        vacancyToPublish = { ...vacancy, ...structuredSalaryFromRangeK(k, k, payCurrency) };
+      } else {
+        const a = parseSalaryKInput(salaryMinKInput);
+        const b = parseSalaryKInput(salaryMaxKInput);
+        if (a == null || b == null) {
+          setErr(
+            "Enter minimum and maximum salary in thousands using digits only (e.g. 80 and 100).",
+          );
+          setCat(0);
+          return;
+        }
+        vacancyToPublish = { ...vacancy, ...structuredSalaryFromRangeK(a, b, payCurrency) };
+      }
+    }
+    if (compMode === "note") {
+      vacancyToPublish = {
+        ...vacancyToPublish,
+        equityNote: vacancyToPublish.equityNote.trim() || DEFAULT_COMPETITIVE_NOTE,
+        salaryMinK: undefined,
+        salaryMaxK: undefined,
+      };
+    }
     setErr(null);
     setPending(true);
     try {
@@ -279,7 +414,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
       const res = await fetch("/api/portal/vacancy-publish-from-parsed", {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ vacancy }),
+        body: JSON.stringify({ vacancy: vacancyToPublish }),
         credentials: "include",
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string; job?: JobDetail };
@@ -357,7 +492,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                   <div className="sm:col-span-2">
                     <FieldLabel
                       label="How should pay show?"
-                      hint="Use salary or range when you have numbers. Choose competitive / note when you only want a short line such as “Competitive” or “Discussed at interview” — that appears in the green chip instead of a figure."
+                      hint="Set a single figure or a min–max band when you have numbers. If you don’t have a figure to publish, use competitive salary (defaults to a short competitive line)."
                     />
                     <div className={stepPillStripClass}>
                       <button
@@ -365,53 +500,168 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                         onClick={() => switchCompMode("range")}
                         className={stepPillClass(compMode === "range")}
                       >
-                        Salary or range
+                        Set salary
                       </button>
                       <button
                         type="button"
                         onClick={() => switchCompMode("note")}
                         className={stepPillClass(compMode === "note")}
                       >
-                        Competitive / note
+                        Competitive salary
                       </button>
                     </div>
                   </div>
 
                   {compMode === "range" ? (
                     <>
-                      <label className="block sm:col-span-2">
-                        <FieldLabel
-                          label="Salary or range"
-                          hint="This text is saved as both the listing pay line and the green salary chip. Keep the chip readable — you can still add bonus or equity in the same line."
-                        />
-                        <input
-                          className={inputPanelClass}
-                          value={vacancy.salaryHighlight || vacancy.comp}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setVacancy((v) => ({ ...v, salaryHighlight: val, comp: val }));
-                          }}
-                          placeholder="e.g. £50k–£60k or $228k–$260k + bonus"
-                        />
-                      </label>
-                      <label className="block sm:col-span-2">
-                        <FieldLabel
-                          label="Extra equity detail (optional)"
-                          hint="Longer equity or package wording. If it doesn’t fit the small green pill, it appears as a paragraph under the pay chips."
-                        />
-                        <input
-                          className={inputPanelClass}
-                          value={vacancy.equityNote}
-                          onChange={(e) => setVacancy((v) => ({ ...v, equityNote: e.target.value }))}
-                          placeholder="e.g. Meaningful equity grant discussed at offer stage"
-                        />
-                      </label>
+                          <div className="sm:col-span-2">
+                            <FieldLabel
+                              label="Amount type"
+                              hint="One figure (e.g. £80k) or a band (e.g. £80k–£100k)."
+                            />
+                            <div className={stepPillStripClass}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSalaryNumericMode("single");
+                                  const a = parseSalaryKInput(salaryMinKInput);
+                                  const b = parseSalaryKInput(salaryMaxKInput);
+                                  if (a != null && b != null) {
+                                    setSalarySingleKInput(String(a));
+                                  }
+                                }}
+                                className={stepPillClass(salaryNumericMode === "single")}
+                              >
+                                Single amount
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSalaryNumericMode("range");
+                                  const k = parseSalaryKInput(salarySingleKInput);
+                                  if (k != null) {
+                                    setSalaryMinKInput(String(k));
+                                    setSalaryMaxKInput(String(k));
+                                  }
+                                }}
+                                className={stepPillClass(salaryNumericMode === "range")}
+                              >
+                                Min–max range
+                              </button>
+                            </div>
+                          </div>
+                          <label className="block sm:col-span-2">
+                            <FieldLabel
+                              label="Currency"
+                              hint="Shown as $ / £ / € before each amount on the listing."
+                            />
+                            <select
+                              className={inputPanelClass}
+                              value={payCurrency}
+                              onChange={(e) => {
+                                const next = e.target.value as PayCurrency;
+                                setPayCurrency(next);
+                                if (salaryNumericMode === "single") {
+                                  const k = parseSalaryKInput(salarySingleKInput);
+                                  if (k != null) {
+                                    setVacancy((v) => ({
+                                      ...v,
+                                      ...structuredSalaryFromRangeK(k, k, next),
+                                    }));
+                                  }
+                                } else {
+                                  const a = parseSalaryKInput(salaryMinKInput);
+                                  const b = parseSalaryKInput(salaryMaxKInput);
+                                  if (a != null && b != null) {
+                                    setVacancy((v) => ({
+                                      ...v,
+                                      ...structuredSalaryFromRangeK(a, b, next),
+                                    }));
+                                  }
+                                }
+                              }}
+                            >
+                              {PAY_CURRENCY_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                  {o.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          {salaryNumericMode === "single" ? (
+                            <label className="block sm:col-span-2">
+                              <FieldLabel
+                                label="Salary (thousands)"
+                                hint="Digits only (and one decimal if needed), in thousands — e.g. 80 is shown as £80k on the site."
+                              />
+                              <input
+                                className={inputPanelClass}
+                                inputMode="decimal"
+                                value={salarySingleKInput}
+                                onChange={(e) => setSalarySingleKInput(sanitizeSalaryKDigits(e.target.value))}
+                                onBlur={() => commitSingleSalaryToVacancy()}
+                                placeholder="e.g. 80"
+                                aria-label="Salary in thousands"
+                              />
+                            </label>
+                          ) : (
+                            <>
+                              <label className="block">
+                                <FieldLabel
+                                  label="Minimum (thousands)"
+                                  hint="Digits only, in thousands — e.g. 80 is shown as £80k on the site."
+                                />
+                                <input
+                                  className={inputPanelClass}
+                                  inputMode="decimal"
+                                  value={salaryMinKInput}
+                                  onChange={(e) => setSalaryMinKInput(sanitizeSalaryKDigits(e.target.value))}
+                                  onBlur={() => commitStructuredRangeToVacancy()}
+                                  placeholder="e.g. 80"
+                                  aria-label="Minimum salary in thousands"
+                                />
+                              </label>
+                              <label className="block">
+                                <FieldLabel
+                                  label="Maximum (thousands)"
+                                  hint="Must be at least the minimum. Digits only, in thousands."
+                                />
+                                <input
+                                  className={inputPanelClass}
+                                  inputMode="decimal"
+                                  value={salaryMaxKInput}
+                                  onChange={(e) => setSalaryMaxKInput(sanitizeSalaryKDigits(e.target.value))}
+                                  onBlur={() => commitStructuredRangeToVacancy()}
+                                  placeholder="e.g. 100"
+                                  aria-label="Maximum salary in thousands"
+                                />
+                              </label>
+                            </>
+                          )}
+                          {(vacancy.comp || vacancy.salaryHighlight).trim() ? (
+                            <p className="sm:col-span-2 rounded-lg border border-zinc-200/90 bg-zinc-50/80 px-3 py-2 font-mono text-xs text-zinc-700">
+                              <span className="font-sans text-zinc-500">Listing pay line: </span>
+                              {(vacancy.comp || vacancy.salaryHighlight).trim()}
+                            </p>
+                          ) : null}
+                          <label className="block sm:col-span-2">
+                            <FieldLabel
+                              label="Extra equity detail (optional)"
+                              hint="Longer equity or package wording. If it doesn’t fit the small green pill, it appears as a paragraph under the pay chips."
+                            />
+                            <input
+                              className={inputPanelClass}
+                              value={vacancy.equityNote}
+                              onChange={(e) => setVacancy((v) => ({ ...v, equityNote: e.target.value }))}
+                              placeholder="e.g. Meaningful equity grant discussed at offer stage"
+                            />
+                          </label>
                     </>
                   ) : (
                     <label className="block sm:col-span-2">
                       <FieldLabel
-                        label="Compensation note"
-                        hint="Short line for the first green pay chip when you’re not publishing a figure — e.g. competitive package. If this gets long, extra text shows below the chips."
+                        label="Compensation"
+                        hint="Short line for the pay chip when you’re not publishing a figure — e.g. competitive salary, package discussed at interview."
                       />
                       <input
                         className={inputPanelClass}

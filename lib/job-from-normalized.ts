@@ -17,6 +17,15 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
     type: n.type.trim(),
     comp: n.comp.trim(),
     salaryHighlight: n.salaryHighlight.trim() || n.comp.trim(),
+    ...(typeof n.salaryMinK === "number" &&
+    typeof n.salaryMaxK === "number" &&
+    Number.isFinite(n.salaryMinK) &&
+    Number.isFinite(n.salaryMaxK)
+      ? {
+          salaryMinK: Math.min(n.salaryMinK, n.salaryMaxK),
+          salaryMaxK: Math.max(n.salaryMinK, n.salaryMaxK),
+        }
+      : {}),
     ...(n.compensationCurrency?.trim()
       ? { compensationCurrency: n.compensationCurrency.trim() }
       : {}),

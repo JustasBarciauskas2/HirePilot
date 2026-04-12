@@ -25,6 +25,10 @@ export type VacancyNormalizedFromDocument = {
    * or non-numeric copy. Optional `compensationCurrency` when the pill has no symbol.
    */
   salaryHighlight: string;
+  /** Annual pay lower bound in **thousands** when you have structured figures (portal sets this with `salaryMaxK`). */
+  salaryMinK?: number;
+  /** Annual pay upper bound in **thousands**; same as `salaryMinK` for a single amount. */
+  salaryMaxK?: number;
   /** Optional ISO 4217 (`USD` | `GBP` | `EUR`) for the pill icon when `salaryHighlight` has no currency symbol. */
   compensationCurrency?: string;
   /** Short equity pill (e.g. `£80k equity`); shown first in the hero. Overrides using short `equityNote` as the pill. */
