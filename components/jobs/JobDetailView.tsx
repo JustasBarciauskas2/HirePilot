@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { JobDetail } from "@/data/jobs";
-import { CompensationPillIcon } from "@/components/jobs/CompensationPillIcon";
+import { JOB_COMP_PILL_HERO } from "@/components/jobs/job-comp-pill-styles";
 import { equityPillText, showEquityNoteParagraph } from "@/lib/job-equity-pill";
 import { salaryDisplayLine } from "@/lib/job-salary-display";
 import type { JobFilterHighlight } from "@/lib/job-filter-highlight-url";
@@ -30,6 +30,7 @@ import {
   TrendUp,
   Users,
   Wrench,
+  EyeSlash,
 } from "@phosphor-icons/react";
 
 type Tab = "job" | "company";
@@ -169,31 +170,35 @@ export function JobDetailView({
           </nav>
 
           <div className="overflow-hidden rounded-3xl border border-zinc-200/90 bg-white shadow-[0_24px_60px_-28px_rgba(24,24,27,0.12)]">
+            <div className="flex items-center justify-end border-b border-zinc-100 bg-zinc-50/50 px-4 py-2.5 sm:px-6">
+              <Link
+                href="/#roles"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold leading-none text-zinc-700 shadow-sm transition hover:border-[#7107E7]/30 hover:text-[#7107E7] sm:gap-1.5 sm:px-3 sm:py-2 sm:text-sm"
+                title="Browse open roles on the homepage"
+              >
+                <span>Next vacancy</span>
+                <CaretRight className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" weight="bold" aria-hidden />
+              </Link>
+            </div>
             <div className="grid gap-0 md:grid-cols-2 md:items-stretch">
               <div className="border-b border-zinc-100 p-5 sm:p-6 md:border-b-0 md:border-r md:border-zinc-100">
                 <h1 className="font-display text-left text-lg font-extrabold leading-snug tracking-tight text-zinc-950 sm:text-xl">
                   {headline}
                 </h1>
 
-                <div className="mt-4 flex flex-col gap-3.5">
-                  {equityPill || salaryLine || showEquityNoteParagraph(job) ? (
+                {equityPill || salaryLine || showEquityNoteParagraph(job) ? (
+                  <div className="mt-2">
                     <HeroMetaRow icon={Coins}>
                       <div className="flex flex-col gap-1.5">
                         <div className="flex flex-wrap items-center gap-2">
-                          {equityPill ? (
-                            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold leading-none text-emerald-900 ring-1 ring-emerald-200/90 sm:text-sm">
-                              <CompensationPillIcon
-                                text={equityPill}
-                                variant="equity"
-                                className="size-3.5 text-emerald-600 sm:size-4"
-                              />
-                              <span className="min-w-0">{equityPill}</span>
+                          {salaryLine ? (
+                            <span className={JOB_COMP_PILL_HERO}>
+                              <span className="min-w-0">{salaryLine}</span>
                             </span>
                           ) : null}
-                          {salaryLine ? (
-                            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold leading-none text-emerald-900 ring-1 ring-emerald-200/90 sm:text-sm">
-                              <CompensationPillIcon job={job} className="size-3.5 text-emerald-600 sm:size-4" />
-                              <span className="min-w-0">{salaryLine}</span>
+                          {equityPill ? (
+                            <span className={JOB_COMP_PILL_HERO}>
+                              <span className="min-w-0">{equityPill}</span>
                             </span>
                           ) : null}
                         </div>
@@ -202,8 +207,10 @@ export function JobDetailView({
                         ) : null}
                       </div>
                     </HeroMetaRow>
-                  ) : null}
+                  </div>
+                ) : null}
 
+                <div className="mt-3 flex flex-col gap-3.5">
                   <HeroMetaRow icon={Briefcase}>
                     <p className="text-sm font-medium leading-snug text-zinc-900">{job.type}</p>
                   </HeroMetaRow>
@@ -311,7 +318,7 @@ export function JobDetailView({
 
       {/* Tabs */}
       <div className="sticky top-0 z-20 border-b border-zinc-200/90 bg-[#f6f5f2]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl items-center px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 sm:gap-2">
             <button
               type="button"
@@ -338,13 +345,6 @@ export function JobDetailView({
               Company
             </button>
           </div>
-          <Link
-            href="/#roles"
-            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:border-[#7107E7]/30 hover:text-[#7107E7] sm:flex"
-            aria-label="Next role"
-          >
-            <CaretRight className="h-5 w-5" weight="bold" />
-          </Link>
         </div>
       </div>
 
@@ -428,6 +428,7 @@ function JobCompanyColumn({ job }: { job: JobDetail }) {
 }
 
 function InsightsCard({ job }: { job: JobDetail }) {
+  const glassdoor = job.insights.glassdoorRating;
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm">
       <div className="bg-zinc-200/50 px-4 py-2.5 text-sm font-bold text-zinc-900 ring-1 ring-zinc-200/80">
@@ -449,21 +450,23 @@ function InsightsCard({ job }: { job: JobDetail }) {
           <TrendUp className="h-4 w-4" weight="bold" />
           {job.insights.growthStat}
         </p>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Glassdoor</p>
-          <div className="mt-1 flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-800">({job.insights.glassdoorRating})</span>
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${i < job.insights.glassdoorRating ? "text-emerald-500" : "text-zinc-200"}`}
-                  weight={i < job.insights.glassdoorRating ? "fill" : "regular"}
-                />
-              ))}
+        {glassdoor != null ? (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Glassdoor</p>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-sm font-semibold text-zinc-800">({glassdoor})</span>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${i < glassdoor ? "text-emerald-500" : "text-zinc-200"}`}
+                    weight={i < glassdoor ? "fill" : "regular"}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
@@ -489,33 +492,152 @@ function CompanySidebarCard({ job, tab }: { job: JobDetail; tab: Tab }) {
   );
 }
 
+function fundingFieldShown(raw: string | undefined): boolean {
+  const t = raw?.trim();
+  return Boolean(t && t !== "—");
+}
+
+function FundingNotDisclosed({
+  label,
+  compact,
+  narrow,
+}: {
+  label: string;
+  compact?: boolean;
+  narrow?: boolean;
+}) {
+  return (
+    <span
+      className={`inline-flex max-w-full items-center gap-1 rounded-lg border border-dashed border-zinc-300/90 bg-white/70 text-zinc-500 ring-1 ring-zinc-200/60 ${
+        compact ? "px-1.5 py-0.5 text-[10px] leading-tight" : "px-2 py-1 text-xs leading-snug"
+      } ${narrow ? "min-w-0" : ""}`}
+      title="Not published on this listing."
+    >
+      <EyeSlash
+        className={`shrink-0 text-zinc-400 ${compact ? "h-3 w-3" : "h-3.5 w-3.5"}`}
+        weight="duotone"
+        aria-hidden
+      />
+      <span className="font-medium">{label}</span>
+    </span>
+  );
+}
+
 function FundingBlock({ job, compact }: { job: JobDetail; compact?: boolean }) {
+  const rounds = job.funding;
+  const total = job.totalFunding?.trim();
+  const showTotalFigure = fundingFieldShown(total);
+  if (rounds.length === 0 && !showTotalFigure) return null;
+
+  /**
+   * Vertical line through center of column 2 — grid: [date] [dot] [amount] [round badge].
+   * compact: 4.25rem + gap-2 + half of 1.25rem = 5.375rem
+   * default: 6rem + gap-3 + half of 1.5rem = 7.5rem; sm: 7rem col → 8.5rem
+   */
+  const timelineLineClass = compact
+    ? "left-[5.375rem]"
+    : "left-[7.5rem] sm:left-[8.5rem]";
+
+  const gridCols = compact
+    ? "grid-cols-[4.25rem_1.25rem_minmax(0,1fr)_auto] gap-x-2"
+    : "grid-cols-[6rem_1.5rem_minmax(0,1fr)_auto] gap-x-3 sm:grid-cols-[7rem_1.5rem_minmax(0,1fr)_auto]";
+
   return (
     <div className={compact ? "mt-6" : "mt-10"}>
-      <h3 className="flex items-center gap-2 text-sm font-bold text-zinc-950">
-        Funding (last {job.funding.length} of 6 rounds)
-        <InfoHint
-          iconClassName="h-3.5 w-3.5"
-          title="Funding rounds we have on record for this company (up to six, newest first). Total is a headline figure from public or shared data."
-        />
-      </h3>
-      <ul className="mt-4 space-y-4 border-l-2 border-zinc-200 pl-4">
-        {job.funding.map((r) => (
-          <li key={r.date} className="relative">
-            <span className="absolute -left-[calc(1rem+3px)] top-1.5 h-2 w-2 rounded-full bg-zinc-300 ring-2 ring-white" />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-medium text-zinc-500">{r.date}</span>
-              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-800 ring-1 ring-sky-200/80">
-                {r.round}
-              </span>
-            </div>
-            <p className="mt-1 text-sm font-semibold text-zinc-900">{r.amount}</p>
-          </li>
-        ))}
-      </ul>
-      <p className={`font-bold text-zinc-900 ${compact ? "mt-3 text-xs" : "mt-4 text-sm"}`}>
-        Total funding: {job.totalFunding}
-      </p>
+      <div
+        className={`overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-100/60 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)] ring-1 ring-zinc-200/40 ${
+          compact ? "p-3.5" : "p-4 sm:p-5"
+        }`}
+      >
+        <h3
+          className={`flex items-center gap-2 font-bold text-zinc-950 ${compact ? "text-xs" : "text-sm"}`}
+        >
+          {rounds.length > 0 ? (
+            <>Funding (last {rounds.length} of 6 rounds)</>
+          ) : (
+            <>Funding</>
+          )}
+          <InfoHint
+            iconClassName={compact ? "h-3 w-3" : "h-3.5 w-3.5"}
+            title="Funding rounds we have on record for this company (up to six, newest first). Total is a headline figure from public or shared data."
+          />
+        </h3>
+
+        {rounds.length > 0 ? (
+          <div className={`relative ${compact ? "mt-3" : "mt-4"}`}>
+            <div
+              className={`pointer-events-none absolute bottom-0 top-0 w-px bg-zinc-300 ${timelineLineClass}`}
+              aria-hidden
+            />
+            <ul className="relative space-y-0">
+              {rounds.map((r, i) => (
+                <li
+                  key={`${r.date}-${r.round}-${i}`}
+                  className={`grid items-center gap-y-0 ${gridCols} ${compact ? "py-2.5" : "py-3"}`}
+                >
+                  <div
+                    className={`text-right tabular-nums text-zinc-700 ${
+                      compact ? "text-xs font-medium leading-snug" : "text-sm font-medium leading-snug"
+                    }`}
+                  >
+                    {r.date}
+                  </div>
+                  <div className="flex justify-center">
+                    <span
+                      className={`z-10 shrink-0 rounded-full border-2 border-zinc-100 bg-zinc-400 shadow-[0_0_0_2px_rgba(244,244,245,0.95)] ${
+                        compact ? "h-2 w-2" : "h-2.5 w-2.5"
+                      }`}
+                      aria-hidden
+                    />
+                  </div>
+                  <div className="min-w-0 justify-self-start">
+                    {fundingFieldShown(r.amount) ? (
+                      <p
+                        className={`tabular-nums text-zinc-900 ${
+                          compact ? "text-xs font-semibold leading-snug" : "text-sm font-semibold leading-snug"
+                        }`}
+                      >
+                        {r.amount!.trim()}
+                      </p>
+                    ) : (
+                      <FundingNotDisclosed label="Amount not disclosed" compact={compact} narrow />
+                    )}
+                  </div>
+                  <div className="justify-self-end">
+                    {fundingFieldShown(r.round) ? (
+                      <span
+                        className={`inline-flex rounded-full bg-sky-100 px-2.5 py-1 font-semibold uppercase leading-snug tracking-wide text-zinc-900 ring-1 ring-sky-200/90 ${
+                          compact
+                            ? "max-w-[10rem] truncate text-[10px]"
+                            : "max-w-[12rem] text-[11px] sm:max-w-none sm:text-xs"
+                        }`}
+                      >
+                        {r.round!.trim()}
+                      </span>
+                    ) : (
+                      <FundingNotDisclosed label="Round not disclosed" compact={compact} narrow />
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {showTotalFigure ? (
+          <p
+            className={`border-t border-zinc-200/80 text-zinc-900 ${compact ? "mt-3 border-dashed pt-2.5 text-xs font-semibold leading-snug" : "mt-4 pt-4 text-sm font-semibold leading-snug"}`}
+          >
+            Total funding: {total}
+          </p>
+        ) : rounds.length > 0 ? (
+          <div
+            className={`flex flex-wrap items-center gap-2 border-t border-dashed border-zinc-200/80 text-zinc-500 ${compact ? "mt-3 pt-2.5" : "mt-4 pt-4"}`}
+          >
+            <FundingNotDisclosed label="Total funding not disclosed" compact={compact} />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

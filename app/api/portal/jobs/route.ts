@@ -60,11 +60,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     description = [description, blobText].filter(Boolean).join("\n\n");
   }
 
-  if (!title || !companyName || !type || !comp || !location || !description) {
+  if (!title || !companyName || !type || !comp || !location) {
     return Response.json(
       {
         error:
-          "Missing required fields: title, company, type, compensation, location, and description (or file).",
+          "Missing required fields: title, company, type, compensation, and location.",
       },
       { status: 400 },
     );

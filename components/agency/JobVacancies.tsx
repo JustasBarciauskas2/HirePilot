@@ -19,9 +19,9 @@ import {
   X,
 } from "@phosphor-icons/react";
 import type { ComponentType, ReactNode } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { JobDetail } from "@/data/jobs";
-import { CompensationPillIcon } from "@/components/jobs/CompensationPillIcon";
+import { JOB_COMP_PILL_CARD } from "@/components/jobs/job-comp-pill-styles";
 import { equityPillText } from "@/lib/job-equity-pill";
 import { salaryDisplayLine } from "@/lib/job-salary-display";
 import {
@@ -41,6 +41,8 @@ import {
   uniqueRegions,
   uniqueSkills,
 } from "@/lib/job-filters";
+import { clampSalaryWindow, computeSalaryDomainK } from "@/lib/job-salary-range";
+import { SalaryRangeSlider } from "@/components/agency/SalaryRangeSlider";
 import { Reveal } from "./Reveal";
 
 const selectClass =
@@ -53,6 +55,16 @@ function toggleInArray<T>(arr: T[], value: T): T[] {
   return arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
 }
 
+/** Emerald / matched pills first when a filter is active on that dimension. */
+function sortMatchedFirst<T>(items: readonly T[], isMatch: (item: T) => boolean): T[] {
+  return [...items].sort((a, b) => {
+    const ma = isMatch(a);
+    const mb = isMatch(b);
+    if (ma === mb) return 0;
+    return ma ? -1 : 1;
+  });
+}
+
 const SIZE_BAND_ORDER: JobSizeBand[] = [...JOB_SIZE_BANDS];
 
 /** Compact pills on listing cards — emerald only when that filter dimension is active and matches. */
@@ -61,8 +73,6 @@ const cardPillEmerald =
 const cardPillZinc =
   "rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600";
 
-const cardCompPill =
-  "inline-flex max-w-full items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold leading-none text-emerald-900 ring-1 ring-emerald-200/85";
 
 /** Icon column + body — separates skill / region / comp blocks on listing cards. */
 function CardFactRow({
@@ -94,6 +104,15 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
   const [sizeBands, setSizeBands] = useState<JobSizeBand[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
 
+  const salaryDomain = useMemo(() => computeSalaryDomainK(jobs), [jobs]);
+  const [salaryMinK, setSalaryMinK] = useState(salaryDomain.min);
+  const [salaryMaxK, setSalaryMaxK] = useState(salaryDomain.max);
+
+  useEffect(() => {
+    setSalaryMinK(salaryDomain.min);
+    setSalaryMaxK(salaryDomain.max);
+  }, [salaryDomain.min, salaryDomain.max]);
+
   const industries = useMemo(() => uniqueIndustries(jobs), [jobs]);
   const skillOptions = useMemo(() => uniqueSkills(jobs), [jobs]);
   const regionOptions = useMemo(() => uniqueRegions(jobs), [jobs]);
@@ -109,11 +128,16 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
       regions,
       sizeBands,
       experienceLevels,
+      salaryMinK,
+      salaryMaxK,
     }),
-    [q, type, work, industry, skills, regions, sizeBands, experienceLevels],
+    [q, type, work, industry, skills, regions, sizeBands, experienceLevels, salaryMinK, salaryMaxK],
   );
 
-  const filtered = useMemo(() => filterJobs(jobs, filterState), [jobs, filterState]);
+  const filtered = useMemo(
+    () => filterJobs(jobs, filterState, salaryDomain),
+    [jobs, filterState, salaryDomain],
+  );
 
   const highlight = useMemo(
     () => jobFilterHighlightFromState(filterState),
@@ -124,7 +148,7 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
   const hasSizeHighlight = highlight.sizeBands.size > 0;
   const hasTypeHighlight = type !== "all";
 
-  const hasFilters = hasAnyFilter(filterState);
+  const hasFilters = hasAnyFilter(filterState, salaryDomain);
 
   function clearFilters() {
     setQ("");
@@ -135,6 +159,8 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
     setRegions([]);
     setSizeBands([]);
     setExperienceLevels([]);
+    setSalaryMinK(salaryDomain.min);
+    setSalaryMaxK(salaryDomain.max);
   }
 
   return (
@@ -154,7 +180,7 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
             </h2>
             <p className="max-w-md text-sm leading-relaxed text-zinc-500">
               Search, then use quick filters—or open <strong className="font-medium text-zinc-700">Advanced</strong>{" "}
-              for tech stack, regions, company size, and seniority.
+              for tech stack, regions, company size, seniority, and salary range.
             </p>
           </div>
         </Reveal>
@@ -267,7 +293,7 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
                   <SlidersHorizontal className="h-4 w-4 text-[#7107E7]" weight="duotone" aria-hidden />
                   Advanced filters
                   <span className="font-normal text-zinc-500">
-                    (tech stack, location &amp; region, company size, seniority)
+                    (tech stack, location &amp; region, company size, seniority, salary)
                   </span>
                 </span>
                 <CaretDown
@@ -393,6 +419,31 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
                         );
                       })}
                     </div>
+
+                    <div className="mt-6 border-t border-zinc-200/80 pt-6">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                        Salary range
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                        Choose the range that fits what you&apos;re looking for. Numbers are in{" "}
+                        <strong className="font-medium text-zinc-700">thousands</strong> (80 is about £80k / $80k).
+                        Jobs whose pay falls in your range stay on the list; if you tighten the range, openings
+                        without a clear salary may be left out.
+                      </p>
+                      <div className="mt-4 rounded-xl border border-zinc-200/90 bg-white px-4 py-4">
+                        <SalaryRangeSlider
+                          domainMin={salaryDomain.min}
+                          domainMax={salaryDomain.max}
+                          valueMin={salaryMinK}
+                          valueMax={salaryMaxK}
+                          onChange={(min, max) => {
+                            const { minK, maxK } = clampSalaryWindow(min, max, salaryDomain);
+                            setSalaryMinK(minK);
+                            setSalaryMaxK(maxK);
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -464,30 +515,33 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
                   <div className="flex flex-col gap-4 rounded-[calc(1rem-2px)] border border-white/80 bg-white px-5 py-5 shadow-sm transition-[box-shadow,border-color] duration-300 group-hover:border-[#7107E7]/12 group-hover:shadow-[0_12px_32px_-18px_rgba(113,7,231,0.14)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-                        <span className="flex items-center gap-1.5">
-                          <Briefcase className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
-                          <span
-                            className={`${
-                              hasTypeHighlight && matchesType(job, type)
-                                ? cardPillEmerald
-                                : cardPillZinc
-                            } uppercase tracking-wide`}
-                          >
-                            {job.type}
-                          </span>
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Buildings className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
-                          <span
-                            className={
-                              hasSizeHighlight && highlight.sizeBands.has(job.sizeBand)
-                                ? cardPillEmerald
-                                : cardPillZinc
-                            }
-                          >
-                            {SIZE_BAND_LABELS[job.sizeBand]}
-                          </span>
-                        </span>
+                        {(() => {
+                          const typeMatch = hasTypeHighlight && matchesType(job, type);
+                          const sizeMatch = hasSizeHighlight && highlight.sizeBands.has(job.sizeBand);
+                          const typePill = (
+                            <span key="type" className="flex items-center gap-1.5">
+                              <Briefcase className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
+                              <span
+                                className={`${
+                                  typeMatch ? cardPillEmerald : cardPillZinc
+                                } uppercase tracking-wide`}
+                              >
+                                {job.type}
+                              </span>
+                            </span>
+                          );
+                          const sizePill = (
+                            <span key="size" className="flex items-center gap-1.5">
+                              <Buildings className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
+                              <span
+                                className={sizeMatch ? cardPillEmerald : cardPillZinc}
+                              >
+                                {SIZE_BAND_LABELS[job.sizeBand]}
+                              </span>
+                            </span>
+                          );
+                          return sizeMatch && !typeMatch ? [sizePill, typePill] : [typePill, sizePill];
+                        })()}
                       </div>
                       <h3 className="font-display mt-2 text-lg font-semibold tracking-tight text-zinc-950 sm:text-xl">
                         {job.title}
@@ -495,11 +549,39 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
                       <p className="mt-1 text-sm text-zinc-600">{job.clientLine}</p>
                       <p className="mt-0.5 text-sm font-medium text-zinc-800">{job.companyName}</p>
 
+                      {salaryDisplayLine(job) || equityPillText(job) ? (
+                        <div className="mt-2">
+                          <CardFactRow icon={Coins}>
+                            {(() => {
+                              const salaryPrimary = salaryDisplayLine(job);
+                              const equityPill = equityPillText(job);
+                              return (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {salaryPrimary ? (
+                                    <span className={JOB_COMP_PILL_CARD}>
+                                      <span className="min-w-0">{salaryPrimary}</span>
+                                    </span>
+                                  ) : null}
+                                  {equityPill ? (
+                                    <span className={JOB_COMP_PILL_CARD}>
+                                      <span className="min-w-0">{equityPill}</span>
+                                    </span>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+                          </CardFactRow>
+                        </div>
+                      ) : null}
+
                       <div className="mt-3 space-y-2.5">
                         {job.skills.length > 0 ? (
                           <CardFactRow icon={Wrench}>
                             <div className="flex flex-wrap gap-2">
-                              {job.skills.map((s) => {
+                              {sortMatchedFirst(
+                                job.skills,
+                                (s) => hasSkillHighlight && highlight.skills.has(s.name),
+                              ).map((s) => {
                                 const match = hasSkillHighlight && highlight.skills.has(s.name);
                                 return (
                                   <span
@@ -517,7 +599,10 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
                         {job.regions.length > 0 ? (
                           <CardFactRow icon={Globe}>
                             <div className="flex flex-wrap gap-2">
-                              {job.regions.map((r) => {
+                              {sortMatchedFirst(
+                                job.regions,
+                                (r) => hasRegionHighlight && highlight.regions.has(r),
+                              ).map((r) => {
                                 const match = hasRegionHighlight && highlight.regions.has(r);
                                 return (
                                   <span
@@ -535,39 +620,6 @@ export function JobVacancies({ jobs }: { jobs: JobDetail[] }) {
                         <CardFactRow icon={MapPin}>
                           <p className="text-xs leading-relaxed text-zinc-600">{job.location}</p>
                         </CardFactRow>
-
-                        {salaryDisplayLine(job) || equityPillText(job) ? (
-                          <CardFactRow icon={Coins}>
-                            {(() => {
-                              const salaryPrimary = salaryDisplayLine(job);
-                              const equityPill = equityPillText(job);
-                              return (
-                                <div className="flex flex-wrap items-center gap-2">
-                                  {salaryPrimary ? (
-                                    <span className={cardCompPill}>
-                                      <CompensationPillIcon
-                                        job={job}
-                                        className="size-3.5 shrink-0 text-emerald-600"
-                                      />
-                                      <span className="min-w-0">{salaryPrimary}</span>
-                                    </span>
-                                  ) : null}
-                                  {equityPill ? (
-                                    <span className={cardCompPill}>
-                                      <CompensationPillIcon
-                                        job={job}
-                                        text={equityPill}
-                                        variant="equity"
-                                        className="size-3.5 shrink-0 text-emerald-600"
-                                      />
-                                      <span className="min-w-0">{equityPill}</span>
-                                    </span>
-                                  ) : null}
-                                </div>
-                              );
-                            })()}
-                          </CardFactRow>
-                        ) : null}
                       </div>
                     </div>
                     <Link

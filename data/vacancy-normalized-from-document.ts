@@ -51,9 +51,11 @@ export type VacancyNormalizedFromDocument = {
   insights: {
     tags: string[];
     growthStat: string;
-    glassdoorRating: number;
+    /** 1–5 or omit / null when not provided. */
+    glassdoorRating: number | null;
   };
   companyBenefits: string[];
+  /** Each round’s `amount` is a string for display; merge/publish normalizes numbers from APIs. */
   funding: FundingRound[];
   totalFunding: string;
   specialist: { name: string; title: string };

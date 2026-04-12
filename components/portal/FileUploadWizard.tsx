@@ -123,6 +123,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
     setPublishedJob(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     setSelectedFile(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function uploadDocument() {
@@ -190,7 +191,10 @@ export function FileUploadWizard({ user, onBack }: Props) {
               ? resetFlow
               : step === 2
                 ? resetFlow
-                : onBack
+                : () => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    onBack();
+                  }
           }
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-[#7107E7]"
         >
@@ -227,7 +231,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
       ) : null}
 
       {step === 1 ? (
-        <div className="relative mt-8 min-h-[min(420px,70vh)]">
+        <div className={`relative mt-8 ${pending ? "min-h-[260px]" : ""}`}>
           <AnimatePresence mode="wait">
             {pending && selectedFile ? (
               <DocumentProcessingOverlay key="processing" fileName={selectedFile.name} />
@@ -235,7 +239,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
           </AnimatePresence>
 
           <div
-            className={`space-y-6 transition-opacity duration-300 ${pending ? "pointer-events-none opacity-[0.22]" : "opacity-100"}`}
+            className={`space-y-4 transition-opacity duration-300 ${pending ? "pointer-events-none opacity-[0.22]" : "opacity-100"}`}
             aria-hidden={pending}
           >
           <input

@@ -3,6 +3,7 @@
 import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
+import { friendlySignInError } from "@/lib/auth-error-message";
 
 const inputClass =
   "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/45 focus:ring-2 focus:ring-[#7107E7]/12";
@@ -21,7 +22,7 @@ export function PortalLogin() {
       const auth = getAuth(getApp());
       await signInWithEmailAndPassword(auth, email.trim(), password);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Sign-in failed.");
+      setErr(friendlySignInError(e));
     } finally {
       setPending(false);
     }
@@ -31,7 +32,7 @@ export function PortalLogin() {
     <div className="mx-auto max-w-lg rounded-3xl border border-zinc-200/90 bg-white p-8 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.12)]">
       <p className="font-display text-xl font-semibold text-zinc-950">Recruiter portal</p>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-        Sign in with your Firebase email and password to manage vacancies.
+        Sign in with your work email and password to manage vacancies.
       </p>
       {err ? (
         <p className="mt-4 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800" role="alert">

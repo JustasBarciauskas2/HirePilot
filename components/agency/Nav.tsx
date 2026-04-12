@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { List, X } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const links = [
   { href: "/#roles", label: "Open roles" },
@@ -13,8 +13,20 @@ const links = [
   { href: "/#contact", label: "Contact" },
 ];
 
+const SCROLL_BRAND_HIDE_PX = 8;
+
 export function Nav() {
   const [open, setOpen] = useState(false);
+  const [showBrand, setShowBrand] = useState(true);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShowBrand(window.scrollY < SCROLL_BRAND_HIDE_PX);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
@@ -22,7 +34,10 @@ export function Nav() {
         <div className="pointer-events-auto grid w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <Link
             href="/"
-            className="font-display justify-self-start text-lg font-semibold tracking-tight text-zinc-950 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-[#7107E7]"
+            className={`font-display justify-self-start text-lg font-semibold tracking-tight text-zinc-950 transition duration-300 ease-out hover:text-[#7107E7] ${
+              showBrand ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-1 opacity-0"
+            }`}
+            tabIndex={showBrand ? undefined : -1}
           >
             Meridian
           </Link>

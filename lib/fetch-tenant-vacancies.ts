@@ -6,6 +6,7 @@ import {
   type JobSizeBand,
   type JobSkill,
 } from "@/data/job-types";
+import { normalizeFundingRounds } from "@/lib/funding-round";
 
 /** Tag for `revalidateTag` after publish/delete (with `revalidatePath`); list GET uses `cache: 'no-store'` so each request refetches. */
 export const VACANCIES_LIST_FETCH_TAG = "vacancies";
@@ -51,7 +52,7 @@ function emptyJobDetail(): JobDetail {
     whoYouAre: [],
     desirable: [],
     whatJobInvolves: [],
-    insights: { tags: [], growthStat: "", glassdoorRating: 0 },
+    insights: { tags: [], growthStat: "", glassdoorRating: null },
     companyBenefits: [],
     funding: [],
     totalFunding: "",
@@ -175,16 +176,22 @@ function coerceStringArray(v: unknown): string[] {
   return v.filter((x): x is string => typeof x === "string");
 }
 
+function coerceGlassdoorRating(v: unknown): number | null {
+  if (typeof v !== "number" || !Number.isFinite(v)) return null;
+  const r = Math.round(v);
+  return r >= 1 && r <= 5 ? r : null;
+}
+
 function coerceInsights(v: unknown): JobDetail["insights"] {
   if (v && typeof v === "object" && !Array.isArray(v)) {
     const o = v as Record<string, unknown>;
     return {
       tags: coerceStringArray(o.tags),
       growthStat: typeof o.growthStat === "string" ? o.growthStat : "",
-      glassdoorRating: typeof o.glassdoorRating === "number" ? o.glassdoorRating : 0,
+      glassdoorRating: coerceGlassdoorRating(o.glassdoorRating),
     };
   }
-  return { tags: [], growthStat: "", glassdoorRating: 0 };
+  return { tags: [], growthStat: "", glassdoorRating: null };
 }
 
 /** Outcome of GET {origin}/api/vacancies — lets callers merge local publishes only when the list request actually succeeded. */
@@ -380,7 +387,7 @@ function normalizeVacancyItem(item: unknown, indexInPage = 0): JobDetail | null 
     companyBenefits: coerceStringArray(partial.companyBenefits),
     sizeBand: coerceSizeBand(partial.sizeBand),
     insights: coerceInsights(partial.insights),
-    funding: Array.isArray(partial.funding) ? (partial.funding as JobDetail["funding"]) : [],
+    funding: normalizeFundingRounds(partial.funding),
     specialist:
       partial.specialist &&
       typeof partial.specialist === "object" &&

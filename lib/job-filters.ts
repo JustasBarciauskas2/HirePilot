@@ -1,5 +1,6 @@
 import type { JobDetail, JobSizeBand } from "@/data/jobs";
 import { JOB_SIZE_BAND_LABELS } from "@/data/job-types";
+import { computeSalaryDomainK, jobMatchesSalaryRangeK } from "@/lib/job-salary-range";
 
 export type TypeFilter = "all" | "full-time" | "contract";
 export type WorkFilter = "all" | "remote" | "hybrid" | "onsite";
@@ -14,6 +15,9 @@ export type JobFilterState = {
   regions: string[];
   sizeBands: JobSizeBand[];
   experienceLevels: string[];
+  /** Salary window in thousands (k); compared with parsed listing pay. */
+  salaryMinK: number;
+  salaryMaxK: number;
 };
 
 /** Infer remote / hybrid / office from copy */
@@ -94,7 +98,11 @@ export function matchesQuery(job: JobDetail, q: string): boolean {
   return jobSearchText(job).includes(trimmed);
 }
 
-export function filterJobs(jobs: JobDetail[], opts: JobFilterState): JobDetail[] {
+export function filterJobs(
+  jobs: JobDetail[],
+  opts: JobFilterState,
+  salaryDomain: { min: number; max: number },
+): JobDetail[] {
   return jobs.filter(
     (job) =>
       matchesQuery(job, opts.q) &&
@@ -104,7 +112,8 @@ export function filterJobs(jobs: JobDetail[], opts: JobFilterState): JobDetail[]
       matchesSkills(job, opts.skills) &&
       matchesRegions(job, opts.regions) &&
       matchesSizeBands(job, opts.sizeBands) &&
-      matchesExperienceLevels(job, opts.experienceLevels),
+      matchesExperienceLevels(job, opts.experienceLevels) &&
+      jobMatchesSalaryRangeK(job, opts.salaryMinK, opts.salaryMaxK, salaryDomain),
   );
 }
 
@@ -145,12 +154,17 @@ export function hasActiveAdvancedFilters(
   );
 }
 
-export function hasAnyFilter(opts: JobFilterState): boolean {
+/** Pass `salaryDomain` from {@link computeSalaryDomainK} so salary range counts as “active” when narrowed. */
+export function hasAnyFilter(opts: JobFilterState, salaryDomain?: { min: number; max: number }): boolean {
+  const salaryActive =
+    salaryDomain !== undefined &&
+    (opts.salaryMinK > salaryDomain.min || opts.salaryMaxK < salaryDomain.max);
   return (
     opts.q.trim() !== "" ||
     opts.type !== "all" ||
     opts.work !== "all" ||
     opts.industry !== "all" ||
-    hasActiveAdvancedFilters(opts)
+    hasActiveAdvancedFilters(opts) ||
+    salaryActive
   );
 }

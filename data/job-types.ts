@@ -1,6 +1,7 @@
 /** Skill labels for display and filters — emphasis is applied in the UI when matching user preferences, not stored on the job. */
 export type JobSkill = { name: string };
 
+/** Per-round line on the job; `amount` is always a string for display (e.g. `"£28.4m"`). */
 export type FundingRound = { date: string; amount: string; round: string };
 
 /** Rough headcount bucket for filters (stored on jobs and used in portal / listings). */
@@ -83,7 +84,8 @@ export type JobDetail = {
   insights: {
     tags: string[];
     growthStat: string;
-    glassdoorRating: number;
+    /** Whole stars 1–5, or `null` when not shown. */
+    glassdoorRating: number | null;
   };
   companyBenefits: string[];
   funding: FundingRound[];

@@ -98,7 +98,7 @@ export function buildJobFromPortalInput(existing: JobDetail[], input: PortalJobF
     insights: {
       tags: ["New listing"],
       growthStat: "Growing team",
-      glassdoorRating: 4,
+      glassdoorRating: null,
     },
     companyBenefits: [
       "Package discussed at offer stage.",

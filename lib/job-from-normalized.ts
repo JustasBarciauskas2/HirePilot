@@ -1,4 +1,5 @@
 import type { JobDetail } from "@/data/job-types";
+import { normalizeFundingRounds } from "@/lib/funding-round";
 import { jobBase } from "@/data/job-types";
 import type { VacancyNormalizedFromDocument } from "@/data/vacancy-normalized-from-document";
 import { nextJobRef } from "@/lib/create-job-from-input";
@@ -40,7 +41,7 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
     companyBenefits: n.companyBenefits.length
       ? n.companyBenefits
       : ["Package discussed at offer stage.", "Remote-first or hybrid options where applicable."],
-    funding: n.funding,
+    funding: normalizeFundingRounds(n.funding),
     totalFunding: n.totalFunding || "—",
     ourTake: n.ourTake.trim() || "Role posted via Meridian Talent portal.",
     specialist: n.specialist,

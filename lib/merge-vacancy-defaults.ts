@@ -1,4 +1,5 @@
 import { JOB_SIZE_BANDS, type JobSizeBand } from "@/data/job-types";
+import { normalizeFundingRounds } from "@/lib/funding-round";
 import type { VacancyNormalizedFromDocument } from "@/data/vacancy-normalized-from-document";
 
 /** Map older document/API values onto current bands */
@@ -62,15 +63,17 @@ export function mergeVacancyDefaults(
         ? partial.insights!.tags.map((x) => String(x).trim()).filter(Boolean)
         : ["New listing"],
       growthStat: partial.insights?.growthStat?.trim() || "Growing team",
-      glassdoorRating:
-        typeof partial.insights?.glassdoorRating === "number" && Number.isFinite(partial.insights.glassdoorRating)
-          ? Math.min(5, Math.max(1, Math.round(partial.insights.glassdoorRating)))
-          : 4,
+      glassdoorRating: (() => {
+        const g = partial.insights?.glassdoorRating;
+        if (typeof g !== "number" || !Number.isFinite(g)) return null;
+        const r = Math.round(g);
+        return r >= 1 && r <= 5 ? r : null;
+      })(),
     },
     companyBenefits: Array.isArray(partial.companyBenefits)
       ? partial.companyBenefits.map((x) => String(x).trim()).filter(Boolean)
       : [],
-    funding: Array.isArray(partial.funding) ? partial.funding : [],
+    funding: normalizeFundingRounds(partial.funding),
     totalFunding: partial.totalFunding?.trim() || "—",
     specialist: {
       name: partial.specialist?.name?.trim() || "Nina Kovac",
