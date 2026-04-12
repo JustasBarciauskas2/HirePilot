@@ -190,8 +190,8 @@ function coerceInsights(v: unknown): JobDetail["insights"] {
 /**
  * Fetches vacancies for the configured tenant from your backend.
  *
- * @returns `null` if no list URL is configured **or** the request failed (network, timeout, non-OK HTTP) — callers should fall back to local `jobs.json`.
- * @returns `JobDetail[]` when the GET succeeded — possibly empty if the tenant truly has no vacancies or rows could not be mapped.
+ * @returns `null` only when no vacancies list URL is configured — callers use local `jobs.json`.
+ * @returns `JobDetail[]` when a list URL is set: successful GET body (maybe empty), **or `[]` if the request failed, non-OK HTTP, or JSON could not be read** — no fallback to local data.
  */
 export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | null> {
   const listBase = getBackendVacanciesListUrl();
@@ -202,7 +202,7 @@ export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | n
   try {
     url = new URL(listBase);
   } catch {
-    return null;
+    return [];
   }
   if (!url.searchParams.has("tenantId")) {
     url.searchParams.set("tenantId", tenantId);
@@ -225,23 +225,23 @@ export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | n
     if (!res.ok) {
       if (process.env.NODE_ENV === "development") {
         console.warn(
-          `[vacancies] GET ${res.status} ${res.statusText} — using local jobs.json. Fix the API or set DEBUG_VACANCIES_FETCH=1.`,
+          `[vacancies] GET ${res.status} ${res.statusText} — returning no vacancies (no local fallback). DEBUG_VACANCIES_FETCH=1 for URL.`,
         );
       }
-      return null;
+      return [];
     }
     let data: unknown;
     try {
       data = await res.json();
     } catch {
-      return null;
+      return [];
     }
     /** Some APIs return a JSON string body (double-encoded). */
     if (typeof data === "string") {
       try {
         data = JSON.parse(data) as unknown;
       } catch {
-        return null;
+        return [];
       }
     }
     return parseVacanciesResponse(data);
@@ -250,10 +250,10 @@ export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | n
       console.warn("[vacancies] fetch error", e);
     } else if (process.env.NODE_ENV === "development") {
       console.warn(
-        "[vacancies] List request failed (backend down, wrong port, or timeout). Using local jobs.json. Set DEBUG_VACANCIES_FETCH=1 for the URL and full error.",
+        "[vacancies] List request failed (backend down, wrong port, or timeout). Returning no vacancies. DEBUG_VACANCIES_FETCH=1 for details.",
       );
     }
-    return null;
+    return [];
   }
 }
 

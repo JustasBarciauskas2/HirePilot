@@ -6,11 +6,10 @@ import { readJobs } from "@/lib/jobs-store";
 /**
  * Jobs shown on the public site (home + /jobs/[ref]) and portal “Open listings”.
  *
- * When a vacancies list URL is configured (`BACKEND_VACANCIES_LIST_URL` or derived from `BACKEND_URL` → `…/api/vacancies`),
- * we use a successful GET response. If the request fails or returns non-OK HTTP, we fall back to local `data/jobs.json`
- * so the portal is not empty when the API is down.
+ * When a vacancies list URL is configured, we only show what the GET returns — including **no rows** if the API errors,
+ * times out, or returns non-OK HTTP (no fallback to local `jobs.json`).
  *
- * If no list URL is configured, we always use `data/jobs.json`.
+ * If no list URL is configured, we use `data/jobs.json`.
  */
 export const getPublicJobs = cache(async (): Promise<JobDetail[]> => {
   const remote = await fetchTenantVacanciesFromBackend();
