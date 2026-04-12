@@ -1,0 +1,293 @@
+{
+  "_comment": "Copy-paste examples. Remove _comment / _about keys before sending if your API rejects unknown fields. Range = salaryMinK < salaryMaxK. Set salary (single figure) = same value for both, or only salaryMinK OR only salaryMaxK (server mirrors to both).",
+
+  "postPortalVacancyPublishFromParsed": {
+    "_about": "POST /api/portal/vacancy-publish-from-parsed — body: { \"vacancy\": { ... } }. Firebase auth required. Server merges with defaults and assigns ref/slug.",
+    "vacancy": {
+      "title": "Senior Python Engineer",
+      "companyName": "Acme Labs",
+      "companyTagline": "API infrastructure for teams.",
+      "companySize": "51–200 employees",
+      "type": "FULL-TIME",
+      "comp": "$140k–$165k",
+      "salaryHighlight": "$140k–$165k",
+      "salaryMinK": 140,
+      "salaryMaxK": 165,
+      "compensationCurrency": "USD",
+      "equityNote": "Equity discussed at offer.",
+      "location": "London, UK · Hybrid",
+      "locationTag": "London",
+      "regions": ["United Kingdom", "Europe"],
+      "sizeBand": "51-200",
+      "skills": [{ "name": "Python" }, { "name": "PostgreSQL" }],
+      "experienceLevel": "Senior",
+      "industries": ["SaaS"],
+      "ourTake": "Strong product engineering culture.",
+      "whoYouAre": ["You have shipped production services."],
+      "desirable": [],
+      "whatJobInvolves": ["Own core API services."],
+      "insights": {
+        "tags": ["New listing"],
+        "growthStat": "Growing team",
+        "glassdoorRating": null
+      },
+      "companyBenefits": ["Health cover", "Remote-first"],
+      "funding": [],
+      "totalFunding": "—",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    }
+  },
+
+  "structuredSalaryRangeOnly": {
+    "_about": "Same endpoint. Omit comp/salaryHighlight when you only have numbers; publish builds pill text from salaryMinK/salaryMaxK + compensationCurrency.",
+    "vacancy": {
+      "title": "Platform Engineer",
+      "companyName": "Northwind",
+      "companyTagline": "Data platform for finance.",
+      "companySize": "51–200 employees",
+      "type": "FULL-TIME",
+      "comp": "",
+      "salaryHighlight": "",
+      "salaryMinK": 90,
+      "salaryMaxK": 110,
+      "compensationCurrency": "GBP",
+      "equityNote": "",
+      "location": "London, UK",
+      "locationTag": "London",
+      "regions": ["United Kingdom"],
+      "sizeBand": "51-200",
+      "skills": [{ "name": "Go" }],
+      "experienceLevel": "Mid–senior",
+      "industries": ["Fintech"],
+      "ourTake": "Growing platform team.",
+      "whoYouAre": ["You enjoy backend systems."],
+      "desirable": [],
+      "whatJobInvolves": ["Build and run services."],
+      "insights": {
+        "tags": ["New listing"],
+        "growthStat": "Growing team",
+        "glassdoorRating": null
+      },
+      "companyBenefits": ["Flexible hours"],
+      "funding": [],
+      "totalFunding": "—",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    }
+  },
+
+  "setSalarySingleAmount_equalBounds": {
+    "_about": "Set salary (single figure), structured only: salaryMinK and salaryMaxK both set to the same thousands (e.g. 185 → $185k). comp/salaryHighlight can be empty; publish builds the pill.",
+    "vacancy": {
+      "title": "Staff Engineer",
+      "companyName": "Contoso",
+      "companyTagline": "B2B SaaS.",
+      "companySize": "201–500 employees",
+      "type": "FULL-TIME",
+      "comp": "",
+      "salaryHighlight": "",
+      "salaryMinK": 185,
+      "salaryMaxK": 185,
+      "compensationCurrency": "USD",
+      "equityNote": "Competitive package.",
+      "location": "Remote, US timezones",
+      "locationTag": "Remote US",
+      "regions": ["United States"],
+      "sizeBand": "201-500",
+      "skills": [{ "name": "TypeScript" }],
+      "experienceLevel": "Staff",
+      "industries": ["SaaS"],
+      "ourTake": "Technical leadership role.",
+      "whoYouAre": ["You have led large initiatives."],
+      "desirable": [],
+      "whatJobInvolves": ["Lead architecture."],
+      "insights": {
+        "tags": ["New listing"],
+        "growthStat": "Growing team",
+        "glassdoorRating": null
+      },
+      "companyBenefits": ["Health"],
+      "funding": [],
+      "totalFunding": "—",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    }
+  },
+
+  "setSalarySingleAmount_oneFieldOnly": {
+    "_about": "Set salary: send only salaryMinK OR only salaryMaxK (same number). Merge copies it so both bounds equal that figure — same as portal “Single amount”.",
+    "vacancy": {
+      "title": "Product Designer",
+      "companyName": "Fabrikam",
+      "companyTagline": "Design systems.",
+      "companySize": "11–50 employees",
+      "type": "FULL-TIME",
+      "comp": "",
+      "salaryHighlight": "",
+      "salaryMinK": 95,
+      "equityNote": "",
+      "location": "Berlin · Hybrid",
+      "locationTag": "Berlin",
+      "regions": ["Germany", "Europe"],
+      "sizeBand": "11-50",
+      "skills": [{ "name": "Figma" }],
+      "experienceLevel": "Mid-level",
+      "industries": ["SaaS"],
+      "ourTake": "Design-led product team.",
+      "whoYouAre": ["You ship polished UI."],
+      "desirable": [],
+      "whatJobInvolves": ["Own design system."],
+      "insights": {
+        "tags": ["New listing"],
+        "growthStat": "Growing team",
+        "glassdoorRating": null
+      },
+      "companyBenefits": ["Learning budget"],
+      "funding": [],
+      "totalFunding": "—",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    }
+  },
+
+  "setSalaryWithTextLines": {
+    "_about": "Set salary with explicit comp strings (optional salaryMinK/salaryMaxK for filters). Single-figure lines like $95k — min and max match.",
+    "vacancy": {
+      "title": "Support Engineer",
+      "companyName": "Wide World Importers",
+      "companyTagline": "Commerce platform.",
+      "companySize": "51–200 employees",
+      "type": "FULL-TIME",
+      "comp": "£95k",
+      "salaryHighlight": "£95k",
+      "salaryMinK": 95,
+      "salaryMaxK": 95,
+      "compensationCurrency": "GBP",
+      "equityNote": "",
+      "location": "Manchester, UK",
+      "locationTag": "Manchester",
+      "regions": ["United Kingdom"],
+      "sizeBand": "51-200",
+      "skills": [{ "name": "Customer success" }],
+      "experienceLevel": "Mid-level",
+      "industries": ["E-commerce"],
+      "ourTake": "Customer-facing technical role.",
+      "whoYouAre": ["You communicate clearly."],
+      "desirable": [],
+      "whatJobInvolves": ["Triage and resolve issues."],
+      "insights": {
+        "tags": ["New listing"],
+        "growthStat": "Stable team",
+        "glassdoorRating": null
+      },
+      "companyBenefits": ["Pension"],
+      "funding": [],
+      "totalFunding": "—",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    }
+  },
+
+  "envelopeSchemaVersion1": {
+    "_about": "Document parse / backend response envelope (same vacancy shape inside).",
+    "schemaVersion": 1,
+    "vacancy": {
+      "title": "ML ENGINEER — INFERENCE",
+      "companyName": "Lattice Inference",
+      "companyTagline": "Inference stack for production GenAI workloads.",
+      "companySize": "21–100 employees",
+      "clientLine": "Posted via Meridian Talent portal",
+      "type": "FULL-TIME",
+      "comp": "$228k–$260k",
+      "salaryHighlight": "$228k",
+      "salaryMinK": 228,
+      "salaryMaxK": 260,
+      "compensationCurrency": "USD",
+      "equityNote": "Equity band competitive with top decile ML infra startups.",
+      "location": "San Francisco Bay Area",
+      "locationTag": "SF Bay hybrid",
+      "regions": ["United States", "California"],
+      "sizeBand": "51-200",
+      "skills": [
+        { "name": "Python" },
+        { "name": "CUDA" }
+      ],
+      "experienceLevel": "Senior and expert level",
+      "industries": ["AI", "B2B", "SaaS"],
+      "ourTake": "Lattice Inference is building the inference layer teams need.",
+      "whoYouAre": ["You have shipped high-performance inference systems."],
+      "desirable": [],
+      "whatJobInvolves": ["Design and optimize inference paths."],
+      "insights": {
+        "tags": ["New listing", "Inference"],
+        "growthStat": "Growing team",
+        "glassdoorRating": 4
+      },
+      "companyBenefits": ["Competitive salary and equity."],
+      "funding": [],
+      "totalFunding": "—",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    }
+  },
+
+  "publishSuccessResponseShape": {
+    "_about": "Typical 200 JSON from POST /api/portal/vacancy-publish-from-parsed (fields may vary).",
+    "ok": true,
+    "job": {
+      "ref": "MT-2026-014",
+      "slug": "mt-2026-014",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Senior Python Engineer",
+      "companyName": "Acme Labs",
+      "comp": "$140k–$165k",
+      "salaryHighlight": "$140k–$165k",
+      "salaryMinK": 140,
+      "salaryMaxK": 165,
+      "compensationCurrency": "USD",
+      "equityNote": "Equity discussed at offer.",
+      "location": "London, UK · Hybrid",
+      "locationTag": "London",
+      "regions": ["United Kingdom", "Europe"],
+      "sizeBand": "51-200",
+      "skills": [{ "name": "Python" }, { "name": "PostgreSQL" }],
+      "experienceLevel": "Senior",
+      "industries": ["SaaS"],
+      "companyTagline": "API infrastructure for teams.",
+      "companySize": "51–200 employees",
+      "clientLine": "Posted via Meridian Talent portal",
+      "type": "FULL-TIME",
+      "whoYouAre": ["You have shipped production services."],
+      "desirable": [],
+      "whatJobInvolves": ["Own core API services."],
+      "insights": {
+        "tags": ["New listing"],
+        "growthStat": "Growing team",
+        "glassdoorRating": null
+      },
+      "companyBenefits": ["Health cover", "Remote-first"],
+      "funding": [],
+      "totalFunding": "—",
+      "ourTake": "Strong product engineering culture.",
+      "specialist": {
+        "name": "Nina Kovac",
+        "title": "Lead recruiter · Meridian Talent"
+      }
+    },
+    "backend": {},
+    "tenant": { "id": "example-tenant" }
+  }
+}

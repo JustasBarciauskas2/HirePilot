@@ -2,6 +2,7 @@ import { Footer } from "@/components/agency/Footer";
 import { Nav } from "@/components/agency/Nav";
 import { JobDetailView } from "@/components/jobs/JobDetailView";
 import { parseJobFilterHighlight } from "@/lib/job-filter-highlight-url";
+import { salaryDisplayLine } from "@/lib/job-salary-display";
 import { getPublicJobBySlug } from "@/lib/public-jobs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   return {
     title: `${job.title} · ${job.companyName} | Meridian Talent`,
-    description: `${job.companyName} — ${job.comp}. ${job.location}. ${job.companyTagline}`,
+    description: `${job.companyName} — ${salaryDisplayLine(job) || job.comp}. ${job.location}. ${job.companyTagline}`,
   };
 }
 

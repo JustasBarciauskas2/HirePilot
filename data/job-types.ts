@@ -44,15 +44,19 @@ export type JobDetail = {
   companyName: string;
   clientLine: string;
   type: string;
-  /** Full comp line for listings / meta (can include equity, bonus, contract rate). */
+  /**
+   * Full comp line for listings / meta / search. When `salaryMinK`/`salaryMaxK` are set, publish overwrites this
+   * with the formatted band from those numbers; otherwise free text is OK.
+   */
   comp: string;
   /**
-   * Short string for the green hero pill — include the symbol in the text, e.g. `"$215k–$260k"`, `"£130k–£155k"`,
-   * `"€95k–€115k"`, or non-numeric copy like `"Discussed at interview"` / `"Competitive package"`.
+   * Short line for the green salary pill when no structured k — same as `comp` when both are driven from text.
+   * If `salaryMinK`/`salaryMaxK` are set, they take priority and this is replaced with the derived pill line on save.
    */
   salaryHighlight: string;
   /**
-   * When set, annual pay band in **thousands** (e.g. `80` = $80k / £80k). Canonical for filters; display still uses `comp` / `salaryHighlight`.
+   * Annual pay in **thousands** — **authoritative** when both set: same value = set salary; different = range.
+   * Drives filters, hero/card pay line, and normalized `comp`/`salaryHighlight` on publish.
    */
   salaryMinK?: number;
   /** Upper bound in thousands; equals `salaryMinK` for a single published figure. */

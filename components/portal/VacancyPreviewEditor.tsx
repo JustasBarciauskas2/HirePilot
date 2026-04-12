@@ -17,6 +17,7 @@ import { parseSalaryRangeStringToK } from "@/lib/job-salary-range";
 import {
   type PayCurrency,
   PAY_CURRENCY_OPTIONS,
+  buildCompFromRangeK,
   inferPayCurrencyFromText,
   parseSalaryKInput,
   sanitizeSalaryKDigits,
@@ -42,8 +43,10 @@ import {
 /**
  * Non-parseable pay copy (not a k figure or band) belongs on the competitive tab — move into `equityNote`
  * so the form shows it, and clear `comp` / `salaryHighlight` to avoid mixed modes.
+ * Structured `salaryMinK` / `salaryMaxK` take priority — do not strip them or move comp into equity.
  */
 function mergeCompetitiveTabFromComp(v: VacancyNormalizedFromDocument): VacancyNormalizedFromDocument {
+  if (hasStructuredSalaryK(v)) return v;
   const compText = (v.salaryHighlight || v.comp).trim();
   if (!compText) return v;
   if (parseSalaryRangeStringToK(compText) !== null) return v;
@@ -61,8 +64,9 @@ function mergeCompetitiveTabFromComp(v: VacancyNormalizedFromDocument): VacancyN
 
 const DEFAULT_COMPETITIVE_NOTE = "Competitive salary";
 
-/** Set salary tab when comp parses to thousands; competitive tab otherwise (default when nothing to parse). */
+/** Set salary tab when structured k or comp parses to thousands. */
 function inferCompMode(v: VacancyNormalizedFromDocument): "range" | "note" {
+  if (hasStructuredSalaryK(v)) return "range";
   const compText = (v.salaryHighlight || v.comp).trim();
   const parsed = parseSalaryRangeStringToK(compText);
   if (parsed !== null) return "range";
@@ -71,22 +75,54 @@ function inferCompMode(v: VacancyNormalizedFromDocument): "range" | "note" {
   return "note";
 }
 
+function hasStructuredSalaryK(v: VacancyNormalizedFromDocument): boolean {
+  return (
+    typeof v.salaryMinK === "number" &&
+    Number.isFinite(v.salaryMinK) &&
+    typeof v.salaryMaxK === "number" &&
+    Number.isFinite(v.salaryMaxK)
+  );
+}
+
+function payCurrencyFromVacancy(v: VacancyNormalizedFromDocument): PayCurrency {
+  const c = v.compensationCurrency?.trim().toUpperCase();
+  if (c === "USD" || c === "GBP" || c === "EUR") return c;
+  return inferPayCurrencyFromText(v.comp + v.salaryHighlight);
+}
+
 type SalaryNumericMode = "single" | "range";
 
 function inferSalaryNumericMode(v: VacancyNormalizedFromDocument): SalaryNumericMode {
   const parsed = parseSalaryRangeStringToK((v.comp || v.salaryHighlight).trim());
-  if (!parsed) return "single";
-  return parsed.min === parsed.max ? "single" : "range";
+  if (parsed) return parsed.min === parsed.max ? "single" : "range";
+  if (hasStructuredSalaryK(v)) return v.salaryMinK === v.salaryMaxK ? "single" : "range";
+  return "single";
 }
 
 function getInitialVacancyEditorState(raw: VacancyNormalizedFromDocument) {
   let merged = mergeCompetitiveTabFromComp(raw);
+  if (hasStructuredSalaryK(merged)) {
+    const cur = payCurrencyFromVacancy(merged);
+    const built = structuredSalaryFromRangeK(merged.salaryMinK!, merged.salaryMaxK!, cur);
+    merged = {
+      ...merged,
+      comp: built.comp,
+      salaryHighlight: built.salaryHighlight,
+      compensationCurrency: merged.compensationCurrency?.trim() || built.compensationCurrency,
+    };
+  }
   const mode = inferCompMode(merged);
   if (mode === "note" && !merged.equityNote.trim()) {
     merged = { ...merged, equityNote: DEFAULT_COMPETITIVE_NOTE };
   }
-  const parsed = parseSalaryRangeStringToK((merged.comp || merged.salaryHighlight).trim());
-  if (parsed) {
+  let parsed = parseSalaryRangeStringToK((merged.comp || merged.salaryHighlight).trim());
+  if (!parsed && hasStructuredSalaryK(merged)) {
+    parsed = {
+      min: Math.min(merged.salaryMinK!, merged.salaryMaxK!),
+      max: Math.max(merged.salaryMinK!, merged.salaryMaxK!),
+    };
+  }
+  if (parsed && !hasStructuredSalaryK(merged)) {
     merged = {
       ...merged,
       salaryMinK: Math.min(parsed.min, parsed.max),
@@ -97,7 +133,7 @@ function getInitialVacancyEditorState(raw: VacancyNormalizedFromDocument) {
   return {
     vacancy: merged,
     compMode: mode,
-    payCurrency: inferPayCurrencyFromText(merged.comp + merged.salaryHighlight),
+    payCurrency: payCurrencyFromVacancy(merged),
     salaryMinKInput: parsed ? String(parsed.min) : "",
     salaryMaxKInput: parsed ? String(parsed.max) : "",
     salarySingleKInput: parsed && parsed.min === parsed.max ? String(parsed.min) : "",
@@ -293,6 +329,31 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
   const [salaryNumericMode, setSalaryNumericMode] = useState<SalaryNumericMode>(initialEditor.salaryNumericMode);
   const formAnchorRef = useRef<HTMLDivElement>(null);
   const skipScrollIntoView = useRef(true);
+
+  /** Live preview from inputs — `vacancy.comp` is only committed on blur, so we derive from typed k fields. */
+  const listingPayLineDisplay = useMemo(() => {
+    if (compMode !== "range") return (vacancy.comp || vacancy.salaryHighlight).trim();
+    if (salaryNumericMode === "single") {
+      const k = parseSalaryKInput(salarySingleKInput);
+      if (k == null) return "";
+      return buildCompFromRangeK(k, k, payCurrency).salaryHighlight;
+    }
+    const a = parseSalaryKInput(salaryMinKInput);
+    const b = parseSalaryKInput(salaryMaxKInput);
+    if (a != null && b != null) return buildCompFromRangeK(a, b, payCurrency).salaryHighlight;
+    if (a != null) return buildCompFromRangeK(a, a, payCurrency).salaryHighlight;
+    if (b != null) return buildCompFromRangeK(b, b, payCurrency).salaryHighlight;
+    return "";
+  }, [
+    compMode,
+    salaryNumericMode,
+    salarySingleKInput,
+    salaryMinKInput,
+    salaryMaxKInput,
+    payCurrency,
+    vacancy.comp,
+    vacancy.salaryHighlight,
+  ]);
 
   function setFundingRound(i: number, patch: Partial<FundingRound>) {
     setVacancy((v) => {
@@ -638,10 +699,10 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                               </label>
                             </>
                           )}
-                          {(vacancy.comp || vacancy.salaryHighlight).trim() ? (
+                          {listingPayLineDisplay ? (
                             <p className="sm:col-span-2 rounded-lg border border-zinc-200/90 bg-zinc-50/80 px-3 py-2 font-mono text-xs text-zinc-700">
                               <span className="font-sans text-zinc-500">Listing pay line: </span>
-                              {(vacancy.comp || vacancy.salaryHighlight).trim()}
+                              {listingPayLineDisplay}
                             </p>
                           ) : null}
                           <label className="block sm:col-span-2">

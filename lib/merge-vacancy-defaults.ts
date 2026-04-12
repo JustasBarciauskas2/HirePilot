@@ -13,7 +13,11 @@ function coerceSalaryK(v: unknown): number | undefined {
   return undefined;
 }
 
-/** Both min and max must be valid numbers to store a structured band. */
+/**
+ * Structured annual pay in **thousands** (e.g. `80` → £80k / $80k).
+ * - Range: set both `salaryMinK` and `salaryMaxK` (min ≤ max).
+ * - Single figure: set both to the same value, or send only one of the two — we mirror it to a point band.
+ */
 function mergeSalaryKPair(partial: Partial<VacancyNormalizedFromDocument>): {
   salaryMinK?: number;
   salaryMaxK?: number;
@@ -21,6 +25,8 @@ function mergeSalaryKPair(partial: Partial<VacancyNormalizedFromDocument>): {
   const lo = coerceSalaryK(partial.salaryMinK);
   const hi = coerceSalaryK(partial.salaryMaxK);
   if (lo !== undefined && hi !== undefined) return { salaryMinK: Math.min(lo, hi), salaryMaxK: Math.max(lo, hi) };
+  if (lo !== undefined) return { salaryMinK: lo, salaryMaxK: lo };
+  if (hi !== undefined) return { salaryMinK: hi, salaryMaxK: hi };
   return {};
 }
 

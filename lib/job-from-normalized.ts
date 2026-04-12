@@ -4,10 +4,34 @@ import { jobBase } from "@/data/job-types";
 import type { VacancyNormalizedFromDocument } from "@/data/vacancy-normalized-from-document";
 import { nextJobRef } from "@/lib/create-job-from-input";
 import { normalizeSizeBand } from "@/lib/merge-vacancy-defaults";
+import { inferPayCurrencyFromText, structuredSalaryFromRangeK, type PayCurrency } from "@/lib/portal-salary-form";
+
+function payCurrencyForStructured(n: VacancyNormalizedFromDocument): PayCurrency {
+  const c = n.compensationCurrency?.trim().toUpperCase();
+  if (c === "USD" || c === "GBP" || c === "EUR") return c;
+  return inferPayCurrencyFromText(n.comp + n.salaryHighlight);
+}
 
 export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFromDocument): JobDetail {
   const skills =
     n.skills.length > 0 ? n.skills.map((s) => ({ name: s.name })) : [{ name: "Role-specific skills" }];
+
+  let comp = n.comp.trim();
+  let salaryHighlight = n.salaryHighlight.trim() || comp;
+
+  const minK = n.salaryMinK;
+  const maxK = n.salaryMaxK;
+  const hasStructuredK =
+    typeof minK === "number" &&
+    Number.isFinite(minK) &&
+    typeof maxK === "number" &&
+    Number.isFinite(maxK);
+
+  if (hasStructuredK) {
+    const built = structuredSalaryFromRangeK(minK, maxK, payCurrencyForStructured(n));
+    comp = built.comp;
+    salaryHighlight = built.salaryHighlight;
+  }
 
   return jobBase({
     ref: nextJobRef(existing),
@@ -15,8 +39,8 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
     companyName: n.companyName.trim(),
     clientLine: n.clientLine?.trim() || "Posted via Meridian Talent portal",
     type: n.type.trim(),
-    comp: n.comp.trim(),
-    salaryHighlight: n.salaryHighlight.trim() || n.comp.trim(),
+    comp,
+    salaryHighlight: salaryHighlight || comp,
     ...(typeof n.salaryMinK === "number" &&
     typeof n.salaryMaxK === "number" &&
     Number.isFinite(n.salaryMinK) &&
@@ -28,7 +52,9 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
       : {}),
     ...(n.compensationCurrency?.trim()
       ? { compensationCurrency: n.compensationCurrency.trim() }
-      : {}),
+      : hasStructuredK
+        ? { compensationCurrency: payCurrencyForStructured(n) }
+        : {}),
     ...(n.equityHighlight?.trim() ? { equityHighlight: n.equityHighlight.trim() } : {}),
     ...(n.equityCurrency?.trim() ? { equityCurrency: n.equityCurrency.trim() } : {}),
     equityNote: n.equityNote.trim(),

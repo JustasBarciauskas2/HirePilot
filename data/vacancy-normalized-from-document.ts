@@ -18,16 +18,24 @@ export type VacancyNormalizedFromDocument = {
   clientLine?: string;
   /** e.g. "FULL-TIME" */
   type: string;
-  /** Full compensation string for filters / detail. */
+  /**
+   * Free-text compensation line when you are **not** sending structured `salaryMinK`/`salaryMaxK`, or extra
+   * wording alongside them. If structured k is present, publish **replaces** `comp`/`salaryHighlight` with the
+   * formatted band from min/max (same value = set salary; different = range).
+   */
   comp: string;
   /**
-   * Green salary pill text — include currency in the string, e.g. `"$228k"`, `"$215k–$260k"`, `"£142k"`,
-   * or non-numeric copy. Optional `compensationCurrency` when the pill has no symbol.
+   * Short pay line for the pill when using text only. With structured k, both fields are overwritten from numbers.
    */
   salaryHighlight: string;
-  /** Annual pay lower bound in **thousands** when you have structured figures (portal sets this with `salaryMaxK`). */
+  /**
+   * Optional structured annual pay in **thousands** (e.g. `80` = $80k / £80k). Used for filters and salary UI;
+   * publish copies them onto the saved job when both bounds are finite after merge.
+   * - **Range:** set `salaryMinK` and `salaryMaxK` to the band (e.g. 80 and 100).
+   * - **Single amount:** set both to the same number, or send **only** `salaryMinK` **or** only `salaryMaxK` → treated as one figure.
+   */
   salaryMinK?: number;
-  /** Annual pay upper bound in **thousands**; same as `salaryMinK` for a single amount. */
+  /** Upper bound in thousands; equals `salaryMinK` for a single published figure. */
   salaryMaxK?: number;
   /** Optional ISO 4217 (`USD` | `GBP` | `EUR`) for the pill icon when `salaryHighlight` has no currency symbol. */
   compensationCurrency?: string;
