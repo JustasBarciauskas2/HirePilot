@@ -222,6 +222,14 @@ export function getBackendVacancyDeleteUrl(_ref: string, vacancyId?: string | nu
 }
 
 /**
+ * Same URL as {@link getBackendVacancyDeleteUrl}: path = vacancy id, query = `tenantId`.
+ * **PUT** body from Next is **only** the vacancy JSON (`JobDetail`), not the POST envelope.
+ */
+export function getBackendVacancyPutUrl(vacancyId: string | null | undefined): string | null {
+  return getBackendVacancyDeleteUrl("", vacancyId);
+}
+
+/**
  * Optional webhook: after a candidate applies (Firestore + Storage saved), Next POSTs **multipart/form-data**
  * to this URL — CV field name `file`, plus string fields `applicationId`, `tenantId`, `jobRef`, `jobSlug`, `jobTitle`,
  * `companyName`, `vacancyId`, `firstName`, `lastName`, `email`, `phone`, `cvStoragePath`, `cvFileName`, `cvContentType`

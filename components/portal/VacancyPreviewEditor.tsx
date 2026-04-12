@@ -309,9 +309,17 @@ type Props = {
   user: User;
   onCancel: () => void;
   onPublished: (job: JobDetail) => void;
+  /** When set, save uses PUT and preserves ref / slug / id. */
+  existingJob?: JobDetail | null;
 };
 
-export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublished }: Props) {
+export function VacancyPreviewEditor({
+  initialVacancy,
+  user,
+  onCancel,
+  onPublished,
+  existingJob = null,
+}: Props) {
   const router = useRouter();
   const initialEditor = useMemo(() => getInitialVacancyEditorState(initialVacancy), [initialVacancy]);
   const [vacancy, setVacancy] = useState<VacancyNormalizedFromDocument>(initialEditor.vacancy);
@@ -473,10 +481,18 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
     setPending(true);
     try {
       const headers = await portalAuthHeaders(user);
+      const editing = Boolean(existingJob);
+      const payload = editing
+        ? {
+            vacancy: vacancyToPublish,
+            previousRef: existingJob!.ref,
+            ...(existingJob!.id?.trim() ? { previousVacancyId: existingJob!.id.trim() } : {}),
+          }
+        : { vacancy: vacancyToPublish };
       const res = await fetch("/api/portal/vacancy-publish-from-parsed", {
-        method: "POST",
+        method: editing ? "PUT" : "POST",
         headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ vacancy: vacancyToPublish }),
+        body: JSON.stringify(payload),
         credentials: "include",
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string; job?: JobDetail };
@@ -1380,7 +1396,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
               onClick={() => void publish()}
               className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-[#7107E7]/35 transition hover:bg-[#5b06c2] disabled:opacity-50"
             >
-              {pending ? "Publishing…" : "Publish listing"}
+              {pending ? (existingJob ? "Saving…" : "Publishing…") : existingJob ? "Save changes" : "Publish listing"}
             </button>
           )}
         </div>

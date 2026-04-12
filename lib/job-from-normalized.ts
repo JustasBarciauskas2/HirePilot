@@ -12,6 +12,26 @@ function payCurrencyForStructured(n: VacancyNormalizedFromDocument): PayCurrency
   return inferPayCurrencyFromText(n.comp + n.salaryHighlight);
 }
 
+/**
+ * Rebuilds a job from the editor while keeping **ref**, **slug**, and **id** from an existing listing (portal edit).
+ */
+export function jobFromNormalizedUpdate(
+  allJobs: JobDetail[],
+  n: VacancyNormalizedFromDocument,
+  previous: JobDetail,
+): JobDetail {
+  const others = allJobs.filter(
+    (j) => !(j.ref === previous.ref && (j.id?.trim() ?? "") === (previous.id?.trim() ?? "")),
+  );
+  const draft = jobFromNormalized(others, n);
+  return {
+    ...draft,
+    ref: previous.ref,
+    slug: previous.slug,
+    id: previous.id,
+  };
+}
+
 export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFromDocument): JobDetail {
   const skills =
     n.skills.length > 0 ? n.skills.map((s) => ({ name: s.name })) : [{ name: "Role-specific skills" }];

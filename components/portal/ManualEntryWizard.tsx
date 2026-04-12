@@ -7,16 +7,27 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { mergeVacancyDefaults } from "@/lib/merge-vacancy-defaults";
+import { normalizedVacancyFromJobDetail } from "@/lib/job-to-normalized-vacancy";
 import { VacancyPreviewEditor } from "@/components/portal/VacancyPreviewEditor";
 
 type Props = {
   user: User;
   onBack: () => void;
+  /** When set, the form is pre-filled and save updates the listing (PUT). */
+  jobToEdit?: JobDetail | null;
+  /** Called after a successful publish or save (clears edit mode in the parent). */
+  onAfterPublish?: () => void;
 };
 
-export function ManualEntryWizard({ user, onBack }: Props) {
+export function ManualEntryWizard({ user, onBack, jobToEdit = null, onAfterPublish }: Props) {
   const router = useRouter();
-  const initialVacancy = useMemo(() => mergeVacancyDefaults({}), []);
+  const initialVacancy = useMemo(
+    () =>
+      jobToEdit
+        ? mergeVacancyDefaults(normalizedVacancyFromJobDetail(jobToEdit))
+        : mergeVacancyDefaults({}),
+    [jobToEdit],
+  );
   const [publishedJob, setPublishedJob] = useState<JobDetail | null>(null);
 
   function goBackToChoose() {
@@ -35,24 +46,26 @@ export function ManualEntryWizard({ user, onBack }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <button
           type="button"
-          onClick={publishedJob ? () => setPublishedJob(null) : goBackToChoose}
+          onClick={goBackToChoose}
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-[#7107E7]"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           {publishedJob ? "Add another" : "Back"}
         </button>
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
-          {publishedJob ? "Published" : "Manual entry · 6 sections"}
+          {publishedJob ? "Published" : jobToEdit ? "Edit listing · 6 sections" : "Manual entry · 6 sections"}
         </p>
       </div>
 
       <h2 className="mt-4 font-display text-lg font-semibold text-zinc-950">
-        {publishedJob ? "You’re live" : "Add a role yourself"}
+        {publishedJob ? "You’re live" : jobToEdit ? "Edit this role" : "Add a role yourself"}
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
         {publishedJob
           ? "This role is now listed on TechRecruit."
-          : "Use the sections below — same layout as after you upload a document. Fill in what you have; you can publish when title and company are set."}
+          : jobToEdit
+            ? "Update any section below, then save changes. Your public URL stays the same."
+            : "Use the sections below — same layout as after you upload a document. Fill in what you have; you can publish when title and company are set."}
       </p>
 
       {publishedJob ? (
@@ -68,7 +81,7 @@ export function ManualEntryWizard({ user, onBack }: Props) {
             </Link>
             <button
               type="button"
-              onClick={() => setPublishedJob(null)}
+              onClick={goBackToChoose}
               className="text-sm font-medium text-emerald-900 underline-offset-4 hover:underline"
             >
               Add another role
@@ -77,12 +90,15 @@ export function ManualEntryWizard({ user, onBack }: Props) {
         </div>
       ) : (
         <VacancyPreviewEditor
+          key={jobToEdit ? `${jobToEdit.ref}-${jobToEdit.id ?? ""}` : "create"}
           initialVacancy={initialVacancy}
+          existingJob={jobToEdit}
           user={user}
           onCancel={goBackToChoose}
           onPublished={async (job) => {
             await router.refresh();
             setPublishedJob(job);
+            onAfterPublish?.();
           }}
         />
       )}

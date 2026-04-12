@@ -53,6 +53,42 @@ export function addJob(job: JobDetail): void {
   writeJobs(jobs);
 }
 
+function sameListingRow(a: JobDetail, b: JobDetail): boolean {
+  const refA = a.ref.trim().toLowerCase();
+  const refB = b.ref.trim().toLowerCase();
+  if (refA !== refB) return false;
+  const idA = (a.id?.trim() ?? "").toLowerCase();
+  const idB = (b.id?.trim() ?? "").toLowerCase();
+  return idA === idB;
+}
+
+/** Replace one row (matched by ref + optional id) with the updated job. */
+export function updateJobInStore(previous: JobDetail, replacement: JobDetail): boolean {
+  const jobs = readJobs();
+  const i = jobs.findIndex((j) => sameListingRow(j, previous));
+  if (i < 0) return false;
+  const next = [...jobs];
+  next[i] = replacement;
+  writeJobs(next);
+  return true;
+}
+
+/**
+ * Update `jobs.json` if the row exists; otherwise append (e.g. listing came only from the tenant vacancies API).
+ */
+export function upsertJobInStore(previous: JobDetail, replacement: JobDetail): void {
+  const jobs = readJobs();
+  const i = jobs.findIndex((j) => sameListingRow(j, previous));
+  if (i >= 0) {
+    const next = [...jobs];
+    next[i] = replacement;
+    writeJobs(next);
+    return;
+  }
+  jobs.push(replacement);
+  writeJobs(jobs);
+}
+
 /**
  * Remove from local `jobs.json`.
  * When `vacancyId` is set, only removes the row whose `id` matches (and `ref` matches).

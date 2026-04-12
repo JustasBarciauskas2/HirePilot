@@ -2,6 +2,7 @@ import type { JobDetail } from "@/data/job-types";
 import {
   backendEnvLooksInvalid,
   getBackendVacancyDeleteUrl,
+  getBackendVacancyPutUrl,
   getBackendVacancyUrl,
   isBackendVacancyDeleteConfigured,
 } from "@/lib/backend-url";
@@ -147,6 +148,60 @@ export async function forwardVacancyToBackend(
       method: "POST",
       headers,
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      let hint: string | undefined;
+      if (res.status === 401) {
+        hint = idToken
+          ? "Bearer token was rejected. On your API, validate Firebase ID tokens (issuer, project ID, and JWKS from Google)."
+          : "No Firebase ID token was sent. Sign in on the portal; the client sends Authorization: Bearer <idToken>.";
+      }
+      return { ok: false, status: res.status, error: text.slice(0, 500), hint };
+    }
+    const vacancyId = await readVacancyIdFromOkResponse(res);
+    return vacancyId ? { ok: true, vacancyId } : { ok: true };
+  } catch (e) {
+    return { ok: false, error: describeFetchError(e, url) };
+  }
+}
+
+/**
+ * PUT vacancy update: URL is `…/vacancy/{vacancyId}?tenantId=…` (see {@link getBackendVacancyPutUrl}).
+ * **Body is the vacancy alone** (same shape as `JobDetail` / your `vacancy` DTO), not the POST envelope `{ user, vacancy, tenant }`.
+ */
+export async function forwardVacancyUpdateToBackend(
+  _user: VacancyUser,
+  job: JobDetail,
+  idToken: string | null,
+  opts?: ForwardOpts,
+): Promise<ForwardResult> {
+  const url = opts?.url !== undefined ? opts.url : getBackendVacancyPutUrl(job.id);
+  if (!url) {
+    if (backendEnvLooksInvalid()) {
+      return {
+        ok: false,
+        error:
+          "Invalid backend URL in environment. Check BACKEND_URL, or BACKEND_ORIGIN + BACKEND_VACANCY_PATH, or BACKEND_HOST + BACKEND_PORT.",
+      };
+    }
+    return { ok: true, skipped: true };
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (idToken) {
+    headers.Authorization = `Bearer ${idToken}`;
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(job),
       signal: AbortSignal.timeout(15_000),
     });
 

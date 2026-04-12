@@ -126,6 +126,12 @@ export function FileUploadWizard({ user, onBack }: Props) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  /** After publish, return to the portal “New listing” choice (Upload / Enter manually), not upload step 1. */
+  function exitToListingChoice() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    onBack();
+  }
+
   async function uploadDocument() {
     const input = fileInputRef.current;
     const f = input?.files?.[0];
@@ -188,7 +194,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
           type="button"
           onClick={
             step === 3
-              ? resetFlow
+              ? exitToListingChoice
               : step === 2
                 ? resetFlow
                 : () => {
@@ -409,7 +415,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
             </Link>
             <button
               type="button"
-              onClick={resetFlow}
+              onClick={exitToListingChoice}
               className="text-sm font-medium text-emerald-900 underline-offset-4 hover:underline"
             >
               Upload another document

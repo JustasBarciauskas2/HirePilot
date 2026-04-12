@@ -169,7 +169,7 @@ export function ApplicationsPanel({
   const [vacancyComboDirty, setVacancyComboDirty] = useState(false);
   const [vacancyComboOpen, setVacancyComboOpen] = useState(false);
   const vacancyComboRef = useRef<HTMLDivElement | null>(null);
-  /** Filters visible applicant rows by text on job title, ref, company, slug. */
+  /** Filters visible rows by candidate name and job fields (title, ref, company, slug). */
   const [vacancyRowSearch, setVacancyRowSearch] = useState("");
   const [rows, setRows] = useState<JobApplicationRecord[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -373,7 +373,18 @@ export function ApplicationsPanel({
     const q = vacancyRowSearch.trim().toLowerCase();
     if (!q) return filteredByVacancy;
     return filteredByVacancy.filter((r) => {
-      const blob = [r.jobTitle, r.jobRef, r.companyName, r.jobSlug ?? ""].join(" ").toLowerCase();
+      const fullName = `${r.firstName} ${r.lastName}`.trim().toLowerCase();
+      const blob = [
+        r.firstName,
+        r.lastName,
+        fullName,
+        r.jobTitle,
+        r.jobRef,
+        r.companyName,
+        r.jobSlug ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
       return blob.includes(q);
     });
   }, [filteredByVacancy, vacancyRowSearch]);
@@ -437,8 +448,8 @@ export function ApplicationsPanel({
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Candidates</p>
           <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950">Applications</h2>
           <p className="mt-1 max-w-xl text-sm text-zinc-500">
-            Pick a vacancy (search as you type), then review applicants. Use the field below to filter table rows by
-            job title, reference, or company.
+            Pick a vacancy (search as you type), then review applicants. Use the field below to filter rows by
+            candidate name, job title, reference, company, or slug.
           </p>
         </div>
         <div className="flex w-full max-w-xl flex-col gap-3 lg:max-w-none lg:flex-1 lg:items-end xl:max-w-2xl">
@@ -537,13 +548,13 @@ export function ApplicationsPanel({
           <label className="flex w-full min-w-0 flex-col gap-1.5 text-xs font-medium text-zinc-600">
             <span className="inline-flex items-center gap-1.5">
               <MagnifyingGlass className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
-              Filter applicants by job
+              Filter applicants by job or name
             </span>
             <input
               type="search"
               value={vacancyRowSearch}
               onChange={(e) => setVacancyRowSearch(e.target.value)}
-              placeholder="Match title, ref, company, or slug on each row…"
+              placeholder="Match name, title, ref, company, or slug on each row…"
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
               autoComplete="off"
             />
@@ -619,7 +630,7 @@ export function ApplicationsPanel({
                   ? "No applications for this vacancy."
                   : "No applications yet."
                 : vacancyRowSearch.trim()
-                  ? "No applicants match your job search — try different keywords or clear the search."
+                  ? "No applicants match your search — try different keywords or clear the search."
                   : "No applications yet."}
           </p>
         </div>

@@ -9,6 +9,8 @@ import {
   Copy,
   EnvelopeSimple,
   FileText,
+  MagnifyingGlass,
+  PencilSimple,
   SignOut,
   Trash,
   UploadSimple,
@@ -16,7 +18,7 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { portalAuthHeaders } from "@/lib/portal-auth";
 import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
 import { FileUploadWizard } from "@/components/portal/FileUploadWizard";
@@ -24,6 +26,14 @@ import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
 
 type Flow = "choose" | "file" | "manual";
 type PortalTab = "vacancies" | "applications";
+
+function jobMatchesOpenListingsFilter(job: JobDetail, q: string): boolean {
+  const trimmed = q.trim().toLowerCase();
+  if (!trimmed) return true;
+  const haystack = [job.ref, job.title, job.companyName, job.slug, job.id ?? ""].join(" ").toLowerCase();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  return words.every((w) => haystack.includes(w));
+}
 
 export function PortalDashboard({
   initialJobs,
@@ -38,10 +48,13 @@ export function PortalDashboard({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [flow, setFlow] = useState<Flow>("choose");
+  /** When set, manual entry opens in edit mode (PUT + same form). */
+  const [jobToEdit, setJobToEdit] = useState<JobDetail | null>(null);
   const [jobs, setJobs] = useState(initialJobs);
   const [pending, startTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
+  const [openListingsFilter, setOpenListingsFilter] = useState("");
   const [portalTab, setPortalTab] = useState<PortalTab>(() => {
     const open =
       searchParams.get("tab") === "applications" ||
@@ -120,6 +133,11 @@ export function PortalDashboard({
     );
     startTransition(() => router.refresh());
   }
+
+  const filteredOpenListings = useMemo(
+    () => jobs.filter((j) => jobMatchesOpenListingsFilter(j, openListingsFilter)),
+    [jobs, openListingsFilter],
+  );
 
   async function copyJobPublicLink(job: JobDetail) {
     if (typeof window === "undefined") return;
@@ -239,7 +257,10 @@ export function PortalDashboard({
             </button>
             <button
               type="button"
-              onClick={() => setFlow("manual")}
+              onClick={() => {
+                setJobToEdit(null);
+                setFlow("manual");
+              }}
               className="rounded-2xl border border-zinc-200/90 bg-zinc-50/50 px-5 py-6 text-left transition hover:border-[#7107E7]/40 hover:bg-[#7107E7]/[0.04]"
             >
               <span className="flex items-center gap-2 font-medium text-zinc-900">
@@ -258,66 +279,117 @@ export function PortalDashboard({
         <FileUploadWizard user={user} onBack={() => setFlow("choose")} />
       ) : null}
       {portalTab === "vacancies" && flow === "manual" ? (
-        <ManualEntryWizard user={user} onBack={() => setFlow("choose")} />
+        <ManualEntryWizard
+          user={user}
+          jobToEdit={jobToEdit}
+          onAfterPublish={() => setJobToEdit(null)}
+          onBack={() => {
+            setFlow("choose");
+            setJobToEdit(null);
+          }}
+        />
       ) : null}
 
       {portalTab === "vacancies" ? (
       <section>
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Open listings</p>
-        <p className="mt-1 text-xs text-zinc-500">
-          {jobs.length} role{jobs.length === 1 ? "" : "s"} ·{" "}
-          <Link href="/#roles" className="font-medium text-[#7107E7] underline-offset-2 hover:underline">
-            View on site
-          </Link>
-        </p>
-        <ul className="mt-5 space-y-3">
-          {jobs.map((job) => (
-            <li
-              key={job.ref}
-              className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] text-zinc-400">{job.ref}</p>
-                <p className="truncate text-sm font-medium text-zinc-900">{job.title}</p>
-                <p className="truncate text-xs text-zinc-500">{job.companyName}</p>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-3">
-                <Link
-                  href={`/jobs/${job.slug}`}
-                  className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
-                >
-                  View
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => openApplicationsForJob(job)}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 transition hover:text-[#5b06c2] hover:underline"
-                  title="Open applications for this vacancy"
-                >
-                  <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
-                  Applications
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void copyJobPublicLink(job)}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
-                  title="Copy public link to this vacancy"
-                >
-                  <Copy className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
-                  {copiedRef === job.ref ? "Copied" : "Copy link"}
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Delete ${job.ref}`}
-                  onClick={() => handleDelete(job)}
-                  className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
-                >
-                  <Trash className="h-4 w-4" aria-hidden />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <p className="text-xs text-zinc-500">
+            {openListingsFilter.trim()
+              ? `${filteredOpenListings.length} of ${jobs.length} role${jobs.length === 1 ? "" : "s"}`
+              : `${jobs.length} role${jobs.length === 1 ? "" : "s"}`}{" "}
+            ·{" "}
+            <Link href="/#roles" className="font-medium text-[#7107E7] underline-offset-2 hover:underline">
+              View on site
+            </Link>
+          </p>
+          <label className="flex w-full min-w-0 max-w-full items-center gap-2 sm:max-w-sm">
+            <span className="sr-only">Filter listings</span>
+            <MagnifyingGlass className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
+            <input
+              id="portal-open-listings-filter"
+              type="search"
+              value={openListingsFilter}
+              onChange={(e) => setOpenListingsFilter(e.target.value)}
+              placeholder="Filter by title, company, ref…"
+              className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+              autoComplete="off"
+              aria-label="Filter open listings"
+            />
+          </label>
+        </div>
+        {filteredOpenListings.length > 0 ? (
+          <ul className="mt-3 space-y-3">
+            {filteredOpenListings.map((job) => (
+              <li
+                key={`${job.ref}-${job.id ?? ""}`}
+                className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] text-zinc-400">{job.ref}</p>
+                  <p className="truncate text-sm font-medium text-zinc-900">{job.title}</p>
+                  <p className="truncate text-xs text-zinc-500">{job.companyName}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-3">
+                  <Link
+                    href={`/jobs/${job.slug}`}
+                    className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
+                  >
+                    View
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setJobToEdit(job);
+                      setFlow("manual");
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 transition hover:text-[#5b06c2] hover:underline"
+                    title="Edit this vacancy"
+                  >
+                    <PencilSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openApplicationsForJob(job)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 transition hover:text-[#5b06c2] hover:underline"
+                    title="Open applications for this vacancy"
+                  >
+                    <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
+                    Applications
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void copyJobPublicLink(job)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
+                    title="Copy public link to this vacancy"
+                  >
+                    <Copy className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
+                    {copiedRef === job.ref ? "Copied" : "Copy link"}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${job.ref}`}
+                    onClick={() => handleDelete(job)}
+                    className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                  >
+                    <Trash className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {jobs.length > 0 && filteredOpenListings.length === 0 ? (
+          <p className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center text-sm text-zinc-600">
+            No listings match &ldquo;{openListingsFilter.trim()}&rdquo;. Try another search or clear the filter.
+          </p>
+        ) : null}
+        {jobs.length === 0 ? (
+          <p className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center text-sm text-zinc-600">
+            No open listings yet — add a role above.
+          </p>
+        ) : null}
       </section>
       ) : null}
     </div>
