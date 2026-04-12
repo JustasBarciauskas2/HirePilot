@@ -42,18 +42,23 @@ function formatDate(iso: string): string {
   }
 }
 
+/** Canonical form for vacancy UUIDs in filter keys and comparisons (avoids case mismatches). */
+function normVacancyUuid(s: string | undefined | null): string {
+  return (s?.trim() ?? "").toLowerCase();
+}
+
 /** Value for the filter dropdown — filtering is applied client-side on the loaded list. */
 function jobFilterValue(job: JobDetail): string {
   const vid = job.id?.trim();
-  if (vid) return `vacancy:${vid}`;
+  if (vid) return `vacancy:${normVacancyUuid(vid)}`;
   return `ref:${job.ref}`;
 }
 
 function filterLabel(jobs: JobDetail[], filterKey: string): string | null {
   if (!filterKey) return null;
   if (filterKey.startsWith("vacancy:")) {
-    const id = filterKey.slice("vacancy:".length);
-    const j = jobs.find((x) => x.id?.trim() === id);
+    const id = normVacancyUuid(filterKey.slice("vacancy:".length));
+    const j = jobs.find((x) => normVacancyUuid(x.id) === id);
     return j ? `${j.title}` : "This vacancy";
   }
   if (filterKey.startsWith("ref:")) {
@@ -66,7 +71,7 @@ function filterLabel(jobs: JobDetail[], filterKey: string): string | null {
 
 function buildInitialFilterKey(initialVacancyId?: string, initialJobRef?: string): string {
   const v = initialVacancyId?.trim();
-  if (v) return `vacancy:${v}`;
+  if (v) return `vacancy:${normVacancyUuid(v)}`;
   const r = initialJobRef?.trim();
   if (r) return `ref:${r}`;
   return "";
@@ -74,8 +79,8 @@ function buildInitialFilterKey(initialVacancyId?: string, initialJobRef?: string
 
 function jobFromFilterKey(filterKey: string, jobList: JobDetail[]): JobDetail | undefined {
   if (filterKey.startsWith("vacancy:")) {
-    const id = filterKey.slice("vacancy:".length);
-    return jobList.find((x) => x.id?.trim() === id);
+    const id = normVacancyUuid(filterKey.slice("vacancy:".length));
+    return jobList.find((x) => normVacancyUuid(x.id) === id);
   }
   if (filterKey.startsWith("ref:")) {
     const ref = filterKey.slice("ref:".length);
@@ -169,6 +174,7 @@ export function ApplicationsPanel({
   const [vacancyComboDirty, setVacancyComboDirty] = useState(false);
   const [vacancyComboOpen, setVacancyComboOpen] = useState(false);
   const vacancyComboRef = useRef<HTMLDivElement | null>(null);
+  const vacancyComboInputRef = useRef<HTMLInputElement | null>(null);
   /** Filters visible rows by candidate name and job fields (title, ref, company, slug). */
   const [vacancyRowSearch, setVacancyRowSearch] = useState("");
   const [rows, setRows] = useState<JobApplicationRecord[] | null>(null);
@@ -203,6 +209,24 @@ export function ApplicationsPanel({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [vacancyComboOpen]);
 
+  const vacancyComboGateRef = useRef({ filterKey: "", dirty: false });
+  vacancyComboGateRef.current = { filterKey, dirty: vacancyComboDirty };
+
+  /** When the list opens, focus the field and select the current label so the next keystroke searches (replaces text). */
+  useEffect(() => {
+    if (!vacancyComboOpen) return;
+    const el = vacancyComboInputRef.current;
+    if (!el) return;
+    const id = window.requestAnimationFrame(() => {
+      const { filterKey: fk, dirty } = vacancyComboGateRef.current;
+      el.focus();
+      if (fk && !dirty) {
+        el.select();
+      }
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [vacancyComboOpen]);
+
   const { widths: columnWidths, onResizeBetweenLogical } = useApplicationsTableColumnWidths(user.uid);
   const { columnOrder, moveColumn } = useApplicationsTableColumnOrder(user.uid);
 
@@ -214,7 +238,7 @@ export function ApplicationsPanel({
         params.delete("vacancy");
         params.delete("ref");
       } else if (next.startsWith("vacancy:")) {
-        params.set("vacancy", next.slice("vacancy:".length));
+        params.set("vacancy", normVacancyUuid(next.slice("vacancy:".length)));
         params.delete("ref");
       } else if (next.startsWith("ref:")) {
         params.set("ref", next.slice("ref:".length));
@@ -355,14 +379,16 @@ export function ApplicationsPanel({
     if (!filterKey) return list;
     if (filterKey.startsWith("ref:")) {
       const ref = filterKey.slice("ref:".length);
-      return list.filter((r) => r.jobRef === ref);
+      return list.filter((r) => r.jobRef.trim() === ref.trim());
     }
     if (filterKey.startsWith("vacancy:")) {
-      const uuid = filterKey.slice("vacancy:".length);
-      const job = jobs.find((x) => x.id?.trim() === uuid);
+      const uuidNorm = normVacancyUuid(filterKey.slice("vacancy:".length));
+      const job = jobs.find((x) => normVacancyUuid(x.id) === uuidNorm);
       return list.filter((r) => {
-        if (r.vacancyId?.trim() === uuid) return true;
-        if (job && r.jobRef === job.ref) return true;
+        const rid = normVacancyUuid(r.vacancyId);
+        if (rid && rid === uuidNorm) return true;
+        // Legacy rows with no vacancy id: match by job ref only (avoid ref fallback when id is set — wrong tenant row).
+        if (!rid && job && r.jobRef.trim() === job.ref.trim()) return true;
         return false;
       });
     }
@@ -391,7 +417,11 @@ export function ApplicationsPanel({
 
   const jobsForSelect = useMemo(() => {
     const q = vacancyComboQuery.trim().toLowerCase();
-    let list = q
+    // Only narrow the list while the user is typing. The value after picking a row is
+    // `formatJobLabel` (uses — and ·) and does not match the simple `ref title company` join,
+    // so filtering would hide every other vacancy until the user blurs.
+    const shouldFilter = vacancyComboDirty && q.length > 0;
+    let list = shouldFilter
       ? jobs.filter((j) =>
           [j.ref, j.title, j.companyName, j.slug ?? ""].join(" ").toLowerCase().includes(q),
         )
@@ -401,13 +431,14 @@ export function ApplicationsPanel({
       selected &&
       !list.some(
         (j) =>
-          j.ref === selected.ref && (j.id?.trim() ?? "") === (selected.id?.trim() ?? ""),
+          j.ref === selected.ref &&
+          normVacancyUuid(j.id) === normVacancyUuid(selected.id),
       )
     ) {
       list = [selected, ...list];
     }
     return list;
-  }, [jobs, vacancyComboQuery, filterKey]);
+  }, [jobs, vacancyComboQuery, filterKey, vacancyComboDirty]);
 
   const activeFilterLabel = filterLabel(jobs, filterKey);
 
@@ -462,6 +493,7 @@ export function ApplicationsPanel({
             </label>
             <div className="relative">
               <input
+                ref={vacancyComboInputRef}
                 id="vacancy-combobox-input"
                 type="text"
                 role="combobox"
@@ -475,6 +507,13 @@ export function ApplicationsPanel({
                   setVacancyComboOpen(true);
                 }}
                 onFocus={() => setVacancyComboOpen(true)}
+                onClick={(e) => {
+                  setVacancyComboOpen(true);
+                  const el = e.currentTarget;
+                  if (filterKey && !vacancyComboDirty) {
+                    window.requestAnimationFrame(() => el.select());
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") setVacancyComboOpen(false);
                 }}
@@ -497,7 +536,18 @@ export function ApplicationsPanel({
                     <X className="h-4 w-4" weight="bold" aria-hidden />
                   </button>
                 ) : null}
-                <CaretDown className="h-4 w-4 text-zinc-400" weight="bold" aria-hidden />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label={vacancyComboOpen ? "Close vacancy list" : "Open vacancy list"}
+                  className="pointer-events-auto rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                  }}
+                  onClick={() => setVacancyComboOpen((o) => !o)}
+                >
+                  <CaretDown className="h-4 w-4" weight="bold" aria-hidden />
+                </button>
               </div>
               {vacancyComboOpen ? (
                 <ul
@@ -510,8 +560,10 @@ export function ApplicationsPanel({
                       type="button"
                       role="option"
                       aria-selected={filterKey === ""}
-                      className={`flex w-full rounded-lg px-3 py-2 text-left transition hover:bg-zinc-50 ${
-                        filterKey === "" ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]" : "text-zinc-800"
+                      className={`flex w-full rounded-lg px-3 py-2 text-left transition ${
+                        filterKey === ""
+                          ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]"
+                          : "text-zinc-800 hover:bg-[#7107E7]/10 hover:font-medium hover:text-[#5b06c2]"
                       }`}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => selectVacancy("")}
@@ -528,8 +580,10 @@ export function ApplicationsPanel({
                           type="button"
                           role="option"
                           aria-selected={selected}
-                          className={`flex w-full rounded-lg px-3 py-2 text-left transition hover:bg-zinc-50 ${
-                            selected ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]" : "text-zinc-800"
+                          className={`flex w-full rounded-lg px-3 py-2 text-left transition ${
+                            selected
+                              ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]"
+                              : "text-zinc-800 hover:bg-[#7107E7]/10 hover:font-medium hover:text-[#5b06c2]"
                           }`}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => selectVacancy(v)}
