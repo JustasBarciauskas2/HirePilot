@@ -163,7 +163,7 @@ export function JobDetailView({
             </Link>
             <span className="mx-2 text-zinc-300">/</span>
             <Link href="/#roles" className="transition hover:text-[#7107E7]">
-              Open roles
+              View roles
             </Link>
             <span className="mx-2 text-zinc-300">/</span>
             <span className="font-mono text-xs text-zinc-600">{job.ref}</span>
@@ -174,7 +174,7 @@ export function JobDetailView({
               <Link
                 href="/#roles"
                 className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold leading-none text-zinc-700 shadow-sm transition hover:border-[#7107E7]/30 hover:text-[#7107E7] sm:gap-1.5 sm:px-3 sm:py-2 sm:text-sm"
-                title="Browse open roles on the homepage"
+                title="Browse roles on the homepage"
               >
                 <span>Next vacancy</span>
                 <CaretRight className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" weight="bold" aria-hidden />

@@ -146,7 +146,7 @@ export function Hero() {
               ·
             </span>
             <Link href="/#roles" className="underline decoration-zinc-300 underline-offset-4 transition hover:text-zinc-800">
-              Open roles
+              View roles
             </Link>
           </motion.p>
         </div>

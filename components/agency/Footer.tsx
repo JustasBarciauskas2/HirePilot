@@ -59,7 +59,7 @@ export function Footer() {
               <ul className="mt-4 space-y-2 text-sm text-zinc-600">
                 <li>
                   <Link href="/#roles" className="transition hover:text-[#7107E7]">
-                    Open roles
+                    View roles
                   </Link>
                 </li>
                 <li>
@@ -83,10 +83,10 @@ export function Footer() {
         </div>
         <div className="flex flex-col gap-4 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-6 text-xs font-medium text-zinc-500">
-            <Link href="#" className="transition hover:text-[#7107E7]">
+            <Link href="/privacy" className="transition hover:text-[#7107E7]">
               Privacy
             </Link>
-            <Link href="#" className="transition hover:text-[#7107E7]">
+            <Link href="/terms" className="transition hover:text-[#7107E7]">
               Terms
             </Link>
           </div>

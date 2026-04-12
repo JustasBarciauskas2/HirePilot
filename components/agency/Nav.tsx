@@ -6,7 +6,6 @@ import { List, X } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 const links = [
-  { href: "/#roles", label: "Open roles" },
   { href: "/#about", label: "About" },
   { href: "/#focus", label: "Why Meridian" },
   { href: "/#process", label: "Process" },
@@ -107,6 +106,29 @@ export function Nav() {
                   </Link>
                 </motion.div>
               ))}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                transition={{
+                  delay: 0.04 + links.length * 0.035,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 28,
+                }}
+                className="mt-6"
+              >
+                <Link
+                  href="/#roles"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#7107E7] px-6 py-4 text-base font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.45)] transition hover:bg-[#5b06c2]"
+                >
+                  View roles
+                  <span className="text-sm" aria-hidden>
+                    ↗
+                  </span>
+                </Link>
+              </motion.div>
             </nav>
           </motion.div>
         ) : null}
