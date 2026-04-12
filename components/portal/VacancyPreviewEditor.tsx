@@ -1349,7 +1349,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50"
         >
           Cancel
         </button>
