@@ -23,24 +23,15 @@ export function BrandStudio() {
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-14 lg:items-center">
           <Reveal className="order-2 lg:order-1">
             <div className="mx-auto w-full max-w-md lg:mx-0">
-              <div className="rounded-[2rem] bg-zinc-200/60 p-2 ring-1 ring-zinc-950/5">
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[calc(2rem-0.5rem)] border border-white/80 bg-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
-                  <Image
-                    src="/team-nina-kovac.png"
-                    alt="Nina Kovac, lead recruiter at Meridian Talent"
-                    fill
-                    className="object-cover object-top"
-                    sizes="(min-width: 1024px) 480px, 100vw"
-                    priority={false}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-zinc-950/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
-                    <p className="font-display text-lg font-semibold tracking-tight text-white">
-                      Nina Kovac
-                    </p>
-                    <p className="mt-1 text-sm text-[#E9D5FF]">Lead recruiter · Meridian Talent</p>
-                  </div>
-                </div>
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[2rem] border border-zinc-200/80 bg-zinc-100 shadow-sm ring-1 ring-zinc-950/5">
+                <Image
+                  src="/nina-kovac-about.png"
+                  alt="Nina Kovac, lead recruiter at Meridian Talent"
+                  fill
+                  className="object-cover object-top"
+                  sizes="(min-width: 1024px) 480px, 100vw"
+                  priority={false}
+                />
               </div>
               <p className="mt-4 text-center text-xs leading-relaxed text-zinc-500 lg:text-left">
                 Your point of contact when you&apos;re ready to explore what&apos;s next
