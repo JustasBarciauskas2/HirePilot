@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { JobDetail } from "@/data/jobs";
+import { JobApplyForm } from "@/components/jobs/JobApplyForm";
 import { JobShareBlock } from "@/components/jobs/JobShareBlock";
 import { JOB_COMP_PILL_HERO } from "@/components/jobs/job-comp-pill-styles";
 import { equityPillText, showEquityNoteParagraph } from "@/lib/job-equity-pill";
@@ -26,6 +27,7 @@ import {
   Globe,
   Info,
   MapPin,
+  PaperPlaneRight,
   Star,
   Steps,
   TrendUp,
@@ -35,6 +37,14 @@ import {
 } from "@phosphor-icons/react";
 
 type Tab = "job" | "company";
+
+/** Meridian-tinted panels — ties sidebar / body cards to the hero gradient without heavy fill. */
+const JOB_WIDGET_CARD =
+  "overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-[#7107E7]/10";
+const JOB_WIDGET_HEADER =
+  "border-b border-[#7107E7]/10 bg-gradient-to-r from-[#7107E7]/[0.09] to-white px-4 py-2.5 text-sm font-bold tracking-tight text-zinc-900";
+const JOB_WIDGET_LIST =
+  "list-disc pl-5 text-sm leading-relaxed text-zinc-700 marker:text-[#7107E7]/45";
 
 /**
  * Visible hover tip (not native `title` — those are flaky on SVGs and often don’t appear).
@@ -304,13 +314,22 @@ export function JobDetailView({
                   <p className="text-sm font-medium text-emerald-900">Open for applications</p>
                 </HeroMetaRow>
 
-                <Link
-                  href="/#contact"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm transition hover:border-[#7107E7]/35 hover:bg-[#7107E7]/5 hover:text-[#5b06c2] sm:w-auto sm:self-start"
-                >
-                  <Bell className="h-4 w-4" weight="duotone" />
-                  Get updates via Meridian
-                </Link>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:self-start">
+                  <a
+                    href="#apply"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#7107E7] px-3 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.35)] transition hover:bg-[#5b06c2] sm:w-auto"
+                  >
+                    <PaperPlaneRight className="h-4 w-4" weight="bold" aria-hidden />
+                    Apply for this role
+                  </a>
+                  <Link
+                    href="/#contact"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm transition hover:border-[#7107E7]/35 hover:bg-[#7107E7]/5 hover:text-[#5b06c2] sm:w-auto"
+                  >
+                    <Bell className="h-4 w-4" weight="duotone" />
+                    Get updates via Meridian
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -366,6 +385,25 @@ export function JobDetailView({
           </div>
         </div>
 
+        <section
+          id="apply"
+          className="mt-10 scroll-mt-28 border-t border-zinc-200/80 pt-8"
+        >
+          <div className={JOB_WIDGET_CARD}>
+            <div className={JOB_WIDGET_HEADER}>Apply</div>
+            <div className="p-5 sm:p-6">
+              <h2 className="text-lg font-bold text-zinc-950">Submit your application</h2>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-600">
+                {job.title} · {job.companyName}. Your CV is stored securely; our team uses these details to
+                match you to this role.
+              </p>
+              <div className="mt-6">
+                <JobApplyForm job={job} />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div className="mt-10 border-t border-zinc-200/80 pt-8">
           <JobShareBlock job={job} />
         </div>
@@ -376,13 +414,11 @@ export function JobDetailView({
 
 function JobRoleColumn({ job }: { job: JobDetail }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm">
-      <div className="bg-zinc-200/50 px-4 py-2.5 text-sm font-bold tracking-tight text-zinc-900 ring-1 ring-zinc-200/80">
-        Role
-      </div>
+    <div className={JOB_WIDGET_CARD}>
+      <div className={JOB_WIDGET_HEADER}>Role</div>
       <section className="p-6 sm:p-8">
         <h2 className="text-lg font-bold text-zinc-950">Who you are</h2>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-700">
+        <ul className={`mt-4 ${JOB_WIDGET_LIST} space-y-2`}>
           {job.whoYouAre.map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -390,7 +426,7 @@ function JobRoleColumn({ job }: { job: JobDetail }) {
         {job.desirable.length > 0 ? (
           <>
             <h2 className="mt-10 text-lg font-bold text-zinc-950">Desirable</h2>
-            <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-700">
+            <ul className={`mt-4 ${JOB_WIDGET_LIST} space-y-2`}>
               {job.desirable.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -398,7 +434,7 @@ function JobRoleColumn({ job }: { job: JobDetail }) {
           </>
         ) : null}
         <h2 className="mt-10 text-lg font-bold text-zinc-950">What the job involves</h2>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-700">
+        <ul className={`mt-4 ${JOB_WIDGET_LIST} space-y-2`}>
           {job.whatJobInvolves.map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -410,13 +446,11 @@ function JobRoleColumn({ job }: { job: JobDetail }) {
 
 function JobCompanyColumn({ job }: { job: JobDetail }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm">
-      <div className="bg-zinc-200/50 px-4 py-2.5 text-sm font-bold tracking-tight text-zinc-900 ring-1 ring-zinc-200/80">
-        Company
-      </div>
+    <div className={JOB_WIDGET_CARD}>
+      <div className={JOB_WIDGET_HEADER}>Company</div>
       <section className="p-6 sm:p-8">
         <h2 className="text-lg font-bold text-zinc-950">Company benefits</h2>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-zinc-700">
+        <ul className={`mt-4 ${JOB_WIDGET_LIST} space-y-2`}>
           {job.companyBenefits.map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -435,18 +469,16 @@ function JobCompanyColumn({ job }: { job: JobDetail }) {
 function InsightsCard({ job }: { job: JobDetail }) {
   const glassdoor = job.insights.glassdoorRating;
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm">
-      <div className="bg-zinc-200/50 px-4 py-2.5 text-sm font-bold text-zinc-900 ring-1 ring-zinc-200/80">
-        Insights
-      </div>
+    <div className={JOB_WIDGET_CARD}>
+      <div className={JOB_WIDGET_HEADER}>Insights</div>
       <div className="space-y-4 p-5 sm:p-6">
         <div className="flex flex-wrap gap-2">
           {job.insights.tags.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-800 ring-1 ring-zinc-200/80"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#7107E7]/[0.07] px-3 py-1 text-xs font-medium text-zinc-800 ring-1 ring-[#7107E7]/15"
             >
-              <ChartLineUp className="h-3.5 w-3.5 text-zinc-500" weight="duotone" />
+              <ChartLineUp className="h-3.5 w-3.5 text-[#7107E7]/75" weight="duotone" />
               {t}
             </span>
           ))}
@@ -480,13 +512,11 @@ function InsightsCard({ job }: { job: JobDetail }) {
 function CompanySidebarCard({ job, tab }: { job: JobDetail; tab: Tab }) {
   if (tab === "company") return null;
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm">
-      <div className="bg-zinc-200/50 px-4 py-2.5 text-sm font-bold text-zinc-900 ring-1 ring-zinc-200/80">
-        Company
-      </div>
+    <div className={JOB_WIDGET_CARD}>
+      <div className={JOB_WIDGET_HEADER}>Company</div>
       <div className="p-5 sm:p-6">
         <h3 className="text-sm font-bold text-zinc-950">Company benefits</h3>
-        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-zinc-700">
+        <ul className={`mt-3 ${JOB_WIDGET_LIST} space-y-1.5`}>
           {job.companyBenefits.slice(0, 4).map((line) => (
             <li key={line}>{line}</li>
           ))}
@@ -550,7 +580,7 @@ function FundingBlock({ job, compact }: { job: JobDetail; compact?: boolean }) {
   return (
     <div className={compact ? "mt-6" : "mt-10"}>
       <div
-        className={`overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-100/60 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)] ring-1 ring-zinc-200/40 ${
+        className={`overflow-hidden rounded-xl border border-zinc-200/80 bg-gradient-to-br from-[#7107E7]/[0.04] to-zinc-100/70 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)] ring-1 ring-[#7107E7]/10 ${
           compact ? "p-3.5" : "p-4 sm:p-5"
         }`}
       >
@@ -649,16 +679,19 @@ function FundingBlock({ job, compact }: { job: JobDetail; compact?: boolean }) {
 
 function SpecialistCard({ job }: { job: JobDetail }) {
   return (
-    <div className="flex gap-4 rounded-2xl border border-zinc-200/90 bg-white p-5 shadow-sm">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#7107E7]/10 text-sm font-bold text-[#7107E7] ring-1 ring-[#7107E7]/20">
-        {job.specialist.name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")}
-      </div>
-      <div>
-        <p className="font-semibold text-zinc-950">{job.specialist.name}</p>
-        <p className="mt-0.5 text-sm text-zinc-600">{job.specialist.title}</p>
+    <div className={JOB_WIDGET_CARD}>
+      <div className={JOB_WIDGET_HEADER}>Leadership</div>
+      <div className="flex gap-4 p-5">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#7107E7]/10 text-sm font-bold text-[#7107E7] ring-1 ring-[#7107E7]/20">
+          {job.specialist.name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")}
+        </div>
+        <div>
+          <p className="font-semibold text-zinc-950">{job.specialist.name}</p>
+          <p className="mt-0.5 text-sm text-zinc-600">{job.specialist.title}</p>
+        </div>
       </div>
     </div>
   );

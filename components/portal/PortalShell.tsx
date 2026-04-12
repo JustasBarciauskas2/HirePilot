@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Footer } from "@/components/agency/Footer";
 import { Nav } from "@/components/agency/Nav";
 import { useFirebaseAuth } from "@/components/FirebaseAuthProvider";
@@ -64,11 +65,17 @@ export function PortalShell({ initialJobs }: { initialJobs: JobDetail[] }) {
     <>
       <Nav />
       <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-        <PortalDashboard
-          initialJobs={initialJobs}
-          user={user}
-          displayName={user.displayName ?? user.email ?? "Recruiter"}
-        />
+        <Suspense
+          fallback={
+            <div className="mx-auto max-w-5xl py-12 text-center text-sm text-zinc-500">Loading portal…</div>
+          }
+        >
+          <PortalDashboard
+            initialJobs={initialJobs}
+            user={user}
+            displayName={user.displayName ?? user.email ?? "Recruiter"}
+          />
+        </Suspense>
       </main>
       <Footer />
     </>

@@ -221,6 +221,64 @@ export function getBackendVacancyDeleteUrl(_ref: string, vacancyId?: string | nu
   }
 }
 
+/**
+ * Optional webhook: Next POSTs JSON after a candidate applies (Firestore + Storage already saved).
+ * Set a full URL, or combine `BACKEND_ORIGIN` + `BACKEND_JOB_APPLICATION_PATH`.
+ *
+ * Full URL wins: `BACKEND_JOB_APPLICATION_WEBHOOK_URL=https://api.example.com/v1/applications`
+ * Or: `BACKEND_ORIGIN=http://localhost:8080` + `BACKEND_JOB_APPLICATION_PATH=/api/applications` (default path if omitted: `/api/job-applications`)
+ */
+export function getBackendJobApplicationWebhookUrl(): string | null {
+  const full = process.env.BACKEND_JOB_APPLICATION_WEBHOOK_URL?.trim();
+  if (full) {
+    try {
+      new URL(full);
+      return full;
+    } catch {
+      return null;
+    }
+  }
+  const base = resolveBackendOriginBase();
+  if (!base) return null;
+  const rawPath = process.env.BACKEND_JOB_APPLICATION_PATH?.trim() || "/api/job-applications";
+  const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  return `${base}${path}`;
+}
+
+/**
+ * GET URL your Java/backend exposes: returns which job application documents exist (Firestore document ids).
+ * When this returns non-null, the portal **only** shows applications whose ids appear in that response (then loaded from Firestore). Nothing else is listed.
+ *
+ * 1) Set `BACKEND_APPLICATIONS_PORTAL_LIST_URL` to the full GET URL, or
+ * 2) Set `BACKEND_APPLICATIONS_PORTAL_LIST_USE_ORIGIN=true` and use `BACKEND_ORIGIN` + `BACKEND_APPLICATIONS_PORTAL_LIST_PATH` (default `/api/applications/portal`).
+ *
+ * Having `BACKEND_ORIGIN` alone does **not** enable this — avoids calling a missing endpoint when you only use the backend for vacancies.
+ */
+export function getBackendApplicationsPortalListUrl(): string | null {
+  const full = process.env.BACKEND_APPLICATIONS_PORTAL_LIST_URL?.trim();
+  if (full) {
+    try {
+      new URL(full);
+      return full;
+    } catch {
+      return null;
+    }
+  }
+  const useOrigin =
+    process.env.BACKEND_APPLICATIONS_PORTAL_LIST_USE_ORIGIN?.trim() === "1" ||
+    process.env.BACKEND_APPLICATIONS_PORTAL_LIST_USE_ORIGIN?.trim().toLowerCase() === "true";
+  if (!useOrigin) return null;
+  const base = resolveBackendOriginBase();
+  if (!base) return null;
+  const rawPath = process.env.BACKEND_APPLICATIONS_PORTAL_LIST_PATH?.trim() || "/api/applications/portal";
+  const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  try {
+    return new URL(path, `${base}/`).href;
+  } catch {
+    return null;
+  }
+}
+
 /** True if any backend env is set but URL could not be built (misconfiguration). */
 export function backendEnvLooksInvalid(): boolean {
   const hasAny =

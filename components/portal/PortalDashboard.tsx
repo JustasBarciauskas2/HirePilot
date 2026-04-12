@@ -4,15 +4,26 @@ import type { JobDetail } from "@/data/jobs";
 import { getApp } from "firebase/app";
 import type { User } from "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
-import { Copy, EnvelopeSimple, FileText, SignOut, Trash, UploadSimple } from "@phosphor-icons/react";
+import {
+  Briefcase,
+  Copy,
+  EnvelopeSimple,
+  FileText,
+  SignOut,
+  Trash,
+  UploadSimple,
+  Users,
+} from "@phosphor-icons/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { portalAuthHeaders } from "@/lib/portal-auth";
+import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
 import { FileUploadWizard } from "@/components/portal/FileUploadWizard";
 import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
 
 type Flow = "choose" | "file" | "manual";
+type PortalTab = "vacancies" | "applications";
 
 export function PortalDashboard({
   initialJobs,
@@ -24,15 +35,64 @@ export function PortalDashboard({
   displayName: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [flow, setFlow] = useState<Flow>("choose");
   const [jobs, setJobs] = useState(initialJobs);
   const [pending, startTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
+  const [portalTab, setPortalTab] = useState<PortalTab>(() => {
+    const open =
+      searchParams.get("tab") === "applications" ||
+      Boolean(searchParams.get("vacancy")?.trim()) ||
+      Boolean(searchParams.get("ref")?.trim());
+    return open ? "applications" : "vacancies";
+  });
 
   useEffect(() => {
     setJobs(initialJobs);
   }, [initialJobs]);
+
+  useEffect(() => {
+    const open =
+      searchParams.get("tab") === "applications" ||
+      Boolean(searchParams.get("vacancy")?.trim()) ||
+      Boolean(searchParams.get("ref")?.trim());
+    setPortalTab(open ? "applications" : "vacancies");
+  }, [searchParams]);
+
+  const setPortalTabWithUrl = useCallback(
+    (tab: PortalTab) => {
+      setPortalTab(tab);
+      const params = new URLSearchParams(searchParams.toString());
+      if (tab === "applications") {
+        params.set("tab", "applications");
+      } else {
+        params.delete("tab");
+        params.delete("vacancy");
+        params.delete("ref");
+      }
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  function openApplicationsForJob(job: JobDetail) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", "applications");
+    const vid = job.id?.trim();
+    if (vid) {
+      params.set("vacancy", vid);
+      params.delete("ref");
+    } else {
+      params.set("ref", job.ref);
+      params.delete("vacancy");
+    }
+    setPortalTab("applications");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   async function handleDelete(job: JobDetail) {
     const label = job.ref;
@@ -87,12 +147,12 @@ export function PortalDashboard({
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-12">
+    <div className="mx-auto max-w-5xl space-y-12">
       <header className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_8px_30px_-12px_rgba(24,24,27,0.08)] sm:p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Portal</p>
-            <h1 className="mt-1 font-display text-xl font-semibold tracking-tight text-zinc-950">Vacancies</h1>
+            <h1 className="mt-1 font-display text-xl font-semibold tracking-tight text-zinc-950">Dashboard</h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-zinc-500">Signed in as</span>
               <span className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-zinc-200/90 bg-zinc-50 px-2.5 py-1.5 font-mono text-[11px] leading-none text-zinc-800 sm:text-xs">
@@ -114,13 +174,49 @@ export function PortalDashboard({
         </div>
       </header>
 
+      <div className="flex flex-wrap gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-1.5 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setPortalTabWithUrl("vacancies")}
+          className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex-none ${
+            portalTab === "vacancies"
+              ? "bg-white text-zinc-950 shadow-sm ring-1 ring-zinc-200/80"
+              : "text-zinc-600 hover:text-zinc-900"
+          }`}
+        >
+          <Briefcase className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />
+          Vacancies
+        </button>
+        <button
+          type="button"
+          onClick={() => setPortalTabWithUrl("applications")}
+          className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex-none ${
+            portalTab === "applications"
+              ? "bg-white text-zinc-950 shadow-sm ring-1 ring-zinc-200/80"
+              : "text-zinc-600 hover:text-zinc-900"
+          }`}
+        >
+          <Users className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />
+          Applications
+        </button>
+      </div>
+
       {deleteError ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900" role="alert">
           {deleteError}
         </p>
       ) : null}
 
-      {flow === "choose" ? (
+      {portalTab === "applications" ? (
+        <ApplicationsPanel
+          user={user}
+          jobs={jobs}
+          initialVacancyId={searchParams.get("vacancy") ?? undefined}
+          initialJobRef={searchParams.get("ref") ?? undefined}
+        />
+      ) : null}
+
+      {portalTab === "vacancies" && flow === "choose" ? (
         <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8">
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">New listing</p>
           <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950">How do you want to add this role?</h2>
@@ -158,9 +254,14 @@ export function PortalDashboard({
         </section>
       ) : null}
 
-      {flow === "file" ? <FileUploadWizard user={user} onBack={() => setFlow("choose")} /> : null}
-      {flow === "manual" ? <ManualEntryWizard user={user} onBack={() => setFlow("choose")} /> : null}
+      {portalTab === "vacancies" && flow === "file" ? (
+        <FileUploadWizard user={user} onBack={() => setFlow("choose")} />
+      ) : null}
+      {portalTab === "vacancies" && flow === "manual" ? (
+        <ManualEntryWizard user={user} onBack={() => setFlow("choose")} />
+      ) : null}
 
+      {portalTab === "vacancies" ? (
       <section>
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Open listings</p>
         <p className="mt-1 text-xs text-zinc-500">
@@ -189,6 +290,15 @@ export function PortalDashboard({
                 </Link>
                 <button
                   type="button"
+                  onClick={() => openApplicationsForJob(job)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 transition hover:text-[#5b06c2] hover:underline"
+                  title="Open applications for this vacancy"
+                >
+                  <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
+                  Applications
+                </button>
+                <button
+                  type="button"
                   onClick={() => void copyJobPublicLink(job)}
                   className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
                   title="Copy public link to this vacancy"
@@ -209,6 +319,7 @@ export function PortalDashboard({
           ))}
         </ul>
       </section>
+      ) : null}
     </div>
   );
 }

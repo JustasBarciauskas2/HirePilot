@@ -105,8 +105,8 @@ export function mergeVacancyDefaults(
     funding: normalizeFundingRounds(partial.funding),
     totalFunding: partial.totalFunding?.trim() || "—",
     specialist: {
-      name: partial.specialist?.name?.trim() || "Nina Kovac",
-      title: partial.specialist?.title?.trim() || "Lead recruiter · Meridian Talent",
+      name: partial.specialist?.name?.trim() || "Jordan Lee",
+      title: partial.specialist?.title?.trim() || "VP Engineering · Acme",
     },
   };
 }

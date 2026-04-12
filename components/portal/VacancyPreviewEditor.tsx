@@ -896,11 +896,11 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                 {vacancy.insights.tags.length > 0 ? (
                   <ul className="flex flex-wrap gap-2">
                     {vacancy.insights.tags.map((t, i) => (
-                      <li key={`${t}-${i}`} className={chipClass}>
-                        <span className="min-w-0 truncate">{t}</span>
+                      <li key={`${t}-${i}`}>
                         <button
                           type="button"
-                          title="Remove"
+                          title={`Remove ${t}`}
+                          aria-label={`Remove ${t}`}
                           onClick={() =>
                             setVacancy((v) => ({
                               ...v,
@@ -910,9 +910,10 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                               },
                             }))
                           }
-                          className="shrink-0 rounded-lg p-1 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                          className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900`}
                         >
-                          <X className="h-3.5 w-3.5" aria-hidden />
+                          <span className="min-w-0 truncate">{t}</span>
+                          <X className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
                         </button>
                       </li>
                     ))}
@@ -1118,15 +1119,16 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                 {vacancy.skills.length > 0 ? (
                 <ul className="flex flex-wrap gap-2">
                   {vacancy.skills.map((s, i) => (
-                    <li key={`${s.name}-${i}`} className={`${chipClass} transition`}>
-                      <span className="min-w-0 truncate">{s.name}</span>
+                    <li key={`${s.name}-${i}`}>
                       <button
                         type="button"
-                        title="Remove"
+                        title={`Remove ${s.name}`}
+                        aria-label={`Remove ${s.name}`}
                         onClick={() => setVacancy((v) => ({ ...v, skills: removeSkillAt(v.skills, i) }))}
-                        className="shrink-0 rounded-lg p-1 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                        className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900`}
                       >
-                        <X className="h-3.5 w-3.5" aria-hidden />
+                        <span className="min-w-0 truncate">{s.name}</span>
+                        <X className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
                       </button>
                     </li>
                   ))}
@@ -1179,17 +1181,18 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                 {vacancy.industries.length > 0 ? (
                 <ul className="flex flex-wrap gap-2">
                   {vacancy.industries.map((ind, i) => (
-                    <li key={`${ind}-${i}`} className={chipClass}>
-                      <span className="min-w-0 truncate">{ind}</span>
+                    <li key={`${ind}-${i}`}>
                       <button
                         type="button"
-                        title="Remove"
+                        title={`Remove ${ind}`}
+                        aria-label={`Remove ${ind}`}
                         onClick={() =>
                           setVacancy((v) => ({ ...v, industries: removeStringAt(v.industries, i) }))
                         }
-                        className="shrink-0 rounded-lg p-1 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                        className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900`}
                       >
-                        <X className="h-3.5 w-3.5" aria-hidden />
+                        <span className="min-w-0 truncate">{ind}</span>
+                        <X className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
                       </button>
                     </li>
                   ))}
@@ -1299,12 +1302,12 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
               addPlaceholder="e.g. Private health · dental · vision — Enter to add"
             />
             <SectionPanel>
-              <FieldGroup title="Recruiter contact">
+              <FieldGroup title="Company leadership">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
                       <FieldLabel
-                        label="Recruiter name"
-                        hint="Who candidates see as the Meridian contact on this listing."
+                        label="Name"
+                        hint="A leader at the hiring company — e.g. hiring manager or exec sponsor for this role."
                       />
                       <input
                         className={inputPanelClass}
@@ -1315,13 +1318,13 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                             specialist: { ...v.specialist, name: e.target.value },
                           }))
                         }
-                        placeholder="e.g. Nina Kovac"
+                        placeholder="e.g. Jordan Lee"
                       />
                     </label>
                     <label className="block sm:col-span-2">
                       <FieldLabel
-                        label="Recruiter title"
-                        hint="Role line under the recruiter name — e.g. team and firm."
+                        label="Role"
+                        hint="Their title at that company — e.g. VP Engineering, Chief Product Officer."
                       />
                       <input
                         className={inputPanelClass}
@@ -1332,7 +1335,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                             specialist: { ...v.specialist, title: e.target.value },
                           }))
                         }
-                        placeholder="e.g. Lead recruiter · Meridian Talent"
+                        placeholder="e.g. VP Engineering · Acme"
                       />
                     </label>
                   </div>

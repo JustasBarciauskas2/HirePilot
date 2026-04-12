@@ -107,6 +107,6 @@ export function buildJobFromPortalInput(existing: JobDetail[], input: PortalJobF
     funding: [],
     totalFunding: "—",
     ourTake,
-    specialist: { name: "Nina Kovac", title: "Lead recruiter · Meridian Talent" },
+    specialist: { name: "Jordan Lee", title: "VP Engineering · Acme" },
   });
 }

@@ -101,6 +101,7 @@ export type JobDetail = {
   funding: FundingRound[];
   totalFunding: string;
   ourTake: string;
+  /** Leader at the hiring company (not the agency recruiter) — name + role line for the job sidebar. */
   specialist: { name: string; title: string };
 };
 

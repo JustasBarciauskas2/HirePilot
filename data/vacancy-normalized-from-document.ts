@@ -70,6 +70,7 @@ export type VacancyNormalizedFromDocument = {
   /** Each round’s `amount` is a string for display; merge/publish normalizes numbers from APIs. */
   funding: FundingRound[];
   totalFunding: string;
+  /** Hiring-company leadership (e.g. hiring manager / exec), not the recruiting firm contact. */
   specialist: { name: string; title: string };
 };
 
