@@ -246,7 +246,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
         setErr(typeof data.error === "string" ? data.error : "Could not publish.");
         return;
       }
-      router.refresh();
+      await router.refresh();
       onPublished(data.job);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Publish failed.");
@@ -778,7 +778,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
               onClick={() => void publish()}
               className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-[#7107E7]/35 transition hover:bg-[#5b06c2] disabled:opacity-50"
             >
-              {pending ? "Publishing…" : "Publish vacancy"}
+              {pending ? "Publishing…" : "Publish listing"}
             </button>
           )}
         </div>

@@ -10,7 +10,7 @@ export default function JobNotFound() {
         <p className="font-mono text-xs font-medium uppercase tracking-wider text-[#7107E7]">404</p>
         <h1 className="mt-2 font-display text-2xl font-semibold text-zinc-950">Role not found</h1>
         <p className="mt-2 max-w-md text-sm text-zinc-600">
-          That reference isn&apos;t in our demo list. Head back to open roles and pick another listing.
+          This role doesn&apos;t exist anymore. Head back to open roles and pick another listing.
         </p>
         <Link
           href="/#roles"

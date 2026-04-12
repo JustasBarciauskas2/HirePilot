@@ -51,10 +51,10 @@ function DocumentProcessingOverlay({ fileName }: { fileName: string }) {
       </div>
 
       <p className="mt-6 text-center font-display text-base font-semibold tracking-tight text-zinc-900">
-        Processing document
+        Working on your file
       </p>
       <p className="mt-1 max-w-[220px] text-center text-xs leading-relaxed text-zinc-500">
-        Sending to your backend… extracting structured vacancy data.
+        Reading the document and pulling out the role details.
       </p>
       <p className="mt-3 max-w-full truncate text-center font-mono text-[11px] text-zinc-400" title={fileName}>
         {fileName}
@@ -125,7 +125,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
     setSelectedFile(null);
   }
 
-  async function sendToBackend() {
+  async function uploadDocument() {
     const input = fileInputRef.current;
     const f = input?.files?.[0];
     if (!f || f.size === 0) {
@@ -178,7 +178,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
   }
 
   const stepLabel =
-    step === 1 ? "Upload" : step === 2 ? (parsedVacancy ? "Review" : "Response") : "Done";
+    step === 1 ? "Upload" : step === 2 ? (parsedVacancy ? "Review" : "Check") : "Done";
 
   return (
     <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8">
@@ -203,19 +203,21 @@ export function FileUploadWizard({ user, onBack }: Props) {
       </div>
 
       <h2 className="mt-4 font-display text-lg font-semibold text-zinc-950">
-        {step === 1 && "Process a job description file"}
-        {step === 2 && parsedVacancy && "Review & edit parsed vacancy"}
-        {step === 2 && !parsedVacancy && "Parser response"}
-        {step === 3 && "Vacancy published"}
+        {step === 1 && "Start from a document"}
+        {step === 2 && parsedVacancy && "Check the details"}
+        {step === 2 && !parsedVacancy && "We couldn’t read this file"}
+        {step === 3 && "You’re live"}
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
         {step === 1 &&
-          "Your file is sent to your backend for parsing. If the response includes a normalized vacancy, you can review it before publishing."}
+          "Upload a Word, PDF, or text file with the job description. We’ll fill in what we can so you can review it before it goes live."}
         {step === 2 &&
           parsedVacancy &&
-          "Edit by section, then publish. Publishing sends the final vacancy to your backend (see BACKEND_VACANCY_PUBLISH_URL or default vacancy URL) and saves it on this site."}
-        {step === 2 && !parsedVacancy && "We could not read a vacancy object from the response. Check the JSON shape (schemaVersion + vacancy) or fix the parser."}
-        {step === 3 && "The listing is live on Meridian and was forwarded to your API if configured."}
+          "Change anything below, then publish. Your listing will show on this site and anywhere else your company has connected it."}
+        {step === 2 &&
+          !parsedVacancy &&
+          "We couldn’t pull out the job details from that file. Try another file, go back and start over, or add the role manually instead."}
+        {step === 3 && "This role is now listed on Meridian Talent."}
       </p>
 
       {err ? (
@@ -326,10 +328,10 @@ export function FileUploadWizard({ user, onBack }: Props) {
             <button
               type="button"
               disabled={pending || !selectedFile}
-              onClick={() => void sendToBackend()}
+              onClick={() => void uploadDocument()}
               className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.4)] transition hover:bg-[#5b06c2] disabled:opacity-50"
             >
-              {pending ? "Processing…" : "Send to backend"}
+              {pending ? "Processing…" : "Upload document"}
             </button>
           </div>
           </div>
@@ -350,12 +352,12 @@ export function FileUploadWizard({ user, onBack }: Props) {
             />
             <div>
               <p className="text-sm font-medium text-zinc-900">
-                Document API · HTTP {result.backendStatus}
+                {result.ok ? "File received" : "Something went wrong"}
               </p>
               <p className="mt-0.5 text-xs text-zinc-600">
                 {parseFailed
-                  ? "No structured vacancy in the response — see raw JSON below."
-                  : "Vacancy data loaded — review and edit in the sections below."}
+                  ? "We couldn’t read the job details — see the technical section below if you need to share this with IT."
+                  : "Review the sections below and change anything you need."}
               </p>
             </div>
           </div>
@@ -373,7 +375,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
           ) : (
             <div className="mt-6 space-y-4">
               <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-4">
-                <p className="text-[11px] font-medium uppercase tracking-[0.15em] text-zinc-400">Raw response</p>
+                <p className="text-[11px] font-medium uppercase tracking-[0.15em] text-zinc-400">Technical details</p>
                 <pre className="mt-2 max-h-[min(360px,50vh)] overflow-auto rounded-lg bg-white p-3 font-mono text-xs leading-relaxed text-zinc-800">
                   {result.backend === undefined || result.backend === null
                     ? "(empty)"
@@ -383,10 +385,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
                 </pre>
               </div>
               <p className="text-sm text-zinc-600">
-                Expected shape:{" "}
-                <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-xs">
-                  {"{ \"schemaVersion\": 1, \"vacancy\": { ... } }"}
-                </code>
+                If this keeps happening, send this screen to your IT or support team so they can check the connection.
               </p>
             </div>
           )}

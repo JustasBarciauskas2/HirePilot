@@ -5,7 +5,7 @@ import { JOB_SIZE_BANDS, JOB_SIZE_BAND_LABELS } from "@/data/job-types";
 import type { User } from "firebase/auth";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { portalAuthHeaders } from "@/lib/portal-auth";
 
 const inputClass =
@@ -26,7 +26,7 @@ type Props = {
 export function ManualEntryWizard({ user, onBack }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [pending, startTransition] = useTransition();
+  const [publishPending, setPublishPending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
 
@@ -78,48 +78,53 @@ export function ManualEntryWizard({ user, onBack }: Props) {
   async function publish() {
     setErr(null);
     setOk(null);
-    const fd = new FormData();
-    fd.set("description", description.trim());
-    fd.set("title", title.trim());
-    fd.set("companyName", companyName.trim());
-    fd.set("type", type.trim());
-    fd.set("comp", comp.trim());
-    fd.set("location", location.trim());
-    fd.set("sizeBand", sizeBand);
-    fd.set("skillsText", skillsText);
-    fd.set("regionsText", regionsText);
-    fd.set("salaryHighlight", salaryHighlight);
-    fd.set("equityNote", equityNote);
-    fd.set("clientLine", clientLine);
-    fd.set("locationTag", locationTag);
-    fd.set("companySize", companySize);
-    fd.set("experienceLevel", experienceLevel);
-    fd.set("companyTagline", companyTagline);
-    fd.set("industriesText", industriesText);
+    setPublishPending(true);
+    try {
+      const fd = new FormData();
+      fd.set("description", description.trim());
+      fd.set("title", title.trim());
+      fd.set("companyName", companyName.trim());
+      fd.set("type", type.trim());
+      fd.set("comp", comp.trim());
+      fd.set("location", location.trim());
+      fd.set("sizeBand", sizeBand);
+      fd.set("skillsText", skillsText);
+      fd.set("regionsText", regionsText);
+      fd.set("salaryHighlight", salaryHighlight);
+      fd.set("equityNote", equityNote);
+      fd.set("clientLine", clientLine);
+      fd.set("locationTag", locationTag);
+      fd.set("companySize", companySize);
+      fd.set("experienceLevel", experienceLevel);
+      fd.set("companyTagline", companyTagline);
+      fd.set("industriesText", industriesText);
 
-    const headers = await portalAuthHeaders(user);
-    const res = await fetch("/api/portal/jobs", {
-      method: "POST",
-      body: fd,
-      headers: { ...headers },
-      credentials: "include",
-    });
-    const data = (await res.json().catch(() => ({}))) as {
-      error?: string;
-      job?: JobDetail;
-      backend?: BackendSync;
-    };
-    if (!res.ok) {
-      setErr(typeof data.error === "string" ? data.error : "Could not save.");
-      return;
+      const headers = await portalAuthHeaders(user);
+      const res = await fetch("/api/portal/jobs", {
+        method: "POST",
+        body: fd,
+        headers: { ...headers },
+        credentials: "include",
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        job?: JobDetail;
+        backend?: BackendSync;
+      };
+      if (!res.ok) {
+        setErr(typeof data.error === "string" ? data.error : "Could not save.");
+        return;
+      }
+      let msg = `Published ${data.job?.ref ?? "role"}.`;
+      const b = data.backend;
+      if (b && !b.skipped && !b.ok) {
+        msg += ` Your company’s systems didn’t update (${b.status ?? "?"}).`;
+      }
+      setOk(msg);
+      await router.refresh();
+    } finally {
+      setPublishPending(false);
     }
-    let msg = `Published ${data.job?.ref ?? "role"}.`;
-    const b = data.backend;
-    if (b && !b.skipped && !b.ok) {
-      msg += ` Backend sync failed (${b.status ?? "?"}).`;
-    }
-    setOk(msg);
-    startTransition(() => router.refresh());
   }
 
   return (
@@ -138,11 +143,11 @@ export function ManualEntryWizard({ user, onBack }: Props) {
         </p>
       </div>
 
-      <h2 className="mt-4 font-display text-lg font-semibold text-zinc-950">Add a role (manual)</h2>
+      <h2 className="mt-4 font-display text-lg font-semibold text-zinc-950">Add a role yourself</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        {step === 1 && "Paste the full description."}
-        {step === 2 && "Core role details — everything is sent when you publish."}
-        {step === 3 && "Optional listing fields. Leave blank to use server defaults."}
+        {step === 1 && "Paste the full job description."}
+        {step === 2 && "Fill in the basics. They’ll appear on the listing when you publish."}
+        {step === 3 && "Optional extras — leave blank and we’ll use sensible defaults."}
       </p>
 
       {err ? (
@@ -263,11 +268,11 @@ export function ManualEntryWizard({ user, onBack }: Props) {
         ) : (
           <button
             type="button"
-            disabled={pending}
+            disabled={publishPending}
             onClick={() => void publish()}
             className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.4)] transition hover:bg-[#5b06c2] disabled:opacity-50"
           >
-            {pending ? "Publishing…" : "Publish listing"}
+            {publishPending ? "Publishing…" : "Publish listing"}
           </button>
         )}
       </div>

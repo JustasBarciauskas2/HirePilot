@@ -1,20 +1,20 @@
 import { cache } from "react";
 import type { JobDetail } from "@/data/job-types";
-import { fetchTenantVacanciesFromBackend } from "@/lib/fetch-tenant-vacancies";
+import { fetchTenantVacanciesResult } from "@/lib/fetch-tenant-vacancies";
 import { readJobs } from "@/lib/jobs-store";
 
 /**
  * Jobs shown on the public site (home + /jobs/[ref]) and portal “Open listings”.
  *
- * When a vacancies list URL is configured, we only show what the GET returns — including **no rows** if the API errors,
- * times out, or returns non-OK HTTP (no fallback to local `jobs.json`).
- *
- * If no list URL is configured, we use `data/jobs.json`.
+ * When a vacancies list URL is configured and the GET **succeeds**, we show **only** that response (no merge with `jobs.json`).
+ * When the GET **fails**, we show **no** vacancies.
+ * If no list URL is configured, we use `data/jobs.json` only.
  */
 export const getPublicJobs = cache(async (): Promise<JobDetail[]> => {
-  const remote = await fetchTenantVacanciesFromBackend();
-  if (remote !== null) return remote;
-  return readJobs();
+  const result = await fetchTenantVacanciesResult();
+  if (result.kind === "unconfigured") return readJobs();
+  if (result.kind === "error") return [];
+  return result.jobs;
 });
 
 export async function getPublicJobBySlug(slug: string): Promise<JobDetail | undefined> {
@@ -31,13 +31,7 @@ export async function getPublicJobBySlug(slug: string): Promise<JobDetail | unde
  */
 export async function resolveVacancyIdForPortalDelete(ref: string): Promise<string | null> {
   const norm = ref.toLowerCase();
-  const local = readJobs().find((j) => j.ref.toLowerCase() === norm);
-  if (local?.id?.trim()) return local.id.trim();
-
-  const remote = await fetchTenantVacanciesFromBackend();
-  if (remote?.length) {
-    const row = remote.find((j) => j.ref.toLowerCase() === norm);
-    if (row?.id?.trim()) return row.id.trim();
-  }
-  return null;
+  const jobs = await getPublicJobs();
+  const row = jobs.find((j) => j.ref.toLowerCase() === norm);
+  return row?.id?.trim() ?? null;
 }

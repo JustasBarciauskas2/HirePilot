@@ -88,7 +88,7 @@ export function PortalDashboard({
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">New listing</p>
           <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950">How do you want to add this role?</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Upload a document for your backend to parse, or enter everything step by step on this site.
+            Upload a file with the job, or fill in the form yourself — whichever is easier.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <button
@@ -101,7 +101,7 @@ export function PortalDashboard({
                 Upload document
               </span>
               <span className="mt-2 block text-xs leading-relaxed text-zinc-500">
-                Send a file to your API for processing (step 1: choose file → step 2: see response).
+                Pick a file, then check the details before you publish.
               </span>
             </button>
             <button
@@ -114,7 +114,7 @@ export function PortalDashboard({
                 Enter manually
               </span>
               <span className="mt-2 block text-xs leading-relaxed text-zinc-500">
-                Description, then core fields, then optional fields — publish to this site when done.
+                Paste the description, then add the basics and any extras — publish when you’re ready.
               </span>
             </button>
           </div>

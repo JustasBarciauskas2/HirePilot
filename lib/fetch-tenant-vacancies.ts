@@ -7,7 +7,7 @@ import {
   type JobSkill,
 } from "@/data/job-types";
 
-/** Call `revalidateTag(VACANCIES_LIST_FETCH_TAG)` after publish/delete so the list `fetch` is not stale. */
+/** Tag for `revalidateTag` after publish/delete (with `revalidatePath`); list GET uses `cache: 'no-store'` so each request refetches. */
 export const VACANCIES_LIST_FETCH_TAG = "vacancies";
 import { getBackendVacanciesListUrl } from "@/lib/backend-url";
 import { getTenantInstancePayload } from "@/lib/tenant-instance";
@@ -187,22 +187,26 @@ function coerceInsights(v: unknown): JobDetail["insights"] {
   return { tags: [], growthStat: "", glassdoorRating: 0 };
 }
 
+/** Outcome of GET {origin}/api/vacancies — lets callers merge local publishes only when the list request actually succeeded. */
+export type TenantVacanciesFetchResult =
+  | { kind: "unconfigured" }
+  | { kind: "error" }
+  | { kind: "ok"; jobs: JobDetail[] };
+
 /**
- * Fetches vacancies for the configured tenant from your backend.
- *
- * @returns `null` only when no vacancies list URL is configured — callers use local `jobs.json`.
- * @returns `JobDetail[]` when a list URL is set: successful GET body (maybe empty), **or `[]` if the request failed, non-OK HTTP, or JSON could not be read** — no fallback to local data.
+ * GET tenant vacancies from your backend list URL.
+ * Use {@link fetchTenantVacanciesResult} for correct handling of list errors vs empty lists.
  */
-export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | null> {
+export async function fetchTenantVacanciesResult(): Promise<TenantVacanciesFetchResult> {
   const listBase = getBackendVacanciesListUrl();
-  if (!listBase) return null;
+  if (!listBase) return { kind: "unconfigured" };
 
   const { id: tenantId } = getTenantInstancePayload();
   let url: URL;
   try {
     url = new URL(listBase);
   } catch {
-    return [];
+    return { kind: "error" };
   }
   if (!url.searchParams.has("tenantId")) {
     url.searchParams.set("tenantId", tenantId);
@@ -216,7 +220,7 @@ export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | n
     const res = await fetch(url.href, {
       method: "GET",
       headers: { Accept: "application/json" },
-      next: { revalidate: 60, tags: [VACANCIES_LIST_FETCH_TAG] },
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
     if (process.env.DEBUG_VACANCIES_FETCH === "1" || process.env.DEBUG_VACANCIES_FETCH === "true") {
@@ -225,35 +229,35 @@ export async function fetchTenantVacanciesFromBackend(): Promise<JobDetail[] | n
     if (!res.ok) {
       if (process.env.NODE_ENV === "development") {
         console.warn(
-          `[vacancies] GET ${res.status} ${res.statusText} — returning no vacancies (no local fallback). DEBUG_VACANCIES_FETCH=1 for URL.`,
+          `[vacancies] GET ${res.status} ${res.statusText} — list unavailable. DEBUG_VACANCIES_FETCH=1 for URL.`,
         );
       }
-      return [];
+      return { kind: "error" };
     }
     let data: unknown;
     try {
       data = await res.json();
     } catch {
-      return [];
+      return { kind: "error" };
     }
     /** Some APIs return a JSON string body (double-encoded). */
     if (typeof data === "string") {
       try {
         data = JSON.parse(data) as unknown;
       } catch {
-        return [];
+        return { kind: "error" };
       }
     }
-    return parseVacanciesResponse(data);
+    return { kind: "ok", jobs: parseVacanciesResponse(data) };
   } catch (e) {
     if (process.env.DEBUG_VACANCIES_FETCH === "1" || process.env.DEBUG_VACANCIES_FETCH === "true") {
       console.warn("[vacancies] fetch error", e);
     } else if (process.env.NODE_ENV === "development") {
       console.warn(
-        "[vacancies] List request failed (backend down, wrong port, or timeout). Returning no vacancies. DEBUG_VACANCIES_FETCH=1 for details.",
+        "[vacancies] List request failed (backend down, wrong port, or timeout). DEBUG_VACANCIES_FETCH=1 for details.",
       );
     }
-    return [];
+    return { kind: "error" };
   }
 }
 
