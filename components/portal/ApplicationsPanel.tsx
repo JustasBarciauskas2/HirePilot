@@ -10,8 +10,9 @@ import {
 import { useApplicationsTableColumnOrder } from "@/hooks/useApplicationsTableColumnOrder";
 import { useApplicationsTableColumnWidths } from "@/hooks/useApplicationsTableColumnWidths";
 import { APPLICATIONS_TABLE_COLUMNS } from "@/lib/applications-table-columns";
+import { buildApplicationsCsv, triggerCsvDownload } from "@/lib/applications-csv";
 import { portalAuthHeaders } from "@/lib/portal-auth";
-import { Bell, DotsSixVertical, DownloadSimple, Funnel } from "@phosphor-icons/react";
+import { Bell, DotsSixVertical, DownloadSimple, FileCsv, Funnel } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -169,6 +170,14 @@ export function ApplicationsPanel({
     window.open(data.url, "_blank", "noopener,noreferrer");
   }
 
+  function downloadAllApplicationsCsv() {
+    if (!rows?.length) return;
+    const csv = buildApplicationsCsv(rows);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    triggerCsvDownload(csv, `applications-${stamp}`);
+  }
+
   const filtered = useMemo(() => {
     const list = rows ?? [];
     if (!filterKey) return list;
@@ -242,6 +251,16 @@ export function ApplicationsPanel({
             className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 sm:self-end"
           >
             Refresh
+          </button>
+          <button
+            type="button"
+            disabled={loading || !rows?.length}
+            onClick={downloadAllApplicationsCsv}
+            title="Download every application in your account as a CSV (not limited by the vacancy filter)."
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 sm:self-end"
+          >
+            <FileCsv className="h-4 w-4 text-[#7107E7]" weight="duotone" aria-hidden />
+            Download CSV
           </button>
         </div>
       </div>

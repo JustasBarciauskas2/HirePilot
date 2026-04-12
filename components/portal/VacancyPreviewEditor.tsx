@@ -72,7 +72,8 @@ function inferCompMode(v: VacancyNormalizedFromDocument): "range" | "note" {
   if (parsed !== null) return "range";
   if (compText.trim()) return "note";
   if (v.equityNote.trim()) return "note";
-  return "note";
+  /** Blank manual draft: prefer “Set salary” so users enter k figures; competitive is opt-in. */
+  return "range";
 }
 
 function hasStructuredSalaryK(v: VacancyNormalizedFromDocument): boolean {
