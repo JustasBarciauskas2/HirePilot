@@ -7,7 +7,7 @@ export function FocusStrip() {
         <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
           <Reveal className="lg:col-span-5">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#7107E7]">
-              Why work with Meridian
+              Why work with TechRecruit
             </p>
             <h2 className="font-display mt-3 text-3xl font-semibold tracking-tighter text-zinc-950 sm:text-4xl">
               Built for <span className="text-[#7107E7]">people job-hunting</span> in tech

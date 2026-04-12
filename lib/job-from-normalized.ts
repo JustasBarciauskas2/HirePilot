@@ -37,7 +37,7 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
     ref: nextJobRef(existing),
     title: n.title.trim(),
     companyName: n.companyName.trim(),
-    clientLine: n.clientLine?.trim() || "Posted via Meridian Talent portal",
+    clientLine: n.clientLine?.trim() || "Posted via TechRecruit portal",
     type: n.type.trim(),
     comp,
     salaryHighlight: salaryHighlight || comp,
@@ -65,7 +65,7 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
     skills,
     experienceLevel: n.experienceLevel.trim() || "Mid–senior level",
     industries: n.industries.length ? n.industries : ["Technology"],
-    companyTagline: n.companyTagline.trim() || "Growing team hiring through Meridian Talent.",
+    companyTagline: n.companyTagline.trim() || "Growing team hiring through TechRecruit.",
     companySize: n.companySize.trim() || "51–200 employees",
     whoYouAre: n.whoYouAre.length ? n.whoYouAre : ["Open to strong candidates who match the role expectations."],
     desirable: n.desirable,
@@ -78,7 +78,7 @@ export function jobFromNormalized(existing: JobDetail[], n: VacancyNormalizedFro
       : ["Package discussed at offer stage.", "Remote-first or hybrid options where applicable."],
     funding: normalizeFundingRounds(n.funding),
     totalFunding: n.totalFunding || "—",
-    ourTake: n.ourTake.trim() || "Role posted via Meridian Talent portal.",
+    ourTake: n.ourTake.trim() || "Role posted via TechRecruit portal.",
     specialist: n.specialist,
   });
 }

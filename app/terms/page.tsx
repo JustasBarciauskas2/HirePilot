@@ -4,8 +4,8 @@ import { Nav } from "@/components/agency/Nav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms | Meridian Talent",
-  description: "Terms of use for the Meridian Talent demo site.",
+  title: "Terms | TechRecruit",
+  description: "Terms of use for the TechRecruit website.",
 };
 
 export default function TermsPage() {
@@ -17,16 +17,19 @@ export default function TermsPage() {
         <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Terms</h1>
         <div className="mt-8 space-y-4 text-sm leading-relaxed text-zinc-600">
           <p>
-            This site is provided as a demo mock-up. Content is provided “as is” for illustration only. Nothing
-            here constitutes an offer of employment, representation, or professional services.
+            TechRecruit Ltd (“we”, “us”) provides this website to advertise roles on behalf of clients and to
+            receive enquiries from candidates. Content is provided in good faith but may change without notice.
+            Nothing on this site constitutes an offer of employment; offers are made only by employers in line
+            with their own processes.
           </p>
           <p>
-            By using this demo you agree not to rely on fictional listings or contact information as
-            real-world facts.{" "}
+            By using this site you agree to use it lawfully and not to misrepresent your identity or
+            qualifications. Vacancies may be withdrawn or filled at any time. For how we handle personal data,
+            see our{" "}
             <Link href="/privacy" className="font-medium text-[#7107E7] underline-offset-4 hover:underline">
               Privacy
             </Link>{" "}
-            information is described separately.
+            notice.
           </p>
         </div>
         <p className="mt-10">

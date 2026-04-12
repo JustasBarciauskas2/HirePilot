@@ -10,7 +10,7 @@ export const textareaClass =
 export const inputPanelClass = `${inputClass} bg-white/90`;
 export const textareaPanelClass = `${textareaClass} bg-white/90`;
 
-/** Meridian brand — use sparingly for accents */
+/** TechRecruit brand — use sparingly for accents */
 export const brand = {
   softBg: "bg-[#7107E7]/[0.04]",
   softBorder: "border-[#7107E7]/15",

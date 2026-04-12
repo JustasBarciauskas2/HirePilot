@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Meridian Talent | Find your next tech role",
+  title: "TechRecruit | Technology recruitment agency",
   description:
-    "Meridian Talent helps job seekers land engineering, product, and data roles. Browse sample openings, learn how we work for candidates, and get in touch—demo site for portfolio use.",
+    "TechRecruit connects engineers, product leaders, and data specialists with growing teams. Browse live roles, learn how we work with candidates, and get in touch.",
 };
 
 export default function RootLayout({

@@ -46,9 +46,25 @@ export type JobApplicationRecord = {
   createdAt: string;
   /** Your backend’s persisted applicant id (from webhook JSON `backendPersonId` or `id`). */
   backendPersonId?: string;
+  /**
+   * Set when the apply webhook / background processing has finished (Firestore).
+   * Until then, screening may still be generated — the portal shows a loading state.
+   */
+  webhookCompletedAt?: string;
   /** AI screening from your tenant applications API merge — not stored in Firestore. */
   screening?: CandidateScreeningResult;
 };
+
+/** True while apply processing may still produce screening (webhook not finished yet). */
+export function isScreeningPendingOnRecord(r: JobApplicationRecord): boolean {
+  if (r.screening) return false;
+  if (r.webhookCompletedAt) return false;
+  const created = Date.parse(r.createdAt);
+  if (Number.isNaN(created)) return false;
+  // Legacy documents without `webhookCompletedAt` — avoid spinning indefinitely.
+  if (Date.now() - created > 60 * 60 * 1000) return false;
+  return true;
+}
 
 export function isJobApplicationStatusString(v: unknown): v is JobApplicationStatus {
   return typeof v === "string" && (JOB_APPLICATION_STATUSES as readonly string[]).includes(v);

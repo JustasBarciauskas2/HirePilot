@@ -18,10 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ref } = await params;
   const job = await getPublicJobBySlug(ref);
   if (!job) {
-    return { title: "Role not found | Meridian Talent" };
+    return { title: "Role not found | TechRecruit" };
   }
   return {
-    title: `${job.title} · ${job.companyName} | Meridian Talent`,
+    title: `${job.title} · ${job.companyName} | TechRecruit`,
     description: `${job.companyName} — ${salaryDisplayLine(job) || job.comp}. ${job.location}. ${job.companyTagline}`,
   };
 }

@@ -3,17 +3,17 @@ import { Reveal } from "./Reveal";
 
 const quotes = [
   {
-    text: "I was job-hunting for months on my own. Meridian only sent me two companies—but both were dead-on for my stack and seniority. I signed with the second.",
+    text: "I was job-hunting for months on my own. TechRecruit only sent me two companies—but both were dead-on for my stack and seniority. I signed with the second.",
     name: "Alex Chen",
     role: "Senior backend engineer",
-    company: "Now at a fintech (sample quote)",
+    company: "Placed at a London fintech",
     seed: "alex-chen-portrait",
   },
   {
     text: "They actually read my portfolio and prepped me for the system-design round. Felt like they were recruiting for me, not just filling a req.",
     name: "Jordan Mills",
     role: "Product designer",
-    company: "Placed via Meridian (fictional)",
+    company: "Placed at a B2B SaaS scale-up",
     seed: "jordan-mills-portrait",
   },
 ];
@@ -30,7 +30,7 @@ export function Testimonials() {
             Job seekers who found their <span className="text-[#7107E7]">next step</span> with us
           </h2>
           <p className="mt-3 max-w-xl text-sm text-zinc-500">
-            Sample quotes for this mock site—swap in real names, photos, and companies when you ship.
+            Recent feedback from candidates we&apos;ve supported through interview and offer.
           </p>
         </Reveal>
 

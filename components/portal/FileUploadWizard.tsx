@@ -221,7 +221,7 @@ export function FileUploadWizard({ user, onBack }: Props) {
         {step === 2 &&
           !parsedVacancy &&
           "We couldn’t pull out the job details from that file. Try another file, go back and start over, or add the role manually instead."}
-        {step === 3 && "This role is now listed on Meridian Talent."}
+        {step === 3 && "This role is now listed on TechRecruit."}
       </p>
 
       {err ? (

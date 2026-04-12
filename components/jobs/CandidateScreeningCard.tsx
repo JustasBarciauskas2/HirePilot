@@ -1,6 +1,21 @@
 "use client";
 
-import type { CandidateMatchFitLabel, CandidateScreeningResult } from "@/lib/candidate-screening-result";
+import type {
+  CandidateMatchFitLabel,
+  CandidateScreeningResult,
+  CandidateScreeningSkillAttribute,
+} from "@/lib/candidate-screening-result";
+
+/** High / medium / low relevance pills first (most highlighted), then unspecified. */
+function sortSkillsByRelevanceHighlight(skills: CandidateScreeningSkillAttribute[]): CandidateScreeningSkillAttribute[] {
+  const order = { high: 0, medium: 1, low: 2 } as const;
+  return [...skills].sort((a, b) => {
+    const ra = a.relevance != null ? (order[a.relevance] ?? 3) : 3;
+    const rb = b.relevance != null ? (order[b.relevance] ?? 3) : 3;
+    if (ra !== rb) return ra - rb;
+    return a.name.localeCompare(b.name);
+  });
+}
 
 const FIT_DISPLAY: Record<
   CandidateMatchFitLabel,
@@ -30,9 +45,16 @@ const RELEVANCE_RING: Record<"high" | "medium" | "low", string> = {
   low: "ring-zinc-200/60 bg-zinc-50 text-zinc-600",
 };
 
+type CandidateScreeningCardProps = {
+  screening: CandidateScreeningResult;
+  /** When set (e.g. portal), shows a footer control so recruiters can collapse without scrolling back to the row. */
+  onClose?: () => void;
+};
+
 /** AI screening summary — used in the recruiter portal (and optionally elsewhere when `screening` is present). */
-export function CandidateScreeningCard({ screening }: { screening: CandidateScreeningResult }) {
+export function CandidateScreeningCard({ screening, onClose }: CandidateScreeningCardProps) {
   const { match, jobAppliedFor, attributes, candidateName } = screening;
+  const name = candidateName?.trim();
   const max = match.scoreMax ?? 100;
   const fit = FIT_DISPLAY[match.fitLabel] ?? FIT_DISPLAY.moderate_fit;
 
@@ -42,12 +64,24 @@ export function CandidateScreeningCard({ screening }: { screening: CandidateScre
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">Application screening</p>
         <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="font-display text-lg font-semibold tracking-tight text-zinc-950">{candidateName}</p>
-            <p className="mt-1 text-sm text-zinc-600">
-              <span className="font-medium text-zinc-800">{jobAppliedFor.jobTitle}</span>
-              <span className="text-zinc-400"> · </span>
-              {jobAppliedFor.companyName}
-            </p>
+            {name ? (
+              <>
+                <p className="font-display text-lg font-semibold tracking-tight text-zinc-950">{name}</p>
+                <p className="mt-1 text-sm text-zinc-600">
+                  <span className="font-medium text-zinc-800">{jobAppliedFor.jobTitle}</span>
+                  <span className="text-zinc-400"> · </span>
+                  {jobAppliedFor.companyName}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-zinc-600">
+                <span className="font-display text-lg font-semibold tracking-tight text-zinc-950">
+                  {jobAppliedFor.jobTitle}
+                </span>
+                <span className="text-zinc-400"> · </span>
+                {jobAppliedFor.companyName}
+              </p>
+            )}
             {jobAppliedFor.jobSlug ? (
               <p className="mt-0.5 font-mono text-[10px] text-zinc-400">{jobAppliedFor.jobRef}</p>
             ) : null}
@@ -103,7 +137,10 @@ export function CandidateScreeningCard({ screening }: { screening: CandidateScre
         {match.rationale ? (
           <div className="rounded-xl border border-zinc-100 bg-zinc-50/80 px-4 py-3 text-sm text-zinc-700">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">Recruiter note</p>
-            <p className="mt-1.5 leading-relaxed">{match.rationale}</p>
+            <p className="mt-1 text-xs leading-snug text-zinc-500">
+              A short paragraph summarising overall strengths and weaknesses for this role.
+            </p>
+            <p className="mt-2.5 text-sm leading-relaxed text-zinc-800">{match.rationale}</p>
           </div>
         ) : null}
 
@@ -111,7 +148,7 @@ export function CandidateScreeningCard({ screening }: { screening: CandidateScre
           <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">Key attributes</p>
           {attributes.skills.length > 0 ? (
             <div className="mt-2 flex flex-wrap gap-2">
-              {attributes.skills.map((s, i) => (
+              {sortSkillsByRelevanceHighlight(attributes.skills).map((s, i) => (
                 <span
                   key={`${s.name}-${i}`}
                   className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ring-1 ${
@@ -146,6 +183,18 @@ export function CandidateScreeningCard({ screening }: { screening: CandidateScre
           </p>
         ) : null}
       </div>
+
+      {onClose ? (
+        <div className="border-t border-zinc-200/90 bg-zinc-50/95 px-5 py-3 sm:px-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full rounded-xl border border-[#7107E7]/25 bg-white px-4 py-2.5 text-sm font-semibold text-[#5b06c2] shadow-sm transition hover:border-[#7107E7]/40 hover:bg-[#7107E7]/[0.06] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
+          >
+            Hide screening
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

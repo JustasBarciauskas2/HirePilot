@@ -57,7 +57,7 @@ export const seedJobs: JobDetail[] = [
     totalFunding: "$68m",
     ourTake:
       "Northbeam is carving out a niche in developer-friendly payments APIs. The team ships quickly, invests in design quality, and has room for a senior IC to shape the product surface without layers of process.",
-    specialist: { name: "Nina Kovac", title: "Lead recruiter · Meridian Talent" },
+    specialist: { name: "Nina Kovac", title: "Lead recruiter · TechRecruit" },
     regions: ["United States", "Remote"],
     sizeBand: "201-500",
   }),
@@ -111,7 +111,7 @@ export const seedJobs: JobDetail[] = [
     totalFunding: "£79.7m",
     ourTake:
       "Relayforge is in a crowded market but differentiated on operator UX. The platform team is small and senior—expect high ownership and crisp communication with customers.",
-    specialist: { name: "Nina Kovac", title: "Lead recruiter · Meridian Talent" },
+    specialist: { name: "Nina Kovac", title: "Lead recruiter · TechRecruit" },
     regions: ["United Kingdom", "London", "Europe"],
     sizeBand: "201-500",
   }),
@@ -164,7 +164,7 @@ export const seedJobs: JobDetail[] = [
     totalFunding: "$69m",
     ourTake:
       "Lattice is betting on bespoke inference stacks over generic APIs. The role suits someone who wants hard performance problems and direct customer exposure.",
-    specialist: { name: "Rohan Patel", title: "Candidate experience · Meridian Talent" },
+    specialist: { name: "Rohan Patel", title: "Candidate experience · TechRecruit" },
     regions: ["United States", "SF Bay Area"],
     sizeBand: "51-200",
   }),
@@ -217,7 +217,7 @@ export const seedJobs: JobDetail[] = [
     totalFunding: "€86m",
     ourTake:
       "Vaultline is past the chaos of early startup mode—process exists, but security still has a seat at the table for roadmap calls.",
-    specialist: { name: "Nina Kovac", title: "Lead recruiter · Meridian Talent" },
+    specialist: { name: "Nina Kovac", title: "Lead recruiter · TechRecruit" },
     regions: ["Europe", "Remote"],
     sizeBand: "201-500",
   }),
@@ -270,7 +270,7 @@ export const seedJobs: JobDetail[] = [
     totalFunding: "$72m",
     ourTake:
       "Cartograph is balancing marketplace liquidity with trust & safety investments—the data org is central to that story.",
-    specialist: { name: "Rohan Patel", title: "Candidate experience · Meridian Talent" },
+    specialist: { name: "Rohan Patel", title: "Candidate experience · TechRecruit" },
     regions: ["United States", "New York"],
     sizeBand: "201-500",
   }),
@@ -322,7 +322,7 @@ export const seedJobs: JobDetail[] = [
     totalFunding: "$34m",
     ourTake:
       "Stacksmith is doubling down on developer experience as a retention lever—this contract is visible to VPE and CTO.",
-    specialist: { name: "Nina Kovac", title: "Lead recruiter · Meridian Talent" },
+    specialist: { name: "Nina Kovac", title: "Lead recruiter · TechRecruit" },
     regions: ["Remote", "Global"],
     sizeBand: "201-500",
   }),

@@ -24,7 +24,7 @@ export const APPLICATIONS_TABLE_COLUMNS = [
     title: "Recruiting pipeline status for this application.",
   },
   {
-    label: "CV",
-    title: "Download the uploaded CV (Firebase Storage).",
+    label: "CV & screening",
+    title: "Download the CV and open AI screening when available.",
   },
 ] as const;

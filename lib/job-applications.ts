@@ -78,6 +78,10 @@ function docToRecord(doc: DocumentSnapshot): JobApplicationRecord {
       typeof d.backendPersonId === "string" && d.backendPersonId.trim()
         ? d.backendPersonId.trim()
         : undefined,
+    webhookCompletedAt: (() => {
+      const ts = d.webhookCompletedAt as Timestamp | undefined;
+      return ts?.toDate ? ts.toDate().toISOString() : undefined;
+    })(),
   };
 }
 

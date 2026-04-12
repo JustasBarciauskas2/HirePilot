@@ -100,7 +100,7 @@ export function JobApplyForm({ job }: { job: JobDetail }) {
           className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
+          placeholder="your.name@email.com"
         />
       </label>
       <label className="block">

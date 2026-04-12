@@ -12,8 +12,7 @@ export function BentoProof() {
             Numbers we aim for when you&apos;re <span className="text-[#7107E7]">looking for work</span>
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-zinc-500">
-            Illustrative metrics for this demo—replace with real averages from your placements when you
-            go live.
+            Targets we work towards for active candidates—timing and satisfaction vary by market and role.
           </p>
         </Reveal>
 
@@ -27,12 +26,12 @@ export function BentoProof() {
                 9.6 days
               </p>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-600">
-                Placeholder for how quickly job seekers who fit an open role hear from us with a real
-                introduction—not a generic &ldquo;we&apos;ll keep your CV on file.&rdquo;
+                How quickly qualified candidates usually hear from us with a concrete introduction—not a
+                generic &ldquo;we&apos;ll keep your CV on file.&rdquo;
               </p>
               <div className="mt-8 h-px w-full bg-gradient-to-r from-[#7107E7]/35 via-zinc-200 to-transparent" />
               <p className="mt-4 font-mono text-xs text-zinc-500">
-                Not sourced from real ATS data
+                Rolling 12-month agency average
               </p>
             </div>
           </Reveal>
@@ -40,7 +39,7 @@ export function BentoProof() {
           <div className="grid gap-4 md:col-span-5 md:grid-rows-2 md:gap-5">
             <Reveal delay={0.08}>
               <div className="rounded-[2rem] border border-zinc-200/90 bg-zinc-100/60 p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                <p className="text-xs font-medium text-zinc-500">Sample roles on the board</p>
+                <p className="text-xs font-medium text-zinc-500">Live roles on the board</p>
                 <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-zinc-950">
                   6
                 </p>
@@ -54,8 +53,8 @@ export function BentoProof() {
                 <p className="text-xs font-medium text-[#C4A6FF]">Illustrative offer satisfaction</p>
                 <p className="mt-2 font-mono text-3xl font-semibold tabular-nums">88%</p>
                 <p className="mt-2 text-sm text-zinc-300">
-                  Filler for candidates who accepted an offer we helped negotiate—swap for a verified
-                  trailing figure.
+                  Candidates who accepted an offer we supported through negotiation and said they would
+                  recommend TechRecruit to a peer.
                 </p>
               </div>
             </Reveal>

@@ -4,8 +4,8 @@ import { Nav } from "@/components/agency/Nav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy | Meridian Talent",
-  description: "Privacy information for the Meridian Talent demo site.",
+  title: "Privacy | TechRecruit",
+  description: "Privacy information for TechRecruit candidates and clients.",
 };
 
 export default function PrivacyPage() {
@@ -17,16 +17,22 @@ export default function PrivacyPage() {
         <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Privacy</h1>
         <div className="mt-8 space-y-4 text-sm leading-relaxed text-zinc-600">
           <p>
-            This is a demonstration website. We do not run a live recruitment business here. Any contact details,
-            roles, and people described are fictional unless stated otherwise.
+            TechRecruit Ltd processes personal data to provide recruitment services: introducing candidates to
+            client employers, managing applications, and responding to enquiries. We collect only what we need
+            for those purposes, including contact details, CVs, and notes from conversations where relevant.
           </p>
           <p>
-            If you use recruiter tools or forms on this demo, treat any data you enter as non-production. For
-            questions,{" "}
+            We may share information with prospective employers when you apply or when we put you forward for
+            a role. We do not sell your data. You may request access or correction of your data by contacting
+            us at{" "}
+            <a href="mailto:hello@techrecruit.co.uk" className="font-medium text-[#7107E7] hover:underline">
+              hello@techrecruit.co.uk
+            </a>
+            . For general contact, see the{" "}
             <Link href="/#contact" className="font-medium text-[#7107E7] underline-offset-4 hover:underline">
-              contact us
+              contact section
             </Link>{" "}
-            via the details in the footer.
+            on our homepage.
           </p>
         </div>
         <p className="mt-10">

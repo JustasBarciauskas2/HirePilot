@@ -16,8 +16,8 @@ export function CTABand() {
             </h2>
             <p className="mt-4 text-base leading-relaxed text-zinc-400">
               Tell us what you&apos;re looking for—stack, level, location—and we&apos;ll see which open
-              searches you match. This demo form doesn&apos;t send email; it shows how candidates would
-              get in touch on a live site.
+              searches you match. Use the contact form below or email us directly and we&apos;ll respond
+              within two working days.
             </p>
             <Link
               href="/#contact"

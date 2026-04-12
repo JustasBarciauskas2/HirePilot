@@ -51,7 +51,7 @@ export function ManualEntryWizard({ user, onBack }: Props) {
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
         {publishedJob
-          ? "This role is now listed on Meridian Talent."
+          ? "This role is now listed on TechRecruit."
           : "Use the sections below — same layout as after you upload a document. Fill in what you have; you can publish when title and company are set."}
       </p>
 

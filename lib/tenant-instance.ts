@@ -3,7 +3,7 @@
  * Set via env (never trust client-supplied values for tenancy).
  */
 export type TenantInstancePayload = {
-  /** Stable id for DB scoping (UUID or slug), e.g. "meridian-demo" */
+  /** Stable id for DB scoping (UUID or slug), e.g. "techrecruit-prod" */
   id: string;
 };
 

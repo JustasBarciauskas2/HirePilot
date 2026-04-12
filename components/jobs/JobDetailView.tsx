@@ -38,7 +38,7 @@ import {
 
 type Tab = "job" | "company";
 
-/** Meridian-tinted panels — ties sidebar / body cards to the hero gradient without heavy fill. */
+/** Brand-tinted panels — ties sidebar / body cards to the hero gradient without heavy fill. */
 const JOB_WIDGET_CARD =
   "overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-[#7107E7]/10";
 const JOB_WIDGET_HEADER =
@@ -165,7 +165,7 @@ export function JobDetailView({
 
   return (
     <div className="bg-[#f6f5f2]">
-      {/* Hero band — Meridian accent instead of yellow */}
+      {/* Hero band — brand accent */}
       <div className="border-b border-zinc-200/80 bg-gradient-to-b from-[#7107E7]/[0.09] via-violet-50/40 to-[#f6f5f2] pb-8 pt-24 sm:pb-10 sm:pt-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <nav className="mb-4 text-left text-sm text-zinc-500">
@@ -327,7 +327,7 @@ export function JobDetailView({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm transition hover:border-[#7107E7]/35 hover:bg-[#7107E7]/5 hover:text-[#5b06c2] sm:w-auto"
                   >
                     <Bell className="h-4 w-4" weight="duotone" />
-                    Get updates via Meridian
+                    Get updates via TechRecruit
                   </Link>
                 </div>
               </div>
@@ -458,7 +458,7 @@ function JobCompanyColumn({ job }: { job: JobDetail }) {
         <FundingBlock job={job} />
         <h2 className="mt-10 flex items-center gap-2 text-lg font-bold text-zinc-950">
           Our take
-          <InfoHint title="Meridian’s short view on the company and opportunity—written by our team, not the employer." />
+          <InfoHint title="TechRecruit’s short view on the company and opportunity—written by our team, not the employer." />
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-zinc-700">{job.ourTake}</p>
       </section>

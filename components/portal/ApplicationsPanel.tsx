@@ -5,6 +5,7 @@ import type { JobDetail } from "@/data/jobs";
 import {
   type JobApplicationRecord,
   type JobApplicationStatus,
+  isScreeningPendingOnRecord,
   JOB_APPLICATION_STATUS_LABELS,
   JOB_APPLICATION_STATUSES,
 } from "@/lib/job-application-shared";
@@ -15,16 +16,20 @@ import { buildApplicationsCsv, triggerCsvDownload } from "@/lib/applications-csv
 import { portalAuthHeaders } from "@/lib/portal-auth";
 import {
   Bell,
+  CaretDown,
+  CircleNotch,
   DotsSixVertical,
   DownloadSimple,
   FileCsv,
   Funnel,
   MagnifyingGlass,
+  X,
 } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 function formatDate(iso: string): string {
   try {
@@ -79,11 +84,66 @@ function jobFromFilterKey(filterKey: string, jobList: JobDetail[]): JobDetail | 
   return undefined;
 }
 
+function formatJobLabel(j: JobDetail): string {
+  return `${j.ref} — ${j.title} · ${j.companyName}`;
+}
+
 /** Public job page URL (`/jobs/[slug]`). */
 function jobVacancyHref(r: JobApplicationRecord): string {
   const slug = r.jobSlug?.trim();
   if (!slug) return "#";
   return `/jobs/${encodeURIComponent(slug)}`;
+}
+
+function ScreeningCta({
+  r,
+  expanded,
+  onToggle,
+  variant,
+}: {
+  r: JobApplicationRecord;
+  expanded: boolean;
+  onToggle: () => void;
+  variant: "mobile" | "table";
+}) {
+  const card =
+    "w-full max-w-full rounded-lg border border-[#7107E7]/30 bg-[#7107E7]/[0.07] px-2.5 py-2 text-left text-xs font-semibold leading-snug text-[#5b06c2] shadow-sm";
+  const mobileExtras = variant === "mobile" ? " transition hover:border-[#7107E7]/45 hover:bg-[#7107E7]/10 sm:max-w-xs sm:self-center" : " transition hover:border-[#7107E7]/45 hover:bg-[#7107E7]/10";
+
+  if (r.screening) {
+    return (
+      <button type="button" onClick={onToggle} className={`${card}${mobileExtras}`}>
+        <span className="block whitespace-normal">{expanded ? "Hide screening" : "View screening"}</span>
+        <span className="mt-0.5 block font-mono text-[11px] font-medium tabular-nums text-zinc-600">
+          Score {Math.round(r.screening.match.score)}/{r.screening.match.scoreMax ?? 100}
+        </span>
+      </button>
+    );
+  }
+
+  if (isScreeningPendingOnRecord(r)) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className={`inline-flex items-center gap-2 ${card}${variant === "mobile" ? " sm:max-w-xs sm:self-center" : ""}`}
+      >
+        <CircleNotch className="h-4 w-4 shrink-0 animate-spin text-[#7107E7]" weight="bold" aria-hidden />
+        <span className="font-semibold">Screening loading…</span>
+      </div>
+    );
+  }
+
+  const noScreeningClass =
+    variant === "mobile"
+      ? "text-right text-[10px] leading-snug text-zinc-400 sm:text-left"
+      : "text-[10px] leading-snug text-zinc-400";
+
+  return (
+    <span className={noScreeningClass} title="When your backend returns screening, it appears here.">
+      No screening
+    </span>
+  );
 }
 
 export function ApplicationsPanel({
@@ -103,8 +163,12 @@ export function ApplicationsPanel({
   const [filterKey, setFilterKey] = useState(() =>
     buildInitialFilterKey(initialVacancyId, initialJobRef),
   );
-  /** Narrows the vacancy dropdown (ref, title, company). */
-  const [vacancyListSearch, setVacancyListSearch] = useState("");
+  /** Combobox: type to filter vacancies; value reflects selection or current search text. */
+  const [vacancyComboQuery, setVacancyComboQuery] = useState("");
+  /** When true, URL/filter sync must not overwrite the input (user is typing). */
+  const [vacancyComboDirty, setVacancyComboDirty] = useState(false);
+  const [vacancyComboOpen, setVacancyComboOpen] = useState(false);
+  const vacancyComboRef = useRef<HTMLDivElement | null>(null);
   /** Filters visible applicant rows by text on job title, ref, company, slug. */
   const [vacancyRowSearch, setVacancyRowSearch] = useState("");
   const [rows, setRows] = useState<JobApplicationRecord[] | null>(null);
@@ -115,7 +179,29 @@ export function ApplicationsPanel({
 
   useEffect(() => {
     setFilterKey(buildInitialFilterKey(initialVacancyId, initialJobRef));
+    setVacancyComboDirty(false);
   }, [initialVacancyId, initialJobRef]);
+
+  useEffect(() => {
+    if (vacancyComboDirty) return;
+    const fk = filterKey;
+    if (!fk) {
+      setVacancyComboQuery("");
+      return;
+    }
+    const j = jobFromFilterKey(fk, jobs);
+    if (j) setVacancyComboQuery(formatJobLabel(j));
+  }, [filterKey, jobs, vacancyComboDirty]);
+
+  useEffect(() => {
+    if (!vacancyComboOpen) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (vacancyComboRef.current?.contains(e.target as Node)) return;
+      setVacancyComboOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [vacancyComboOpen]);
 
   const { widths: columnWidths, onResizeBetweenLogical } = useApplicationsTableColumnWidths(user.uid);
   const { columnOrder, moveColumn } = useApplicationsTableColumnOrder(user.uid);
@@ -169,20 +255,80 @@ export function ApplicationsPanel({
     }
   }, [user]);
 
+  /** Refetch without clearing the table — used while screening is still processing. */
+  const refreshApplicationsSilently = useCallback(async () => {
+    try {
+      const headers = await portalAuthHeaders(user);
+      const res = await fetch("/api/portal/applications", {
+        headers,
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        applications?: JobApplicationRecord[];
+      };
+      if (!res.ok) return;
+      setRows(data.applications ?? []);
+    } catch {
+      /* keep existing rows */
+    }
+  }, [user]);
+
   useEffect(() => {
     void load();
   }, [load]);
 
+  /** Warm token cache so PATCH does not wait on a cold `getIdToken()` after the user picks a status. */
+  useEffect(() => {
+    void user.getIdToken();
+  }, [user]);
+
+  const hasPendingScreening = useMemo(
+    () => rows?.some((r) => isScreeningPendingOnRecord(r)) ?? false,
+    [rows],
+  );
+
+  useEffect(() => {
+    if (!hasPendingScreening) return;
+    const id = window.setInterval(() => void refreshApplicationsSilently(), 4000);
+    return () => window.clearInterval(id);
+  }, [hasPendingScreening, refreshApplicationsSilently]);
+
   async function updateStatus(id: string, status: JobApplicationStatus) {
-    const headers = await portalAuthHeaders(user);
-    const res = await fetch(`/api/portal/applications/${encodeURIComponent(id)}`, {
-      method: "PATCH",
-      headers: { ...headers, "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ status }),
+    let previous: JobApplicationStatus | undefined;
+    // Controlled <select> reads `value` from state; commit before awaiting auth so the UI updates immediately.
+    flushSync(() => {
+      setRows((prev) => {
+        if (!prev) return prev;
+        const row = prev.find((r) => r.id === id);
+        if (!row) return prev;
+        previous = row.status;
+        return prev.map((r) => (r.id === id ? { ...r, status } : r));
+      });
     });
-    if (!res.ok) return;
-    setRows((prev) => (prev ? prev.map((r) => (r.id === id ? { ...r, status } : r)) : prev));
+
+    try {
+      const headers = await portalAuthHeaders(user);
+      const res = await fetch(`/api/portal/applications/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { ...headers, "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok && previous !== undefined) {
+        const restore = previous;
+        setRows((prev) =>
+          prev ? prev.map((r) => (r.id === id ? { ...r, status: restore } : r)) : prev,
+        );
+      }
+    } catch {
+      if (previous !== undefined) {
+        const restore = previous;
+        setRows((prev) =>
+          prev ? prev.map((r) => (r.id === id ? { ...r, status: restore } : r)) : prev,
+        );
+      }
+    }
   }
 
   async function downloadCv(id: string) {
@@ -233,10 +379,10 @@ export function ApplicationsPanel({
   }, [filteredByVacancy, vacancyRowSearch]);
 
   const jobsForSelect = useMemo(() => {
-    const q = vacancyListSearch.trim().toLowerCase();
+    const q = vacancyComboQuery.trim().toLowerCase();
     let list = q
       ? jobs.filter((j) =>
-          [j.ref, j.title, j.companyName].join(" ").toLowerCase().includes(q),
+          [j.ref, j.title, j.companyName, j.slug ?? ""].join(" ").toLowerCase().includes(q),
         )
       : jobs;
     const selected = filterKey ? jobFromFilterKey(filterKey, jobs) : undefined;
@@ -250,7 +396,7 @@ export function ApplicationsPanel({
       list = [selected, ...list];
     }
     return list;
-  }, [jobs, vacancyListSearch, filterKey]);
+  }, [jobs, vacancyComboQuery, filterKey]);
 
   const activeFilterLabel = filterLabel(jobs, filterKey);
 
@@ -270,6 +416,20 @@ export function ApplicationsPanel({
     syncUrl(next);
   }
 
+  function selectVacancy(nextKey: string) {
+    setVacancyComboDirty(false);
+    onFilterChange(nextKey);
+    const j = nextKey ? jobFromFilterKey(nextKey, jobs) : undefined;
+    setVacancyComboQuery(j ? formatJobLabel(j) : "");
+    setVacancyComboOpen(false);
+  }
+
+  function clearVacancyCombo() {
+    setVacancyComboDirty(false);
+    onFilterChange("");
+    setVacancyComboQuery("");
+  }
+
   return (
     <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -277,43 +437,103 @@ export function ApplicationsPanel({
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Candidates</p>
           <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950">Applications</h2>
           <p className="mt-1 max-w-xl text-sm text-zinc-500">
-            Search or pick a vacancy, then review applicants. Use the text box to narrow the list or filter rows by
+            Pick a vacancy (search as you type), then review applicants. Use the field below to filter table rows by
             job title, reference, or company.
           </p>
         </div>
         <div className="flex w-full max-w-xl flex-col gap-3 lg:max-w-none lg:flex-1 lg:items-end xl:max-w-2xl">
-          <label className="flex w-full min-w-0 flex-col gap-1.5 text-xs font-medium text-zinc-600">
-            <span className="inline-flex items-center gap-1.5">
-              <MagnifyingGlass className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
-              Find a vacancy in the list
-            </span>
-            <input
-              type="search"
-              value={vacancyListSearch}
-              onChange={(e) => setVacancyListSearch(e.target.value)}
-              placeholder="Type job ref, title, or company…"
-              className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
-              autoComplete="off"
-            />
-          </label>
-          <label className="flex w-full min-w-[14rem] flex-col gap-1.5 text-xs font-medium text-zinc-600">
-            <span className="inline-flex items-center gap-1.5">
-              <Funnel className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
-              Vacancy
-            </span>
-            <select
-              className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
-              value={filterKey}
-              onChange={(e) => onFilterChange(e.target.value)}
-            >
-              <option value="">All vacancies</option>
-              {jobsForSelect.map((j) => (
-                <option key={j.ref + (j.id ?? "")} value={jobFilterValue(j)}>
-                  {j.ref} — {j.title} · {j.companyName}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div ref={vacancyComboRef} className="flex w-full min-w-0 flex-col gap-1.5">
+            <label className="text-xs font-medium text-zinc-600" htmlFor="vacancy-combobox-input">
+              <span className="inline-flex items-center gap-1.5">
+                <Funnel className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
+                Vacancy
+              </span>
+            </label>
+            <div className="relative">
+              <input
+                id="vacancy-combobox-input"
+                type="text"
+                role="combobox"
+                aria-expanded={vacancyComboOpen}
+                aria-controls="vacancy-combobox-listbox"
+                aria-autocomplete="list"
+                value={vacancyComboQuery}
+                onChange={(e) => {
+                  setVacancyComboQuery(e.target.value);
+                  setVacancyComboDirty(true);
+                  setVacancyComboOpen(true);
+                }}
+                onFocus={() => setVacancyComboOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setVacancyComboOpen(false);
+                }}
+                placeholder="Search by ref, title, company, or slug — then pick a row"
+                className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-3 pr-20 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+                autoComplete="off"
+              />
+              <div className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+                {vacancyComboQuery.trim() ? (
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    aria-label="Clear vacancy search"
+                    className="pointer-events-auto rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      clearVacancyCombo();
+                    }}
+                  >
+                    <X className="h-4 w-4" weight="bold" aria-hidden />
+                  </button>
+                ) : null}
+                <CaretDown className="h-4 w-4 text-zinc-400" weight="bold" aria-hidden />
+              </div>
+              {vacancyComboOpen ? (
+                <ul
+                  id="vacancy-combobox-listbox"
+                  role="listbox"
+                  className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 text-left text-sm shadow-lg ring-1 ring-zinc-950/5"
+                >
+                  <li role="presentation" className="px-1">
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={filterKey === ""}
+                      className={`flex w-full rounded-lg px-3 py-2 text-left transition hover:bg-zinc-50 ${
+                        filterKey === "" ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]" : "text-zinc-800"
+                      }`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => selectVacancy("")}
+                    >
+                      All vacancies
+                    </button>
+                  </li>
+                  {jobsForSelect.map((j) => {
+                    const v = jobFilterValue(j);
+                    const selected = filterKey === v;
+                    return (
+                      <li key={`${j.ref}-${j.id ?? ""}`} role="presentation" className="px-1">
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={selected}
+                          className={`flex w-full rounded-lg px-3 py-2 text-left transition hover:bg-zinc-50 ${
+                            selected ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]" : "text-zinc-800"
+                          }`}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectVacancy(v)}
+                        >
+                          <span className="line-clamp-2">
+                            {j.ref} — {j.title} · {j.companyName}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
+          </div>
           <label className="flex w-full min-w-0 flex-col gap-1.5 text-xs font-medium text-zinc-600">
             <span className="inline-flex items-center gap-1.5">
               <MagnifyingGlass className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
@@ -421,8 +641,9 @@ export function ApplicationsPanel({
                   </div>
                   <select
                     value={r.status}
+                    title={JOB_APPLICATION_STATUS_LABELS[r.status]}
                     onChange={(e) => void updateStatus(r.id, e.target.value as JobApplicationStatus)}
-                    className="max-w-[9rem] shrink-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+                    className="max-w-[min(100%,9rem)] min-w-0 shrink-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
                   >
                     {JOB_APPLICATION_STATUSES.map((s) => (
                       <option key={s} value={s}>
@@ -455,37 +676,30 @@ export function ApplicationsPanel({
                     </a>
                   ) : null}
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-zinc-100 pt-3">
+                <div className="mt-3 flex flex-col items-stretch gap-2 border-t border-zinc-100 pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
                   <button
                     type="button"
                     onClick={() => void downloadCv(r.id)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
+                    className="inline-flex w-fit items-center gap-1 self-end text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline sm:self-center"
                   >
-                    <DownloadSimple className="h-3.5 w-3.5" weight="bold" aria-hidden />
-                    CV
+                    <DownloadSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
+                    Download CV
                   </button>
-                  {r.screening ? (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))
-                      }
-                      className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
-                    >
-                      {screeningExpandedId === r.id ? "Hide screening" : "View screening"}
-                      <span className="ml-1 font-mono text-[10px] font-normal text-zinc-500">
-                        {Math.round(r.screening.match.score)}/{r.screening.match.scoreMax ?? 100}
-                      </span>
-                    </button>
-                  ) : (
-                    <span className="text-[10px] text-zinc-400" title="When your backend returns screening, it appears here.">
-                      No screening
-                    </span>
-                  )}
+                  <ScreeningCta
+                    r={r}
+                    expanded={screeningExpandedId === r.id}
+                    onToggle={() =>
+                      setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))
+                    }
+                    variant="mobile"
+                  />
                 </div>
                 {screeningExpandedId === r.id && r.screening ? (
                   <div className="mt-3 border-t border-zinc-100 pt-3">
-                    <CandidateScreeningCard screening={r.screening} />
+                    <CandidateScreeningCard
+                      screening={r.screening}
+                      onClose={() => setScreeningExpandedId(null)}
+                    />
                   </div>
                 ) : null}
               </li>
@@ -506,7 +720,10 @@ export function ApplicationsPanel({
                   {columnOrder.map((logical) => (
                     <col
                       key={logical}
-                      style={{ width: `${(columnWidths[logical]! / columnWidthTotal) * 100}%` }}
+                      style={{
+                        width: `${(columnWidths[logical]! / columnWidthTotal) * 100}%`,
+                        ...(logical === 4 ? { minWidth: 168 } : {}),
+                      }}
                     />
                   ))}
                 </colgroup>
@@ -531,15 +748,15 @@ export function ApplicationsPanel({
                               moveColumn(from, visualIndex);
                             }
                           }}
-                          className="relative min-w-0 whitespace-nowrap px-2 py-3 sm:px-3"
+                          className="relative min-w-0 px-2 py-3 sm:px-3"
                         >
-                          <div className="flex items-center gap-1 pr-1">
+                          <div className="flex items-start gap-1 pr-1">
                             <button
                               type="button"
                               draggable
                               aria-label={`Move column: ${meta.label}`}
                               title="Drag to reorder column"
-                              className="shrink-0 cursor-grab rounded border-0 bg-transparent p-0.5 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-600 active:cursor-grabbing"
+                              className="mt-0.5 shrink-0 cursor-grab rounded border-0 bg-transparent p-0.5 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-600 active:cursor-grabbing"
                               onDragStart={(e) => {
                                 e.dataTransfer.setData("text/plain", String(visualIndex));
                                 e.dataTransfer.effectAllowed = "move";
@@ -547,7 +764,7 @@ export function ApplicationsPanel({
                             >
                               <DotsSixVertical className="h-4 w-4" weight="bold" aria-hidden />
                             </button>
-                            <span className="min-w-0 flex-1 truncate">{meta.label}</span>
+                            <span className="min-w-0 flex-1 leading-snug break-words">{meta.label}</span>
                           </div>
                           {visualIndex < columnOrder.length - 1 ? (
                             <button
@@ -625,11 +842,15 @@ export function ApplicationsPanel({
                             );
                           case 4:
                             return (
-                              <td key={logical} className="min-w-0 overflow-hidden whitespace-nowrap px-3 py-3 sm:px-4">
+                              <td
+                                key={logical}
+                                className="min-w-0 overflow-hidden px-3 py-3 sm:px-4"
+                              >
                                 <select
                                   value={r.status}
+                                  title={JOB_APPLICATION_STATUS_LABELS[r.status]}
                                   onChange={(e) => void updateStatus(r.id, e.target.value as JobApplicationStatus)}
-                                  className="max-w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+                                  className="box-border w-full min-w-0 max-w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
                                 >
                                   {JOB_APPLICATION_STATUSES.map((s) => (
                                     <option key={s} value={s}>
@@ -641,38 +862,27 @@ export function ApplicationsPanel({
                             );
                           case 5:
                             return (
-                              <td key={logical} className="min-w-0 overflow-hidden whitespace-nowrap px-3 py-3 sm:px-4">
-                                <div className="flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                              <td
+                                key={logical}
+                                className="min-w-[12rem] max-w-none px-3 py-3 align-top sm:min-w-[14rem] sm:px-4"
+                              >
+                                <div className="flex min-w-0 flex-col gap-2.5">
                                   <button
                                     type="button"
                                     onClick={() => void downloadCv(r.id)}
-                                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
+                                    className="inline-flex w-fit shrink-0 items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
                                   >
-                                    <DownloadSimple className="h-3.5 w-3.5" weight="bold" aria-hidden />
-                                    Download
+                                    <DownloadSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
+                                    Download CV
                                   </button>
-                                  {r.screening ? (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))
-                                      }
-                                      className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
-                                    >
-                                      {screeningExpandedId === r.id ? "Hide screening" : "View screening"}
-                                      <span className="ml-1 font-mono text-[10px] font-normal text-zinc-500">
-                                        {Math.round(r.screening.match.score)}/
-                                        {r.screening.match.scoreMax ?? 100}
-                                      </span>
-                                    </button>
-                                  ) : (
-                                    <span
-                                      className="text-[10px] text-zinc-400"
-                                      title="When your backend returns screening, it appears here."
-                                    >
-                                      No screening
-                                    </span>
-                                  )}
+                                  <ScreeningCta
+                                    r={r}
+                                    expanded={screeningExpandedId === r.id}
+                                    onToggle={() =>
+                                      setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))
+                                    }
+                                    variant="table"
+                                  />
                                 </div>
                               </td>
                             );
@@ -684,7 +894,10 @@ export function ApplicationsPanel({
                       {screeningExpandedId === r.id && r.screening ? (
                         <tr className="bg-zinc-50/90">
                           <td colSpan={columnOrder.length} className="p-4 sm:p-6">
-                            <CandidateScreeningCard screening={r.screening} />
+                            <CandidateScreeningCard
+                              screening={r.screening}
+                              onClose={() => setScreeningExpandedId(null)}
+                            />
                           </td>
                         </tr>
                       ) : null}

@@ -72,11 +72,11 @@ export type CandidateScreeningMeta = {
 
 /**
  * Full normalised screening — mirrors what the Candidate Card needs.
- * `candidateName` can be your enriched display name or “First Last” from the apply form.
+ * `candidateName` is optional — omit it in API responses if you avoid PII in screening payloads.
  */
 export type CandidateScreeningResult = {
   schemaVersion: typeof CANDIDATE_SCREENING_SCHEMA_VERSION;
-  candidateName: string;
+  candidateName?: string;
   jobAppliedFor: CandidateScreeningJobContext;
   match: CandidateScreeningMatch;
   attributes: CandidateScreeningAttributes;
@@ -147,7 +147,6 @@ export function parseCandidateScreeningResult(
   if (!schemaVersionOk(raw.schemaVersion)) return undefined;
 
   const candidateName = asString(raw.candidateName);
-  if (!candidateName) return undefined;
 
   let job: Record<string, unknown> | null | undefined = raw.jobAppliedFor as Record<string, unknown> | null | undefined;
   if (!isRecord(job)) {
@@ -211,7 +210,7 @@ export function parseCandidateScreeningResult(
 
   return {
     schemaVersion: CANDIDATE_SCREENING_SCHEMA_VERSION,
-    candidateName,
+    ...(candidateName ? { candidateName } : {}),
     jobAppliedFor: jobSlug
       ? { jobRef, jobTitle, companyName, jobSlug }
       : { jobRef, jobTitle, companyName },

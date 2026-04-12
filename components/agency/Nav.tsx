@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 const links = [
   { href: "/#about", label: "About" },
-  { href: "/#focus", label: "Why Meridian" },
+  { href: "/#focus", label: "Why TechRecruit" },
   { href: "/#process", label: "Process" },
   { href: "/#contact", label: "Contact" },
 ];
@@ -38,7 +38,7 @@ export function Nav() {
             }`}
             tabIndex={showBrand ? undefined : -1}
           >
-            Meridian
+            TechRecruit
           </Link>
           <nav className="hidden items-center gap-1 justify-self-center rounded-full border border-white/40 bg-white/70 p-1.5 shadow-[0_12px_40px_-12px_rgba(24,24,27,0.15)] ring-1 ring-zinc-950/5 backdrop-blur-xl md:flex">
             {links.map((l) => (

@@ -29,7 +29,7 @@ function splitDescription(description: string): {
     .filter(Boolean);
   if (paras.length === 0) {
     return {
-      ourTake: "Role posted via Meridian Talent portal.",
+      ourTake: "Role posted via TechRecruit portal.",
       whoYouAre: ["Open to strong candidates who match the role expectations."],
       whatJobInvolves: ["Details to be refined with the hiring team."],
     };
@@ -40,7 +40,7 @@ function splitDescription(description: string): {
   return {
     ourTake: paras[0] ?? "",
     whoYouAre: who.length ? who : [paras[0]],
-    whatJobInvolves: what.length ? what : ["Partner with Meridian on scope and success metrics."],
+    whatJobInvolves: what.length ? what : ["Partner with TechRecruit on scope and success metrics."],
   };
 }
 
@@ -78,7 +78,7 @@ export function buildJobFromPortalInput(existing: JobDetail[], input: PortalJobF
     ref: nextJobRef(existing),
     title: input.title.trim(),
     companyName: input.companyName.trim(),
-    clientLine: input.clientLine?.trim() || "Posted via Meridian Talent portal",
+    clientLine: input.clientLine?.trim() || "Posted via TechRecruit portal",
     type: input.type.trim(),
     comp: compTrim,
     salaryHighlight: input.salaryHighlight?.trim() || firstComp,
@@ -90,7 +90,7 @@ export function buildJobFromPortalInput(existing: JobDetail[], input: PortalJobF
     skills,
     experienceLevel: input.experienceLevel?.trim() || "Mid–senior level",
     industries: industries.length ? industries : ["Technology"],
-    companyTagline: input.companyTagline?.trim() || "Growing team hiring through Meridian Talent.",
+    companyTagline: input.companyTagline?.trim() || "Growing team hiring through TechRecruit.",
     companySize: input.companySize?.trim() || "51–200 employees",
     whoYouAre,
     desirable: [],

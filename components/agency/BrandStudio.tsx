@@ -26,7 +26,7 @@ export function BrandStudio() {
               <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[2rem] border border-zinc-200/80 bg-zinc-100 shadow-sm ring-1 ring-zinc-950/5">
                 <Image
                   src="/nina-kovac-about.png"
-                  alt="Nina Kovac, lead recruiter at Meridian Talent"
+                  alt="Nina Kovac, lead recruiter at TechRecruit"
                   fill
                   className="object-cover object-top"
                   sizes="(min-width: 1024px) 480px, 100vw"
@@ -53,7 +53,7 @@ export function BrandStudio() {
             <Reveal className="mt-8" delay={0.05}>
               <div className="space-y-5 text-base leading-[1.75] text-zinc-600">
                 <p>
-                  Meridian Talent partners with tech and product teams who are hiring—but our job is to
+                  TechRecruit partners with tech and product teams who are hiring—but our job is to
                   represent <em>you</em> in the process. Whether you&apos;re actively searching or just
                   curious what&apos;s out there, we get your profile in front of hiring managers who are
                   a genuine fit.
@@ -66,7 +66,7 @@ export function BrandStudio() {
                 </p>
               </div>
               <p className="mt-8 font-display text-sm font-medium italic text-[#5b06c2]">
-                — Meridian Talent
+                — TechRecruit
               </p>
             </Reveal>
           </div>

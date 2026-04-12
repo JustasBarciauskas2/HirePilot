@@ -19,7 +19,7 @@ function getJobsJsonPath(): string {
     Boolean(process.env.NETLIFY) ||
     Boolean(process.env.VERCEL);
   if (serverless) {
-    return path.join("/tmp", "meridian-talent-jobs", "jobs.json");
+    return path.join("/tmp", "techrecruit-jobs", "jobs.json");
   }
   return path.join(process.cwd(), "data", "jobs.json");
 }

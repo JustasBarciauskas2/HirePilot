@@ -12,26 +12,25 @@ export function Contact() {
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">
           <Reveal className="lg:col-span-5">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#7107E7]">
-              Get in touch (demo)
+              Get in touch
             </p>
             <h2 className="font-display mt-3 text-3xl font-semibold tracking-tighter text-zinc-950 sm:text-4xl">
               Let us <span className="text-[#7107E7]">find roles</span> for you
             </h2>
             <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-zinc-600">
-              Looking for a job? Drop your details and the kind of role you want. Mention a vacancy ref
-              if one of our listings caught your eye. This portfolio build only shows a local success
-              state—nothing is emailed.
+              Looking for a new role? Send your details and the kind of position you want. If a specific
+              listing caught your eye, include the job reference and we&apos;ll prioritise your enquiry.
             </p>
             <p className="mt-6 text-sm text-zinc-600">
-              Demo inbox:{" "}
+              Email:{" "}
               <a
-                href="mailto:hello@meridian-talent.demo"
+                href="mailto:hello@techrecruit.co.uk"
                 className="font-medium text-[#5b06c2] underline decoration-[#7107E7]/35 underline-offset-4 transition hover:text-[#7107E7]"
               >
-                hello@meridian-talent.demo
+                hello@techrecruit.co.uk
               </a>
             </p>
-            <p className="mt-3 font-mono text-sm text-zinc-500">Placeholder · +1 (415) 555-0192</p>
+            <p className="mt-3 font-mono text-sm text-zinc-500">+44 20 4587 3200 · London, UK</p>
           </Reveal>
 
           <Reveal className="lg:col-span-7" delay={0.06}>
@@ -95,14 +94,14 @@ export function Contact() {
                 </div>
                 {status === "sent" ? (
                   <p className="text-sm font-medium text-[#5b06c2]" role="status">
-                    Thanks—this demo only shows a success state locally.
+                    Thanks—we&apos;ll be in touch shortly.
                   </p>
                 ) : null}
                 <button
                   type="submit"
                   className="w-full rounded-full bg-[#7107E7] py-3 text-sm font-semibold text-white shadow-[0_12px_32px_-12px_rgba(113,7,231,0.45)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-[#5b06c2] active:scale-[0.98] sm:w-auto sm:px-10"
                 >
-                  Send (mock)
+                  Send message
                 </button>
               </form>
             </div>

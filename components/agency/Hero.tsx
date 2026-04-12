@@ -140,7 +140,7 @@ export function Hero() {
               href="/#about"
               className="underline decoration-zinc-300 underline-offset-4 transition hover:text-zinc-800"
             >
-              About Meridian
+              About TechRecruit
             </Link>
             <span className="mx-2 text-zinc-300" aria-hidden>
               ·

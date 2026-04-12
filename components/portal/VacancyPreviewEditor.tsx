@@ -1246,7 +1246,7 @@ export function VacancyPreviewEditor({ initialVacancy, user, onCancel, onPublish
                 <label className="block">
                   <FieldLabel
                     label="Our take (intro)"
-                    hint="Meridian’s short intro at the top of the story — your angle on the role and company, not the employer’s raw JD."
+                    hint="TechRecruit’s short intro at the top of the story — your angle on the role and company, not the employer’s raw JD."
                   />
                   <textarea
                     className={`${textareaPanelClass} min-h-[100px]`}

@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/** Six columns: Received, Candidate, Contact, Vacancy, Status, CV */
-export const APPLICATIONS_TABLE_DEFAULT_WIDTHS = [148, 160, 200, 240, 132, 100] as const;
+/** Six columns: Received, Candidate, Contact, Vacancy, Status, CV & screening */
+/** Status min must fit longest label (“Shortlisted”) in the native <select>. */
+export const APPLICATIONS_TABLE_DEFAULT_WIDTHS = [148, 160, 200, 240, 200, 232] as const;
 
-const MIN_WIDTHS = [72, 88, 120, 140, 96, 72] as const;
+const MIN_WIDTHS = [72, 88, 120, 140, 168, 168] as const;
 
 function storageKey(uid: string): string {
   return `portal:applicationsTable:cols:v2:${uid}`;

@@ -3,8 +3,8 @@ import { getPublicJobs } from "@/lib/public-jobs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Recruiter portal | Meridian Talent",
-  description: "Manage job listings for the Meridian Talent demo site.",
+  title: "Recruiter portal | TechRecruit",
+  description: "Manage job listings and applications for TechRecruit.",
 };
 
 export const dynamic = "force-dynamic";

@@ -6,7 +6,7 @@
     "step3_portal": "Recruiters see screening in the portal when GET BACKEND_TENANT_APPLICATIONS_* returns screening keyed by Firestore applicationId (merge). The public apply form does not show screening.",
     "step4_syncOption": "Set JOB_APPLICATION_WEBHOOK_SYNC=true to wait for the webhook before responding; then the first response may include screening and backendPersonId inline (screeningStatus: \"complete\") — same JSON shape as browserResponseExample.",
     "step5_backendWebhook": "Next POSTs multipart to BACKEND_JOB_APPLICATION_* URL: field file = CV, plus applicationId, tenantId, jobRef, jobSlug, jobTitle, companyName, vacancyId, firstName, lastName, email, phone, cvStoragePath, cvFileName, cvContentType. Header X-Tenant-Id.",
-    "step6_backendResponse": "Webhook JSON (JobApplicationResponse): id, optional screening — only applicant id is written to Firestore. For portal screening, your GET /api/tenant/{tenantId}/applications (or BACKEND_TENANT_APPLICATIONS_URL) should return applications[] with applicationId + screening per row.",
+    "step6_backendResponse": "Webhook JSON (JobApplicationResponse): id, optional screening — only applicant id is written to Firestore. For portal screening, your GET /api/tenant/{tenantId}/applications (or BACKEND_TENANT_APPLICATIONS_URL) should return applications[] with applicationId + screening per row. Do not include candidateName in screening if you keep PII out of screening payloads — the UI uses job context only.",
     "step7_display": "Recruiter: ApplicationsPanel + CandidateScreeningCard (screening merged from tenant GET). Public apply: thank-you only."
   },
   "multipartFieldNames": [
@@ -32,12 +32,11 @@
     "backendPersonId": "optional-use-if-you-prefer-this-field-instead-of-id",
     "screening": {
       "schemaVersion": 1,
-      "candidateName": "Sam Rivera",
       "jobAppliedFor": {
         "jobRef": "MT-2026-014",
         "jobTitle": "Senior Software Engineer",
-        "companyName": "Meridian Labs",
-        "jobSlug": "senior-software-engineer-meridian-labs"
+        "companyName": "Haruko",
+        "jobSlug": "senior-java-engineer-haruko"
       },
       "match": {
         "score": 78,
@@ -45,7 +44,7 @@
         "experienceScore": 82,
         "fitLabel": "strong_fit",
         "headline": "Strong alignment on backend ownership and scale",
-        "summary": "Sam shows eight years of backend experience with clear ownership of high-traffic services. The stack overlaps strongly with this role (TypeScript, Postgres, Kubernetes). Leadership experience is lighter than the ideal profile but coaching and code quality practices are evident.",
+        "summary": "The candidate shows eight years of backend experience with clear ownership of high-traffic services. The stack overlaps strongly with this role (TypeScript, Postgres, Kubernetes). Leadership experience is lighter than the ideal profile but coaching and code quality practices are evident.",
         "insights": [
           "Seniority and years of experience match the job level.",
           "Domain overlap with B2B SaaS and billing systems is a plus.",
@@ -82,12 +81,11 @@
     "screeningStatus": "complete",
     "screening": {
       "schemaVersion": 1,
-      "candidateName": "Sam Rivera",
       "jobAppliedFor": {
         "jobRef": "MT-2026-014",
         "jobTitle": "Senior Software Engineer",
-        "companyName": "Meridian Labs",
-        "jobSlug": "senior-software-engineer-meridian-labs"
+        "companyName": "Haruko",
+        "jobSlug": "senior-java-engineer-haruko"
       },
       "match": {
         "score": 78,
@@ -95,7 +93,7 @@
         "experienceScore": 82,
         "fitLabel": "strong_fit",
         "headline": "Strong alignment on backend ownership and scale",
-        "summary": "Sam shows eight years of backend experience with clear ownership of high-traffic services. The stack overlaps strongly with this role (TypeScript, Postgres, Kubernetes). Leadership experience is lighter than the ideal profile but coaching and code quality practices are evident.",
+        "summary": "The candidate shows eight years of backend experience with clear ownership of high-traffic services. The stack overlaps strongly with this role (TypeScript, Postgres, Kubernetes). Leadership experience is lighter than the ideal profile but coaching and code quality practices are evident.",
         "insights": [
           "Seniority and years of experience match the job level.",
           "Domain overlap with B2B SaaS and billing systems is a plus.",
