@@ -1,34 +1,23 @@
 {
-  "name": "techrecruit-web",
+  "name": "techrecruit-monorepo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@phosphor-icons/react": "^2.1.10",
-    "@radix-ui/react-slider": "^1.3.6",
-    "clsx": "^2.1.1",
-    "firebase": "^12.12.0",
-    "firebase-admin": "^13.8.0",
-    "framer-motion": "^12.38.0",
-    "next": "16.2.3",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "server-only": "^0.0.1",
-    "tailwind-merge": "^3.5.0"
+    "bootstrap": "npx pnpm@9.15.0 install",
+    "dev": "concurrently -k -n website,portal -c blue,magenta \"npm run dev --prefix apps/website\" \"npm run dev --prefix apps/portal\"",
+    "dev:website": "npm run dev --prefix apps/website",
+    "dev:mock-client": "npm run dev --prefix apps/website-mock-client",
+    "dev:portal": "npm run dev --prefix apps/portal",
+    "dev:all": "concurrently -k -n website,mock,portal -c blue,cyan,magenta \"npm run dev --prefix apps/website\" \"npm run dev --prefix apps/website-mock-client\" \"npm run dev --prefix apps/portal\"",
+    "build": "npm run build --prefix apps/website && npm run build --prefix apps/website-mock-client && npm run build --prefix apps/portal",
+    "start:website": "npm run start --prefix apps/website",
+    "start:portal": "npm run start --prefix apps/portal",
+    "lint": "eslint apps packages --max-warnings 0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "concurrently": "^9.1.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
-    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }

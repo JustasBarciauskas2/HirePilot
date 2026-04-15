@@ -1,0 +1,3642 @@
+[
+  {
+    "ref": "MT-2026-014",
+    "title": "Senior Frontend Engineer",
+    "companyName": "Northbeam Labs",
+    "clientLine": "Series B payments · product-led",
+    "type": "Full-time",
+    "comp": "$175k–$205k + equity",
+    "salaryHighlight": "$190k",
+    "equityNote": "Benchmarked to US fintech; meaningful equity on a standard four-year schedule.",
+    "location": "Remote · US",
+    "locationTag": "Remote · US time zones",
+    "skills": [
+      {
+        "name": "TypeScript"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Next.js"
+      },
+      {
+        "name": "GraphQL"
+      }
+    ],
+    "experienceLevel": "Senior level",
+    "industries": [
+      "Fintech",
+      "B2B",
+      "SaaS",
+      "Payments"
+    ],
+    "companyTagline": "Modern payment infrastructure for product-led growth teams.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "5+ years shipping production web apps with React and TypeScript.",
+      "Comfortable owning design systems, performance budgets, and accessibility.",
+      "You collaborate closely with design and product—not a ticket factory.",
+      "Experience with SSR frameworks and edge deployment patterns.",
+      "You write tests where they buy confidence: integration over vanity coverage."
+    ],
+    "desirable": [
+      "You’ve worked in high-traffic consumer or B2B checkout flows.",
+      "Familiarity with observability (Datadog, Sentry) and CI for frontends."
+    ],
+    "whatJobInvolves": [
+      "Lead feature work on the merchant dashboard and embedded components.",
+      "Partner with platform on shared UI libraries and rollout strategy.",
+      "Mentor mid-level engineers through code review and pairing.",
+      "First 90 days: ship a measurable uplift in LCP on core journeys."
+    ],
+    "insights": {
+      "tags": [
+        "Strong hiring activity",
+        "Well-funded"
+      ],
+      "growthStat": "18% employee growth in 12 months",
+      "glassdoorRating": 5
+    },
+    "companyBenefits": [
+      "Competitive salary + equity; 401(k) with match.",
+      "Remote-first with annual team offsites.",
+      "Health, dental, vision; mental health stipend.",
+      "Home office and learning budgets."
+    ],
+    "funding": [
+      {
+        "date": "Mar 2025",
+        "amount": "$42m",
+        "round": "SERIES B"
+      },
+      {
+        "date": "Jan 2024",
+        "amount": "$18m",
+        "round": "SERIES A"
+      }
+    ],
+    "totalFunding": "$68m",
+    "ourTake": "Northbeam is carving out a niche in developer-friendly payments APIs. The team ships quickly, invests in design quality, and has room for a senior IC to shape the product surface without layers of process.",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · TechRecruit"
+    },
+    "regions": [
+      "United States",
+      "Remote"
+    ],
+    "sizeBand": "201-500",
+    "slug": "mt-2026-014"
+  },
+  {
+    "ref": "MT-2026-021",
+    "title": "Staff Platform Engineer",
+    "companyName": "Relayforge",
+    "clientLine": "Infrastructure org · Rust & K8s",
+    "type": "Full-time",
+    "comp": "£130k–£155k",
+    "salaryHighlight": "£142k",
+    "equityNote": "Includes annual bonus band; EMI options discussed at offer.",
+    "location": "London / hybrid",
+    "locationTag": "London hybrid · 2 days onsite",
+    "skills": [
+      {
+        "name": "Rust"
+      },
+      {
+        "name": "Kubernetes"
+      },
+      {
+        "name": "PostgreSQL"
+      },
+      {
+        "name": "Terraform"
+      }
+    ],
+    "experienceLevel": "Staff / principal IC",
+    "industries": [
+      "Infrastructure",
+      "B2B",
+      "Cloud",
+      "DevTools"
+    ],
+    "companyTagline": "Control plane for multi-cloud fleets at scale.",
+    "companySize": "101–250 employees",
+    "whoYouAre": [
+      "Deep experience building reliable distributed systems in Rust or Go.",
+      "You’ve operated large Kubernetes estates and care about SLOs.",
+      "Comfortable leading technical direction without people management.",
+      "Pragmatic about trade-offs: boring tech where it counts, sharp edges where it wins."
+    ],
+    "desirable": [
+      "Background in networking or storage platforms.",
+      "Open-source contributions welcome."
+    ],
+    "whatJobInvolves": [
+      "Own core services for cluster lifecycle and upgrades.",
+      "Drive incident reviews and reliability initiatives.",
+      "Collaborate with security on hardening and compliance paths."
+    ],
+    "insights": {
+      "tags": [
+        "Top investors",
+        "Strong hiring activity"
+      ],
+      "growthStat": "23% employee growth in 12 months",
+      "glassdoorRating": 5
+    },
+    "companyBenefits": [
+      "Competitive salary + bonus; equity scheme.",
+      "Private medical; pension with employer contribution.",
+      "Cycle scheme; learning budget."
+    ],
+    "funding": [
+      {
+        "date": "May 2025",
+        "amount": "£28.4m",
+        "round": "SERIES C"
+      },
+      {
+        "date": "Aug 2023",
+        "amount": "£12m",
+        "round": "SERIES B"
+      }
+    ],
+    "totalFunding": "£79.7m",
+    "ourTake": "Relayforge is in a crowded market but differentiated on operator UX. The platform team is small and senior—expect high ownership and crisp communication with customers.",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · TechRecruit"
+    },
+    "regions": [
+      "United Kingdom",
+      "London",
+      "Europe"
+    ],
+    "sizeBand": "201-500",
+    "slug": "mt-2026-021"
+  },
+  {
+    "ref": "MT-2026-018",
+    "title": "ML Engineer — Inference",
+    "companyName": "Lattice Inference",
+    "clientLine": "Applied AI · low-latency serving",
+    "type": "Full-time",
+    "comp": "$210k–$245k",
+    "salaryHighlight": "$228k",
+    "equityNote": "Equity band competitive with top decile ML infra startups.",
+    "location": "SF Bay · hybrid",
+    "locationTag": "SF Bay hybrid",
+    "skills": [
+      {
+        "name": "Python"
+      },
+      {
+        "name": "CUDA"
+      },
+      {
+        "name": "TensorRT"
+      },
+      {
+        "name": "K8s"
+      }
+    ],
+    "experienceLevel": "Senior and expert level",
+    "industries": [
+      "AI",
+      "B2B",
+      "SaaS",
+      "Developer tools"
+    ],
+    "companyTagline": "Inference stack for production GenAI workloads.",
+    "companySize": "21–100 employees",
+    "whoYouAre": [
+      "You’ve shipped model serving paths where latency and cost matter.",
+      "Strong Python; comfortable profiling C++/CUDA hot paths.",
+      "Experience batching, quantization, and dynamic routing."
+    ],
+    "desirable": [
+      "Published work or OSS in ML systems is a plus."
+    ],
+    "whatJobInvolves": [
+      "Optimize serving pipelines for enterprise SLAs.",
+      "Work with research to productize new model families.",
+      "Partner with infra on autoscaling and capacity planning."
+    ],
+    "insights": {
+      "tags": [
+        "Strong hiring activity",
+        "Top investors"
+      ],
+      "growthStat": "31% employee growth in 12 months",
+      "glassdoorRating": 5
+    },
+    "companyBenefits": [
+      "Top-of-market comp; equity.",
+      "Health + dental; commuter benefits.",
+      "GPU credits for side experiments (within policy)."
+    ],
+    "funding": [
+      {
+        "date": "Feb 2025",
+        "amount": "$55m",
+        "round": "SERIES B"
+      },
+      {
+        "date": "Jun 2024",
+        "amount": "$14m",
+        "round": "SEED"
+      }
+    ],
+    "totalFunding": "$69m",
+    "ourTake": "Lattice is betting on bespoke inference stacks over generic APIs. The role suits someone who wants hard performance problems and direct customer exposure.",
+    "specialist": {
+      "name": "Rohan Patel",
+      "title": "Candidate experience · TechRecruit"
+    },
+    "regions": [
+      "United States",
+      "SF Bay Area"
+    ],
+    "sizeBand": "51-200",
+    "slug": "mt-2026-018"
+  },
+  {
+    "ref": "MT-2026-009",
+    "title": "Security Engineer (AppSec)",
+    "companyName": "Vaultline",
+    "clientLine": "Enterprise SaaS · FedRAMP path",
+    "type": "Full-time",
+    "comp": "€95k–€115k",
+    "salaryHighlight": "€105k",
+    "equityNote": "Annual bonus target 10%; equity for senior hires.",
+    "location": "Remote · EU",
+    "locationTag": "Remote · EU legal hubs",
+    "skills": [
+      {
+        "name": "AppSec"
+      },
+      {
+        "name": "OAuth/OIDC"
+      },
+      {
+        "name": "AWS"
+      },
+      {
+        "name": "Python"
+      }
+    ],
+    "experienceLevel": "Senior level",
+    "industries": [
+      "Security",
+      "Enterprise",
+      "SaaS",
+      "Compliance"
+    ],
+    "companyTagline": "Identity and access for regulated industries.",
+    "companySize": "201–500 employees",
+    "whoYouAre": [
+      "Experience threat modeling web apps and APIs in production.",
+      "Comfortable reviewing code across languages.",
+      "You’ve supported SOC2 / ISO programs hands-on."
+    ],
+    "desirable": [
+      "FedRAMP or public-sector exposure is a plus."
+    ],
+    "whatJobInvolves": [
+      "Lead AppSec reviews for new features.",
+      "Automate SAST/DAST in CI with pragmatic guardrails.",
+      "Partner with GRC on customer audits."
+    ],
+    "insights": {
+      "tags": [
+        "Stable growth",
+        "Enterprise traction"
+      ],
+      "growthStat": "9% employee growth in 12 months",
+      "glassdoorRating": 4
+    },
+    "companyBenefits": [
+      "Remote-first; country-specific benefits packages.",
+      "Training budget for certs (OSCP, etc.).",
+      "Four-day summer Fridays in July & August."
+    ],
+    "funding": [
+      {
+        "date": "Nov 2024",
+        "amount": "€32m",
+        "round": "SERIES D"
+      },
+      {
+        "date": "Mar 2023",
+        "amount": "€14m",
+        "round": "SERIES C"
+      }
+    ],
+    "totalFunding": "€86m",
+    "ourTake": "Vaultline is past the chaos of early startup mode—process exists, but security still has a seat at the table for roadmap calls.",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · TechRecruit"
+    },
+    "regions": [
+      "Europe",
+      "Remote"
+    ],
+    "sizeBand": "201-500",
+    "slug": "mt-2026-009"
+  },
+  {
+    "ref": "MT-2026-027",
+    "title": "Engineering Manager · Data",
+    "companyName": "Cartograph",
+    "clientLine": "Growth-stage marketplace",
+    "type": "Full-time",
+    "comp": "$195k–$225k",
+    "salaryHighlight": "$210k",
+    "equityNote": "Bonus eligible; equity refresh reviewed annually.",
+    "location": "New York · onsite 3/wk",
+    "locationTag": "New York · onsite 3/wk",
+    "skills": [
+      {
+        "name": "Spark"
+      },
+      {
+        "name": "dbt"
+      },
+      {
+        "name": "Snowflake"
+      },
+      {
+        "name": "Airflow"
+      }
+    ],
+    "experienceLevel": "Engineering management",
+    "industries": [
+      "Marketplace",
+      "B2C",
+      "Data",
+      "Growth"
+    ],
+    "companyTagline": "Discovery and trust for two-sided marketplaces.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "You’ve managed teams of 4–8 engineers in data or backend.",
+      "Strong stakeholder skills with analytics and product.",
+      "Comfortable hiring and developing ICs."
+    ],
+    "desirable": [
+      "Experience with experimentation platforms."
+    ],
+    "whatJobInvolves": [
+      "Own the data platform roadmap with peer EM on product eng.",
+      "Improve reliability and cost of batch + streaming pipelines.",
+      "Partner with finance on revenue metrics integrity."
+    ],
+    "insights": {
+      "tags": [
+        "Strong hiring activity",
+        "NYC hub"
+      ],
+      "growthStat": "14% employee growth in 12 months",
+      "glassdoorRating": 5
+    },
+    "companyBenefits": [
+      "Competitive salary + bonus + equity.",
+      "Onsite meals; commuter benefits.",
+      "Parental leave; fertility support."
+    ],
+    "funding": [
+      {
+        "date": "Jan 2025",
+        "amount": "$38m",
+        "round": "SERIES C"
+      },
+      {
+        "date": "Sep 2023",
+        "amount": "$22m",
+        "round": "SERIES B"
+      }
+    ],
+    "totalFunding": "$72m",
+    "ourTake": "Cartograph is balancing marketplace liquidity with trust & safety investments—the data org is central to that story.",
+    "specialist": {
+      "name": "Rohan Patel",
+      "title": "Candidate experience · TechRecruit"
+    },
+    "regions": [
+      "United States",
+      "New York"
+    ],
+    "sizeBand": "201-500",
+    "slug": "mt-2026-027"
+  },
+  {
+    "ref": "MT-2026-031",
+    "title": "Developer Experience Lead",
+    "companyName": "Stacksmith",
+    "clientLine": "Platform team · IDP & tooling",
+    "type": "Contract · 12 mo",
+    "comp": "$120–$150/hr",
+    "salaryHighlight": "$135/hr",
+    "equityNote": "Contract role; extension likely based on roadmap.",
+    "location": "Remote · global",
+    "locationTag": "Remote · overlap with EU & US",
+    "skills": [
+      {
+        "name": "Backstage"
+      },
+      {
+        "name": "TypeScript"
+      },
+      {
+        "name": "K8s"
+      },
+      {
+        "name": "GitHub Actions"
+      }
+    ],
+    "experienceLevel": "Lead / principal IC",
+    "industries": [
+      "DevTools",
+      "Platform",
+      "B2B",
+      "SaaS"
+    ],
+    "companyTagline": "Internal developer platforms for modern engineering orgs.",
+    "companySize": "101–250 employees",
+    "whoYouAre": [
+      "You’ve rolled out IDPs or golden paths at scale.",
+      "Strong communicator—writing docs is part of the job.",
+      "Comfortable facilitating across security, SRE, and app teams."
+    ],
+    "desirable": [
+      "Experience with service catalog and scorecards."
+    ],
+    "whatJobInvolves": [
+      "Define DX roadmap for 400+ engineers.",
+      "Drive adoption metrics for templates and paved roads.",
+      "Work with leadership on vendor strategy."
+    ],
+    "insights": {
+      "tags": [
+        "Flexible contract",
+        "Platform investment"
+      ],
+      "growthStat": "11% contractor & FTE growth in 12 months",
+      "glassdoorRating": 4
+    },
+    "companyBenefits": [
+      "Competitive day rate; option to convert FTE.",
+      "Hardware stipend; conference budget."
+    ],
+    "funding": [
+      {
+        "date": "Apr 2025",
+        "amount": "$25m",
+        "round": "SERIES B"
+      },
+      {
+        "date": "Dec 2023",
+        "amount": "$9m",
+        "round": "SERIES A"
+      }
+    ],
+    "totalFunding": "$34m",
+    "ourTake": "Stacksmith is doubling down on developer experience as a retention lever—this contract is visible to VPE and CTO.",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · TechRecruit"
+    },
+    "regions": [
+      "Remote",
+      "Global"
+    ],
+    "sizeBand": "201-500",
+    "slug": "mt-2026-031"
+  },
+  {
+    "ref": "MT-2026-032",
+    "title": "wdwd",
+    "companyName": "wdwdw",
+    "clientLine": "Posted via TechRecruit portal",
+    "type": "dwddw",
+    "comp": "dwdwdw",
+    "salaryHighlight": "dwdwdw",
+    "equityNote": "Discussed with shortlisted candidates.",
+    "location": "dwdwdw",
+    "locationTag": "dwdwdw",
+    "regions": [
+      "dwdw"
+    ],
+    "sizeBand": "201-500",
+    "skills": [
+      {
+        "name": "dwdwdw"
+      }
+    ],
+    "experienceLevel": "Mid–senior level",
+    "industries": [
+      "Technology"
+    ],
+    "companyTagline": "Growing team hiring through TechRecruit.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "dcc"
+    ],
+    "desirable": [],
+    "whatJobInvolves": [
+      "Partner with TechRecruit on scope and success metrics."
+    ],
+    "insights": {
+      "tags": [
+        "New listing"
+      ],
+      "growthStat": "Growing team",
+      "glassdoorRating": 4
+    },
+    "companyBenefits": [
+      "Package discussed at offer stage.",
+      "Remote-first or hybrid options where applicable."
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "dcc",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · TechRecruit"
+    },
+    "slug": "mt-2026-032"
+  },
+  {
+    "ref": "MT-2026-033",
+    "title": "dwdw",
+    "companyName": "dwwd",
+    "clientLine": "Posted via TechRecruit portal",
+    "type": "dwdw",
+    "comp": "dwdw",
+    "salaryHighlight": "dwdw",
+    "equityNote": "Discussed with shortlisted candidates.",
+    "location": "dwdw",
+    "locationTag": "dwdw",
+    "regions": [
+      "wddw"
+    ],
+    "sizeBand": "201-500",
+    "skills": [
+      {
+        "name": "wddw"
+      }
+    ],
+    "experienceLevel": "Mid–senior level",
+    "industries": [
+      "Technology"
+    ],
+    "companyTagline": "Growing team hiring through TechRecruit.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "dwwd"
+    ],
+    "desirable": [],
+    "whatJobInvolves": [
+      "Partner with TechRecruit on scope and success metrics."
+    ],
+    "insights": {
+      "tags": [
+        "New listing"
+      ],
+      "growthStat": "Growing team",
+      "glassdoorRating": 4
+    },
+    "companyBenefits": [
+      "Package discussed at offer stage.",
+      "Remote-first or hybrid options where applicable."
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "dwwd",
+    "specialist": {
+      "name": "Nina Kovac",
+      "title": "Lead recruiter · TechRecruit"
+    },
+    "slug": "mt-2026-033"
+  },
+  {
+    "ref": "MT-2026-034",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "We are well established with mature products and some of the largest names in digital assets and traditional finance on our client list.",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary and benefits package",
+    "equityNote": "Discussed with shortlisted candidates.",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "London",
+      "Singapore",
+      "New York"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols, offering a detailed real-time view of all your exposures and risks.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5 to 10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline is preferable",
+      "Open to new ideas and a quick learner with an ambitious and results-driven personality"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Financial Technology",
+        "Trading",
+        "Java",
+        "JavaScript",
+        "Python",
+        "APIs",
+        "React"
+      ],
+      "growthStat": "Recognized as 'Best Solution Provider' in Hedge Week APAC Digital Assets awards and 'Most Innovative Technology Firm' by HFM since expanding into Asia in 2023.",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Work in a start-up like environment within a well-established organisation",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget to expand skillset",
+      "Modern location in the City in London with high spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "A unique opportunity to join one of the leading engineering teams in the blockchain industry working on green field products in a well-established, rapidly growing organisation.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-034"
+  },
+  {
+    "ref": "MT-2026-035",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "We are well established with mature products and some of the largest names in digital assets and traditional finance on our client list",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary and benefits package",
+    "equityNote": "Discussed with shortlisted candidates.",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "London",
+      "Singapore",
+      "New York"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5 to 10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline is preferable",
+      "Open to new ideas and a quick learner with an ambitious and results-driven personality"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Financial Technology",
+        "Trading",
+        "Java",
+        "APIs",
+        "Digital Assets"
+      ],
+      "growthStat": "Expanded into Asia at the start of 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Paid time off policy",
+      "Private healthcare",
+      "Dedicated learning budget",
+      "Opportunities to attend industry events",
+      "Modern location in the City in London with high spec development machines"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "A unique opportunity to join one of the leading engineering teams in the blockchain industry working on green field products in a well-established, rapidly growing organisation.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-035"
+  },
+  {
+    "ref": "MT-2026-036",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "We are well established with mature products and some of the largest names in digital assets and traditional finance on our client list.",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary and benefits package",
+    "equityNote": "Discussed with shortlisted candidates.",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "London",
+      "Singapore",
+      "New York"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols, offering a detailed real-time view of all your exposures and risks.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5 to 10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Open to new ideas and a quick learner with an ambitious and results-driven personality"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Financial Technology",
+        "Trading",
+        "Java",
+        "JavaScript",
+        "Python",
+        "APIs",
+        "React"
+      ],
+      "growthStat": "Recognized as 'Best Solution Provider' in Hedge Week APAC Digital Assets awards and 'Most Innovative Technology Firm' by HFM since expanding into Asia in 2023.",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Paid time off policy",
+      "Private healthcare",
+      "Dedicated learning budget",
+      "Opportunities to attend industry events",
+      "Modern location in the City in London with high spec development machines"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "A unique opportunity to join one of the leading engineering teams in the blockchain industry working on green field products within a well-established, rapidly growing organisation.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-036"
+  },
+  {
+    "ref": "MT-2026-037",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "We are well established with mature products and some of the largest names in digital assets and traditional finance on our client list.",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary and benefits package",
+    "equityNote": "£80k",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "London",
+      "Singapore",
+      "New York"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols, offering a detailed real-time view of all your exposures and risks.",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5 to 10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Open to new ideas and a quick learner with an ambitious and results-driven personality"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Financial Technology",
+        "Trading",
+        "Java",
+        "JavaScript",
+        "Python"
+      ],
+      "growthStat": "Recognized as 'Best Solution Provider' in Hedge Week APAC Digital Assets awards and 'Most Innovative Technology Firm' by HFM since expanding into Asia in 2023",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Paid time off policy",
+      "Private healthcare",
+      "Dedicated learning budget",
+      "Opportunities to attend industry events",
+      "Modern location in the City in London with high spec development machines"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "A unique opportunity to join one of the leading engineering teams in the blockchain industry working on green field products in a well-established, rapidly growing organisation.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-037"
+  },
+  {
+    "ref": "MT-2026-038",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Some of the largest names in digital assets and traditional finance",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary and benefits package",
+    "equityNote": "£80k",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "London",
+      "Singapore",
+      "New York"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51–200 employees",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5 to 10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline is preferable",
+      "Open to new ideas and a quick learner with an ambitious and results-driven personality"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Financial Technology",
+        "Java",
+        "Digital Assets",
+        "Trading"
+      ],
+      "growthStat": "Recognized as 'Best Solution Provider' in Hedge Week APAC Digital Assets awards and 'Most Innovative Technology Firm' by HFM since expanding into Asia in 2023",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organisation",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern location in the City in London with high spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "A unique opportunity to join one of the leading engineering teams in the blockchain industry working on green field products within a well-established, rapidly growing organisation.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-038"
+  },
+  {
+    "ref": "MT-2026-039",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across Haruko's product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Collaborating with cross-functional teams",
+      "Using core languages Java, JavaScript, Python"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; awarded Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Work with accomplished traders and engineers",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-039"
+  },
+  {
+    "ref": "MT-2026-040",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication"
+      },
+      {
+        "name": "Teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Work with accomplished traders and engineers",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-040"
+  },
+  {
+    "ref": "MT-2026-041",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "80k",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Scalable application development"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across Haruko’s product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Collaborating with cross-functional teams",
+      "Using core languages Java, JavaScript, Python"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023 and won multiple industry awards",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain and digital asset infrastructure, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-041"
+  },
+  {
+    "ref": "MT-2026-042",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on blockchain and digital asset trading systems",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Building institutional-grade infrastructure, products, and services for the blockchain ecosystem",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "APAC Growth",
+        "Innovation"
+      ],
+      "growthStat": "Expanded into Asia in 2023 with award recognitions",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Work with accomplished traders and engineers",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset trading, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-042"
+  },
+  {
+    "ref": "MT-2026-043",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on blockchain and digital asset trading systems",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Building institutional-grade infrastructure, products, and services for the blockchain ecosystem",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Java",
+        "Trading",
+        "Digital Assets"
+      ],
+      "growthStat": "Expanded into Asia in early 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Work with accomplished traders and engineers",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset trading systems, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-043"
+  },
+  {
+    "ref": "MT-2026-044",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on blockchain and digital asset trading systems",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Building institutional-grade infrastructure, products, and services for the blockchain ecosystem",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Quick learner and open to new ideas"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options",
+        "Innovation"
+      ],
+      "growthStat": "Expanded into Asia in 2023; awarded Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset trading systems, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-044"
+  },
+  {
+    "ref": "MT-2026-045",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication"
+      },
+      {
+        "name": "Teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-045"
+  },
+  {
+    "ref": "MT-2026-046",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Collaborating with cross-functional teams",
+      "Using core languages Java, JavaScript, Python"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "APAC Growth"
+      ],
+      "growthStat": "Expanded into Asia in 2023 with award recognitions",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-046"
+  },
+  {
+    "ref": "MT-2026-047",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Hybrid/Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Quick learner and open to new ideas"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote",
+        "Innovation"
+      ],
+      "growthStat": "Recognized as Best Solution Provider in Hedge Week APAC Digital Assets awards and Most Innovative Technology Firm by HFM since 2023 expansion into Asia",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [
+      {
+        "date": "2022-12",
+        "amount": null,
+        "currency": "USD",
+        "round": "Series A"
+      }
+    ],
+    "totalFunding": "15M USD",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-047"
+  },
+  {
+    "ref": "MT-2026-048",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "Competitive salary and benefits package",
+    "salaryHighlight": "Competitive salary",
+    "equityNote": "£80k",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Skilled in database management",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Quick learner and open to new ideas"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Collaborating with cross-functional teams",
+      "Using core languages Java, JavaScript, Python",
+      "Working in a start-up like environment within a well-established organization"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Java",
+        "Trading",
+        "APAC Growth"
+      ],
+      "growthStat": "Expanded into Asia in 2023 with award recognitions",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment in a well-established company",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-048"
+  },
+  {
+    "ref": "MT-2026-049",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "£50-70k",
+    "salaryHighlight": "£50-70k",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Trading platforms"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Quick learner and open to new ideas"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": 1
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [
+      {
+        "date": "2022-12",
+        "amount": null,
+        "currency": "USD",
+        "round": "Series A"
+      }
+    ],
+    "totalFunding": "15M USD",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-049"
+  },
+  {
+    "ref": "MT-2026-050",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "£80-90k",
+    "salaryHighlight": "£80-90k",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Digital Assets",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "APAC Growth"
+      ],
+      "growthStat": "Expanded into Asia in early 2023 with award recognitions",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Work with accomplished traders and engineers",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-050"
+  },
+  {
+    "ref": "MT-2026-051",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "$80k",
+    "salaryHighlight": "$80k",
+    "salaryMinK": 80,
+    "salaryMaxK": 80,
+    "compensationCurrency": "USD",
+    "equityNote": "",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication and teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "APAC Growth"
+      ],
+      "growthStat": "Expanded into Asia in early 2023 with award recognitions",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Work with accomplished traders and engineers",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-051"
+  },
+  {
+    "ref": "MT-2026-052",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure and products",
+    "type": "Fulltime, permanent",
+    "comp": "£10k",
+    "salaryHighlight": "£10k",
+    "salaryMinK": 10,
+    "salaryMaxK": 10,
+    "compensationCurrency": "GBP",
+    "equityNote": "Bonus + Stock",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Communication"
+      },
+      {
+        "name": "Teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Quick learner and open to new ideas"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Java",
+        "Trading",
+        "APAC Growth"
+      ],
+      "growthStat": "Expanded into Asia in 2023; awarded Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-052"
+  },
+  {
+    "ref": "MT-2026-053",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Technology"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Java",
+        "Trading",
+        "APAC Growth",
+        "Innovation"
+      ],
+      "growthStat": "Expanded into Asia in 2023, awarded Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-053"
+  },
+  {
+    "ref": "MT-2026-054",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary and benefits package",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Java",
+        "Trading",
+        "APAC Expansion",
+        "Innovation Award"
+      ],
+      "growthStat": "Expanded into Asia in 2023, recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain and digital asset infrastructure, recognized for innovation and rapid growth in Asia and globally.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-054"
+  },
+  {
+    "ref": "MT-2026-055",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary and benefits package",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication"
+      },
+      {
+        "name": "Teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Quick learner and open to new ideas"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "JavaScript",
+        "Python"
+      ],
+      "growthStat": "Recognized as Best Solution Provider in Hedge Week APAC Digital Assets awards and Most Innovative Technology Firm by HFM in 2023",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-055"
+  },
+  {
+    "ref": "MT-2026-056",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary and benefits package",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      },
+      {
+        "name": "Communication"
+      },
+      {
+        "name": "Teamwork"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious, quick learner, and results-driven"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia-based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Using core languages Java, JavaScript, Python"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Java",
+        "Trading",
+        "APAC Growth"
+      ],
+      "growthStat": "Expanded into Asia in 2023 and won multiple industry awards",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Start-up like environment within a well-established organization",
+      "Opportunities to attend industry events",
+      "Dedicated learning budget",
+      "Modern office location in London City",
+      "High spec development machines",
+      "Paid time off policy",
+      "Private healthcare"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and digital asset connectivity, recognized for innovation and rapid growth in the APAC region.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-056"
+  },
+  {
+    "ref": "MT-2026-057",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Paid time off policy",
+      "Private healthcare",
+      "Dedicated learning budget",
+      "Modern office location in London City with high spec development machines"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company building institutional-grade blockchain infrastructure with a strong engineering culture and global presence.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-057"
+  },
+  {
+    "ref": "MT-2026-057",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      },
+      {
+        "name": "Database management"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enables seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer",
+      "Strong background in Java development",
+      "Familiar with front-end technologies like React and JavaScript",
+      "Experienced with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko product suite",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Competitive salary and benefits package",
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Paid time off policy",
+      "Private healthcare",
+      "Dedicated learning budget",
+      "Modern office location in London City with high spec development machines"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Haruko is a well-established fintech company building institutional-grade blockchain infrastructure with a strong engineering culture and global presence.",
+    "specialist": {
+      "name": "Justas",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-057",
+    "id": "37794df9-d9a8-4a5f-a88c-5b5d9dcf6b63"
+  },
+  {
+    "ref": "MT-2026-058",
+    "title": "Senior Java Software Engineer",
+    "companyName": "Haruko",
+    "clientLine": "Financial technology firm focused on institutional-grade blockchain infrastructure, products, and services",
+    "type": "Fulltime, permanent",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary and benefits package",
+    "location": "London, Singapore or New York",
+    "locationTag": "Multiple international locations",
+    "regions": [
+      "Europe",
+      "Asia",
+      "North America"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java"
+      },
+      {
+        "name": "JavaScript"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "APIs (REST/Websockets/FIX)"
+      },
+      {
+        "name": "Databases"
+      },
+      {
+        "name": "Financial systems"
+      },
+      {
+        "name": "Trading platforms"
+      },
+      {
+        "name": "High-frequency data processing"
+      }
+    ],
+    "experienceLevel": "5-10 years",
+    "industries": [
+      "Financial Technology",
+      "Blockchain",
+      "Trading Systems"
+    ],
+    "companyTagline": "Enabling seamless connectivity across digital asset exchanges and on-chain protocols",
+    "companySize": "51-200",
+    "whoYouAre": [
+      "Experienced Java Software Engineer with 5-10 years of experience",
+      "Strong background in Java development",
+      "Experience with front-end technologies like React and JavaScript",
+      "Expertise in working with databases",
+      "Excellent communication and teamwork skills",
+      "Educated to degree level in a numerate discipline (preferable)",
+      "Interest in financial and blockchain technology",
+      "Ambitious and results-driven personality",
+      "Open to new ideas and quick learner"
+    ],
+    "desirable": [
+      "Experience in financial systems, trading platforms, or high-frequency data processing",
+      "Experience building connectivity and working with APIs (REST/Websockets/FIX)"
+    ],
+    "whatJobInvolves": [
+      "Developing connectivity to various cryptocurrency exchanges",
+      "Implementing critical features across the Haruko suite of products",
+      "Supporting Asia based clients",
+      "Designing, developing, and optimizing scalable applications",
+      "Working closely with cross-functional teams",
+      "Honing and developing skills across different technologies and business lines"
+    ],
+    "insights": {
+      "tags": [
+        "Blockchain",
+        "Fintech",
+        "Trading",
+        "Java",
+        "Remote Options"
+      ],
+      "growthStat": "Expanded into Asia in 2023; recognized as Best Solution Provider and Most Innovative Technology Firm",
+      "glassdoorRating": null
+    },
+    "companyBenefits": [
+      "Flexible work environment",
+      "Opportunity to work on cutting-edge financial and trading technologies",
+      "Collaborative and innovative team culture",
+      "Paid time off policy",
+      "Private healthcare",
+      "Dedicated learning budget",
+      "Modern office location in London with high spec development machines"
+    ],
+    "funding": [
+      {
+        "date": "2022-12",
+        "amount": "20,000,000",
+        "round": "Series A"
+      }
+    ],
+    "totalFunding": "20,000,000 USD",
+    "ourTake": "Haruko is a well-established fintech company specializing in blockchain infrastructure and trading systems, recognized for innovation and rapid growth in the digital assets space.",
+    "specialist": {
+      "name": "Adam Carlile",
+      "title": "CTO"
+    },
+    "slug": "mt-2026-058"
+  },
+  {
+    "ref": "MT-2026-059",
+    "title": "Engineer (Java) – R0277096",
+    "companyName": "Deutsche Bank",
+    "clientLine": "Fixed Income electronic trading technology",
+    "type": "Full-time",
+    "comp": "",
+    "salaryHighlight": "",
+    "equityNote": "Competitive salary",
+    "location": "London",
+    "locationTag": "Hybrid",
+    "regions": [
+      "Europe",
+      "United Kingdom",
+      "London"
+    ],
+    "sizeBand": "51-200",
+    "skills": [
+      {
+        "name": "Java (J2SE)"
+      },
+      {
+        "name": "Distributed Java applications"
+      },
+      {
+        "name": "SQL"
+      },
+      {
+        "name": "Linux"
+      },
+      {
+        "name": "Solace messaging"
+      },
+      {
+        "name": "Tibco RV messaging"
+      },
+      {
+        "name": "Reuters"
+      },
+      {
+        "name": "Bloomberg"
+      },
+      {
+        "name": "Government & credit bonds"
+      },
+      {
+        "name": "Multi-threading"
+      },
+      {
+        "name": "Networking"
+      },
+      {
+        "name": "Problem-solving"
+      },
+      {
+        "name": "Agile processes"
+      },
+      {
+        "name": "Test automation"
+      },
+      {
+        "name": "DevOps"
+      }
+    ],
+    "experienceLevel": "Mid-level",
+    "industries": [
+      "Financial Services",
+      "Investment Banking",
+      "Technology"
+    ],
+    "companyTagline": "A leading global investment bank and financial services company",
+    "companySize": "10000+",
+    "whoYouAre": [
+      "Experienced Java developer with strong core J2SE skills",
+      "Able to work on distributed applications without frameworks",
+      "Knowledgeable in SQL and Linux environments",
+      "Familiar with messaging solutions like Solace or Tibco RV",
+      "Strong problem solver with risk awareness",
+      "Collaborative team player comfortable working with cross-functional teams"
+    ],
+    "desirable": [
+      "Experience with Reuters or Bloomberg data",
+      "Knowledge of government and credit bonds",
+      "Mentoring junior developers",
+      "Experience with test automation and DevOps"
+    ],
+    "whatJobInvolves": [
+      "Full software development lifecycle from analysis to post-rollout support",
+      "Collaborating with trading, analysts, developers, testers, and project managers",
+      "Implementing new features and enhancements",
+      "Reviewing code and mentoring junior team members",
+      "Supporting production rollout and SL3 support",
+      "Working with QA and DevOps teams to improve SDLC and environment management"
+    ],
+    "insights": {
+      "tags": [
+        "Hybrid Working",
+        "Financial Services",
+        "Java",
+        "Agile",
+        "Mentoring"
+      ],
+      "growthStat": "Deutsche Bank continues to invest heavily in technology to maintain its competitive edge in electronic trading.",
+      "glassdoorRating": 4
+    },
+    "companyBenefits": [
+      "Hybrid Working Model",
+      "30 days holiday plus bank holidays with option to purchase more",
+      "Life Assurance",
+      "Private Healthcare for employee and family",
+      "Flexible benefits including Retail Discounts, Bike4Work scheme, Gym benefits",
+      "CSR programme with 2 days volunteering leave per year",
+      "Non-contributory pension"
+    ],
+    "funding": [],
+    "totalFunding": "—",
+    "ourTake": "Deutsche Bank is a global leader in financial services with a strong focus on technology-driven trading solutions. This role offers exposure to cutting-edge electronic trading systems in a collaborative and agile environment.",
+    "specialist": {
+      "name": "Jordan Lee",
+      "title": "Assistant Vice President"
+    },
+    "slug": "mt-2026-059"
+  }
+]
