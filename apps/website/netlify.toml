@@ -1,0 +1,9 @@
+# Netlify UI: Package directory = apps/website (leave Base directory empty = repo root).
+# See https://docs.netlify.com/build/configure-builds/monorepos/
+
+[build]
+  command = "corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @techrecruit/website exec next build"
+  publish = "apps/website/.next"
+
+[build.environment]
+  NODE_VERSION = "22"

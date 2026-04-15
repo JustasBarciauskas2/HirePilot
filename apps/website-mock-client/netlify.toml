@@ -1,0 +1,8 @@
+# Netlify UI: Package directory = apps/website-mock-client (Base directory = repo root).
+
+[build]
+  command = "corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @techrecruit/website-mock-client exec next build"
+  publish = "apps/website-mock-client/.next"
+
+[build.environment]
+  NODE_VERSION = "22"

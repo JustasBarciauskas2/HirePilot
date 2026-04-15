@@ -2,6 +2,7 @@
   "name": "techrecruit-monorepo",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "bootstrap": "npx pnpm@9.15.0 install",
     "dev": "concurrently -k -n website,portal -c blue,magenta \"npm run dev --prefix apps/website\" \"npm run dev --prefix apps/portal\"",
