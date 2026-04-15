@@ -20,9 +20,6 @@ export function PortalChrome({
             <span className="font-display text-lg font-semibold tracking-tight text-zinc-950">
               Recruiter portal
             </span>
-            <span className="font-mono text-[10px] text-zinc-500" title="Tenant for listings & applications">
-              tenant: {tenantId}
-            </span>
           </div>
           {marketing ? (
             <Link

@@ -3,7 +3,7 @@
 import { CandidateScreeningCard } from "@techrecruit/shared/components/jobs/CandidateScreeningCard";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
-  type JobApplicationRecord,
+  type JobApplicationRecordClient,
   type JobApplicationStatus,
   isScreeningPendingOnRecord,
   JOB_APPLICATION_STATUS_LABELS,
@@ -95,7 +95,7 @@ function formatJobLabel(j: JobDetail): string {
 }
 
 /** Absolute public job URL on the marketing site (portal has no `/jobs/[slug]` route). */
-function jobVacancyHref(r: JobApplicationRecord, tenantId: string): string {
+function jobVacancyHref(r: JobApplicationRecordClient, tenantId: string): string {
   const slug = r.jobSlug?.trim();
   if (!slug) return "#";
   return getPublicJobPageUrlForTenant(tenantId, slug);
@@ -107,7 +107,7 @@ function ScreeningCta({
   onToggle,
   variant,
 }: {
-  r: JobApplicationRecord;
+  r: JobApplicationRecordClient;
   expanded: boolean;
   onToggle: () => void;
   variant: "mobile" | "table";
@@ -180,7 +180,7 @@ export function ApplicationsPanel({
   const vacancyComboInputRef = useRef<HTMLInputElement | null>(null);
   /** Filters visible rows by candidate name and job fields (title, ref, company, slug). */
   const [vacancyRowSearch, setVacancyRowSearch] = useState("");
-  const [rows, setRows] = useState<JobApplicationRecord[] | null>(null);
+  const [rows, setRows] = useState<JobApplicationRecordClient[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   /** Expanded application row for AI screening details (recruiter-only). */
@@ -265,7 +265,7 @@ export function ApplicationsPanel({
         cache: "no-store",
       });
       const data = (await res.json().catch(() => ({}))) as {
-        applications?: JobApplicationRecord[];
+        applications?: JobApplicationRecordClient[];
         error?: string;
         detail?: string;
       };
@@ -293,7 +293,7 @@ export function ApplicationsPanel({
         cache: "no-store",
       });
       const data = (await res.json().catch(() => ({}))) as {
-        applications?: JobApplicationRecord[];
+        applications?: JobApplicationRecordClient[];
       };
       if (!res.ok) return;
       setRows(data.applications ?? []);

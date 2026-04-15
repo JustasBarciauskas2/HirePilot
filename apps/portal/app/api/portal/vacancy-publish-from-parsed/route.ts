@@ -112,7 +112,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   revalidatePath("/");
   await revalidateMarketingSite({ jobSlug: jobToSave.slug });
 
-  return Response.json({ ok: true, job: jobToSave, backend, tenant: { id: tenantId } });
+  return Response.json({ ok: true, job: jobToSave, backend });
 }
 
 export async function PUT(req: NextRequest): Promise<Response> {
@@ -208,5 +208,5 @@ export async function PUT(req: NextRequest): Promise<Response> {
   revalidatePath("/");
   await revalidateMarketingSite({ jobSlug: jobToSave.slug });
 
-  return Response.json({ ok: true, job: jobToSave, backend, tenant: { id: tenantId } });
+  return Response.json({ ok: true, job: jobToSave, backend });
 }

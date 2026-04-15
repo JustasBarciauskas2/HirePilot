@@ -19,7 +19,7 @@ const siteLabel =
 export const metadata: Metadata = {
   title: `${siteLabel} | Second client instance`,
   description:
-    "Mock marketing site for testing a separate tenant + shared portal. Same codebase pattern as apps/website with its own .env.local.",
+    "Mock marketing site for a separate tenant + shared portal. Same codebase pattern as apps/website with its own .env.local.",
 };
 
 export default function RootLayout({
@@ -42,9 +42,6 @@ export default function RootLayout({
             ·
           </span>
           <span>{siteLabel}</span>
-          <span className="ml-2 rounded-md bg-white/15 px-2 py-0.5 font-mono text-xs">
-            TENANT_ID={process.env.TENANT_ID?.trim() || "(set in .env.local)"}
-          </span>
         </div>
         {children}
       </body>

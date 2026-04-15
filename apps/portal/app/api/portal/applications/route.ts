@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getBackendApplicationsPortalListUrl, getBackendTenantApplicationsUrl } from "@techrecruit/shared/lib/backend-url";
+import { getBackendApplicationsPortalListUrl } from "@techrecruit/shared/lib/backend-url";
 import { fetchBackendFirestoreApplicationIds } from "@techrecruit/shared/lib/fetch-backend-application-ids";
 import { isFirebaseAdminConfigured } from "@techrecruit/shared/lib/firebase-admin";
 import {
@@ -10,6 +10,7 @@ import {
 import { mergeScreeningFromBackendTenantApplications } from "@techrecruit/shared/lib/merge-backend-screening";
 import { getFirebaseUserFromRequest } from "@techrecruit/shared/lib/verify-firebase-request";
 import { getPortalTenantFromRequest } from "@techrecruit/shared/lib/portal-tenant";
+import { jobApplicationsForClientResponse } from "@techrecruit/shared/lib/job-application-shared";
 
 export const runtime = "nodejs";
 
@@ -59,28 +60,15 @@ export async function GET(req: NextRequest): Promise<Response> {
 
     applications = await mergeScreeningFromBackendTenantApplications(tenantId, applications);
 
-    const screeningMergeUrl = getBackendTenantApplicationsUrl(tenantId);
-
     return Response.json(
       {
-        applications,
-        /** Same scope as `where("tenantId", "==", …)` — check this matches the Firebase project / env you expect. */
-        tenantId,
+        applications: jobApplicationsForClientResponse(applications),
         fetchedAt: new Date().toISOString(),
         /**
          * `backend+firestore`: ids from your Java API (`BACKEND_APPLICATIONS_PORTAL_LIST_*`), rows from Firestore.
          * `firestore`: direct Firestore query (no backend list URL configured).
          */
         source,
-        /** Development only: confirms `BACKEND_TENANT_APPLICATIONS_URL` resolved for screening merge. */
-        ...(process.env.NODE_ENV === "development"
-          ? {
-              _debugScreeningMerge: {
-                resolvedUrl: screeningMergeUrl,
-                envVarSet: Boolean(process.env.BACKEND_TENANT_APPLICATIONS_URL?.trim()),
-              },
-            }
-          : {}),
       },
       { headers: noStoreJson },
     );

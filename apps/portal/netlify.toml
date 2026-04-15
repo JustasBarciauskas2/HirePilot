@@ -8,3 +8,8 @@
   NODE_VERSION = "22"
   # Redundant with root `.npmrc` `shamefully-hoist=true`; ensures Netlify-injected `pnpm install` also hoists.
   PNPM_FLAGS = "--shamefully-hoist"
+  # Netlify secret scanning: these values are config / public client IDs, not cryptographic secrets. They appear in
+  # env.example, error copy, and dependency bundles (false positives). See https://ntl.fyi/configure-secrets-scanning
+  SECRETS_SCAN_OMIT_KEYS = "TENANT_ID,BACKEND_URL,BACKEND_TENANT_APPLICATIONS_URL,GOOGLE_APPLICATION_CREDENTIALS,NEXT_PUBLIC_FIREBASE_PROJECT_ID,FIREBASE_STORAGE_BUCKET,NEXT_PUBLIC_FIREBASE_API_KEY,NEXT_PUBLIC_FIREBASE_APP_ID,NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
+  # Skip dependency trees and Netlify adapter output (binary / minified matches are not actionable).
+  SECRETS_SCAN_OMIT_PATHS = "**/node_modules/**,**/.netlify/**"

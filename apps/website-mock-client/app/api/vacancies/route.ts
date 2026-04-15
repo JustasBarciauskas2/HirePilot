@@ -1,22 +1,18 @@
-import { fetchTenantVacanciesResult, getResolvedVacanciesListUrl } from "@techrecruit/shared/lib/fetch-tenant-vacancies";
+import { fetchTenantVacanciesResult } from "@techrecruit/shared/lib/fetch-tenant-vacancies";
 import { readJobs } from "@techrecruit/shared/lib/jobs-store";
 import { getBackendVacanciesListUrl } from "@techrecruit/shared/lib/backend-url";
-import { getTenantInstancePayload } from "@techrecruit/shared/lib/tenant-instance";
 
 /**
  * Same data the home page uses: backend list only when configured and GET succeeds; else local-only when unconfigured.
+ * Does not expose tenant id or backend URLs (debug only in server logs / env).
  */
 export async function GET(): Promise<Response> {
   const configured = getBackendVacanciesListUrl() !== null;
-  const tenant = getTenantInstancePayload();
-  const listUrl = getResolvedVacanciesListUrl();
   const result = await fetchTenantVacanciesResult();
   if (result.kind === "ok") {
     return Response.json({
       source: "backend" as const,
       configured,
-      tenantId: tenant.id,
-      listUrl,
       jobs: result.jobs,
     });
   }
@@ -24,8 +20,6 @@ export async function GET(): Promise<Response> {
     return Response.json({
       source: "backend" as const,
       configured,
-      tenantId: tenant.id,
-      listUrl,
       listFetchFailed: true,
       jobs: [] as const,
     });
@@ -33,8 +27,6 @@ export async function GET(): Promise<Response> {
   return Response.json({
     source: "local" as const,
     configured,
-    tenantId: tenant.id,
-    listUrl,
     jobs: readJobs(),
   });
 }

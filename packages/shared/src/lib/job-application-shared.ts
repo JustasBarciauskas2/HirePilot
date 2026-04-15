@@ -55,8 +55,11 @@ export type JobApplicationRecord = {
   screening?: CandidateScreeningResult;
 };
 
+/** Row returned from portal APIs to the browser — `tenantId` is server-only and omitted from JSON. */
+export type JobApplicationRecordClient = Omit<JobApplicationRecord, "tenantId">;
+
 /** True while apply processing may still produce screening (webhook not finished yet). */
-export function isScreeningPendingOnRecord(r: JobApplicationRecord): boolean {
+export function isScreeningPendingOnRecord(r: JobApplicationRecord | JobApplicationRecordClient): boolean {
   if (r.screening) return false;
   if (r.webhookCompletedAt) return false;
   const created = Date.parse(r.createdAt);
@@ -68,4 +71,11 @@ export function isScreeningPendingOnRecord(r: JobApplicationRecord): boolean {
 
 export function isJobApplicationStatusString(v: unknown): v is JobApplicationStatus {
   return typeof v === "string" && (JOB_APPLICATION_STATUSES as readonly string[]).includes(v);
+}
+
+/** Strip internal tenant scope before JSON responses to the client. */
+export function jobApplicationsForClientResponse(
+  rows: JobApplicationRecord[],
+): JobApplicationRecordClient[] {
+  return rows.map(({ tenantId: _tenantId, ...rest }) => rest);
 }

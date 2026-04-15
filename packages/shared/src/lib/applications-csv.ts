@@ -1,4 +1,7 @@
-import { JOB_APPLICATION_STATUS_LABELS, type JobApplicationRecord } from "@techrecruit/shared/lib/job-application-shared";
+import {
+  JOB_APPLICATION_STATUS_LABELS,
+  type JobApplicationRecordClient,
+} from "@techrecruit/shared/lib/job-application-shared";
 
 function csvEscapeCell(value: string): string {
   const s = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -34,7 +37,7 @@ const HEADERS = [
 ] as const;
 
 /** Build a UTF-8 CSV string for spreadsheet apps (includes BOM for Excel). */
-export function buildApplicationsCsv(rows: JobApplicationRecord[]): string {
+export function buildApplicationsCsv(rows: JobApplicationRecordClient[]): string {
   const lines: string[] = [];
   lines.push(HEADERS.map((h) => csvEscapeCell(h)).join(","));
 
