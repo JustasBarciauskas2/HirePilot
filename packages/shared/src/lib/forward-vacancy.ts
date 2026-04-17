@@ -146,6 +146,12 @@ export async function forwardVacancyToBackend(
   }
 
   try {
+    console.info("[forward-vacancy] POST → backend", {
+      url,
+      tenantId: tenant.id,
+      jobRef: job.ref,
+      hasIdToken: Boolean(idToken),
+    });
     const res = await fetch(url, {
       method: "POST",
       headers,
@@ -161,12 +167,20 @@ export async function forwardVacancyToBackend(
           ? "Bearer token was rejected. On your API, validate Firebase ID tokens (issuer, project ID, and JWKS from Google)."
           : "No Firebase ID token was sent. Sign in on the portal; the client sends Authorization: Bearer <idToken>.";
       }
+      console.warn("[forward-vacancy] POST backend HTTP error", {
+        url,
+        status: res.status,
+        bodyPreview: text.slice(0, 400),
+      });
       return { ok: false, status: res.status, error: text.slice(0, 500), hint };
     }
     const vacancyId = await readVacancyIdFromOkResponse(res);
+    console.info("[forward-vacancy] POST backend ok", { url, vacancyId: vacancyId ?? "(none parsed)" });
     return vacancyId ? { ok: true, vacancyId } : { ok: true };
   } catch (e) {
-    return { ok: false, error: describeFetchError(e, url) };
+    const msg = describeFetchError(e, url);
+    console.error("[forward-vacancy] POST fetch failed", { url, error: msg });
+    return { ok: false, error: msg };
   }
 }
 
@@ -202,6 +216,13 @@ export async function forwardVacancyUpdateToBackend(
   }
 
   try {
+    console.info("[forward-vacancy] PUT → backend", {
+      url,
+      tenantId: tenantIdForUrl,
+      jobRef: job.ref,
+      vacancyId: job.id ?? "(none)",
+      hasIdToken: Boolean(idToken),
+    });
     const res = await fetch(url, {
       method: "PUT",
       headers,
@@ -217,12 +238,20 @@ export async function forwardVacancyUpdateToBackend(
           ? "Bearer token was rejected. On your API, validate Firebase ID tokens (issuer, project ID, and JWKS from Google)."
           : "No Firebase ID token was sent. Sign in on the portal; the client sends Authorization: Bearer <idToken>.";
       }
+      console.warn("[forward-vacancy] PUT backend HTTP error", {
+        url,
+        status: res.status,
+        bodyPreview: text.slice(0, 400),
+      });
       return { ok: false, status: res.status, error: text.slice(0, 500), hint };
     }
     const vacancyId = await readVacancyIdFromOkResponse(res);
+    console.info("[forward-vacancy] PUT backend ok", { url, vacancyId: vacancyId ?? "(none parsed)" });
     return vacancyId ? { ok: true, vacancyId } : { ok: true };
   } catch (e) {
-    return { ok: false, error: describeFetchError(e, url) };
+    const msg = describeFetchError(e, url);
+    console.error("[forward-vacancy] PUT fetch failed", { url, error: msg });
+    return { ok: false, error: msg };
   }
 }
 

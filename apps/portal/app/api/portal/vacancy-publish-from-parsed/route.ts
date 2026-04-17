@@ -39,13 +39,17 @@ function isPutBody(
   );
 }
 
+const LOG = "[portal/vacancy-publish]";
+
 export async function POST(req: NextRequest): Promise<Response> {
   if (!isFirebaseAdminConfigured()) {
+    console.warn(LOG, "POST rejected: Firebase Admin not configured");
     return Response.json({ error: "Server auth not configured." }, { status: 503 });
   }
 
   const decoded = await getFirebaseUserFromRequest(req);
   if (!decoded) {
+    console.warn(LOG, "POST rejected: missing or invalid Firebase ID token");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -81,6 +85,14 @@ export async function POST(req: NextRequest): Promise<Response> {
   };
 
   const publishUrl = getBackendVacancyPublishUrl();
+  console.info(LOG, "POST publish", {
+    tenantId,
+    jobRef: job.ref,
+    jobSlug: job.slug,
+    publishUrl: publishUrl ?? "(null — backend forward skipped or uses default URL)",
+    hasIdToken: Boolean(idToken),
+  });
+
   const backend = await forwardVacancyToBackend(vacancyUser, job, idToken, {
     url: publishUrl,
     tenant: { id: tenantId },
@@ -90,6 +102,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     process.env.BACKEND_OPTIONAL === "true" || process.env.BACKEND_OPTIONAL === "1";
 
   if (!backend.ok) {
+    console.warn(LOG, "POST backend not ok", { backend, backendOptional });
     if (!backendOptional) {
       const hint = "hint" in backend && typeof backend.hint === "string" ? backend.hint : "";
       return Response.json(
@@ -106,22 +119,30 @@ export async function POST(req: NextRequest): Promise<Response> {
     backend.ok && "vacancyId" in backend && typeof backend.vacancyId === "string" && backend.vacancyId.trim()
       ? { ...job, id: backend.vacancyId.trim() }
       : job;
-  addJob(jobToSave);
 
-  revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
-  revalidatePath("/");
-  await revalidateMarketingSite({ jobSlug: jobToSave.slug });
+  try {
+    addJob(jobToSave);
+    revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
+    revalidatePath("/");
+    await revalidateMarketingSite({ jobSlug: jobToSave.slug });
+  } catch (e) {
+    console.error(LOG, "POST failed after backend (jobs store / revalidate)", e);
+    throw e;
+  }
 
+  console.info(LOG, "POST success", { jobRef: jobToSave.ref, vacancyId: jobToSave.id ?? "(none)" });
   return Response.json({ ok: true, job: jobToSave, backend });
 }
 
 export async function PUT(req: NextRequest): Promise<Response> {
   if (!isFirebaseAdminConfigured()) {
+    console.warn(LOG, "PUT rejected: Firebase Admin not configured");
     return Response.json({ error: "Server auth not configured." }, { status: 503 });
   }
 
   const decoded = await getFirebaseUserFromRequest(req);
   if (!decoded) {
+    console.warn(LOG, "PUT rejected: missing or invalid Firebase ID token");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -177,6 +198,14 @@ export async function PUT(req: NextRequest): Promise<Response> {
     picture: typeof decoded.picture === "string" ? decoded.picture : undefined,
   };
 
+  console.info(LOG, "PUT update", {
+    tenantId,
+    previousRef,
+    jobRef: updated.ref,
+    vacancyUuid: updated.id ?? "(none)",
+    hasIdToken: Boolean(idToken),
+  });
+
   const backend = await forwardVacancyUpdateToBackend(vacancyUser, updated, idToken, {
     tenant: { id: tenantId },
   });
@@ -185,6 +214,7 @@ export async function PUT(req: NextRequest): Promise<Response> {
     process.env.BACKEND_OPTIONAL === "true" || process.env.BACKEND_OPTIONAL === "1";
 
   if (!backend.ok) {
+    console.warn(LOG, "PUT backend not ok", { backend, backendOptional });
     if (!backendOptional) {
       const hint = "hint" in backend && typeof backend.hint === "string" ? backend.hint : "";
       return Response.json(
@@ -202,11 +232,16 @@ export async function PUT(req: NextRequest): Promise<Response> {
       ? { ...updated, id: backend.vacancyId.trim() }
       : updated;
 
-  upsertJobInStore(prev, jobToSave);
+  try {
+    upsertJobInStore(prev, jobToSave);
+    revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
+    revalidatePath("/");
+    await revalidateMarketingSite({ jobSlug: jobToSave.slug });
+  } catch (e) {
+    console.error(LOG, "PUT failed after backend (jobs store / revalidate)", e);
+    throw e;
+  }
 
-  revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
-  revalidatePath("/");
-  await revalidateMarketingSite({ jobSlug: jobToSave.slug });
-
+  console.info(LOG, "PUT success", { jobRef: jobToSave.ref, vacancyId: jobToSave.id ?? "(none)" });
   return Response.json({ ok: true, job: jobToSave, backend });
 }
