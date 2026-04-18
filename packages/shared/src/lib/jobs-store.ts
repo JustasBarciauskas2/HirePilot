@@ -14,20 +14,34 @@ function isLambdaDeployRoot(cwd: string): boolean {
   return n === "/var/task" || n.startsWith("/var/task/");
 }
 
+/** Anything under `/var/task` is read-only on Lambda except bundled files — never `mkdir` there. */
+function isUnderVarTask(p: string): boolean {
+  return p.replace(/\\/g, "/").startsWith("/var/task");
+}
+
+function tmpJobsPath(): string {
+  return path.join("/tmp", "techrecruit-jobs", "jobs.json");
+}
+
 /**
  * Local dev: `data/jobs.json` under the project root.
  * Monorepo: shared file at repo `data/jobs.json` when running from `apps/website` or `apps/portal`.
  * Serverless (Netlify, Vercel, Lambda): only `/tmp` is writable — avoid ENOENT on `mkdir` under `/var/task`.
  * Optional override: `JOBS_DATA_PATH` (absolute path to `jobs.json`).
+ *
+ * **Order matters:** On Netlify, `cwd` is often `/var/task/apps/portal`, which matches the monorepo app regex.
+ * That path must not resolve to `/var/task/data` (read-only). Check Lambda/serverless **before** monorepo `data/`.
+ * **Fallback:** If any candidate path still lies under `/var/task`, force `/tmp` (defensive for missing env).
  */
 function getJobsJsonPath(): string {
   if (process.env.JOBS_DATA_PATH) {
-    return process.env.JOBS_DATA_PATH;
+    const raw = process.env.JOBS_DATA_PATH.trim();
+    if (isUnderVarTask(path.resolve(raw))) {
+      return tmpJobsPath();
+    }
+    return raw;
   }
   const cwd = process.cwd();
-  if (isMonorepoAppPackageDir(cwd)) {
-    return path.resolve(cwd, "..", "..", "data", "jobs.json");
-  }
   const serverless =
     Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
     Boolean(process.env.AWS_EXECUTION_ENV) ||
@@ -36,9 +50,20 @@ function getJobsJsonPath(): string {
     Boolean(process.env.VERCEL) ||
     isLambdaDeployRoot(cwd);
   if (serverless) {
-    return path.join("/tmp", "techrecruit-jobs", "jobs.json");
+    return tmpJobsPath();
   }
-  return path.join(process.cwd(), "data", "jobs.json");
+  if (isMonorepoAppPackageDir(cwd)) {
+    const resolved = path.resolve(cwd, "..", "..", "data", "jobs.json");
+    if (isUnderVarTask(resolved)) {
+      return tmpJobsPath();
+    }
+    return resolved;
+  }
+  const fallback = path.join(process.cwd(), "data", "jobs.json");
+  if (isUnderVarTask(fallback)) {
+    return tmpJobsPath();
+  }
+  return fallback;
 }
 
 function ensureFile(): void {
