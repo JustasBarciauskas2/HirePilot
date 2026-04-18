@@ -8,6 +8,12 @@ function isMonorepoAppPackageDir(cwd: string): boolean {
   return /\/apps\/(website|portal)$/.test(n);
 }
 
+/** AWS Lambda default cwd (Netlify Next / OpenNext). `NETLIFY` is not always set in the Node process. */
+function isLambdaDeployRoot(cwd: string): boolean {
+  const n = cwd.replace(/\\/g, "/");
+  return n === "/var/task" || n.startsWith("/var/task/");
+}
+
 /**
  * Local dev: `data/jobs.json` under the project root.
  * Monorepo: shared file at repo `data/jobs.json` when running from `apps/website` or `apps/portal`.
@@ -27,7 +33,8 @@ function getJobsJsonPath(): string {
     Boolean(process.env.AWS_EXECUTION_ENV) ||
     Boolean(process.env.LAMBDA_TASK_ROOT) ||
     Boolean(process.env.NETLIFY) ||
-    Boolean(process.env.VERCEL);
+    Boolean(process.env.VERCEL) ||
+    isLambdaDeployRoot(cwd);
   if (serverless) {
     return path.join("/tmp", "techrecruit-jobs", "jobs.json");
   }
