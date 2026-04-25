@@ -263,11 +263,7 @@ export function PortalAnalyticsPanel({
 
       {loading ? (
         <p className="mt-8 text-sm text-zinc-500 dark:text-slate-400">Loading analytics…</p>
-      ) : rows === null ? null : (rows?.length ?? 0) === 0 ? (
-        <p className="mt-8 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-8 text-center text-sm text-zinc-600 dark:border-slate-500/30 dark:bg-slate-800/30 dark:text-slate-400">
-          No applications yet. When candidates apply, stage counts, intake, and per-vacancy volume will appear here.
-        </p>
-      ) : (
+      ) : rows === null ? null : (
         <div className="mt-6">
           <StatusFilterChips
             included={statusIncluded}
@@ -276,12 +272,6 @@ export function PortalAnalyticsPanel({
             label="Pipeline status (analytics)"
             className="w-full max-w-3xl"
           />
-          {total === 0 ? (
-            <p className="mt-6 rounded-xl border border-dashed border-amber-200/90 bg-amber-50/50 px-4 py-6 text-center text-sm text-amber-950 dark:border-amber-500/20 dark:bg-amber-950/25 dark:text-amber-100">
-              No applications match the selected status filters. Include at least one stage above to see pipeline,
-              intake, and vacancy breakdown.
-            </p>
-          ) : (
         <div className="mt-8 space-y-8">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/80 px-4 py-4 dark:border-slate-500/25 dark:bg-slate-800/40">
@@ -496,7 +486,6 @@ export function PortalAnalyticsPanel({
             </ul>
           </div>
         </div>
-          )}
         </div>
       )}
     </section>
