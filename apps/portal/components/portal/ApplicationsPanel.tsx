@@ -761,6 +761,8 @@ export function ApplicationsPanel({
                     jobPublicHref ? (
                       <a
                         href={jobPublicHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="block w-full text-left font-medium text-[#2563EB] underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
                       >
                         {r.jobTitle}
@@ -945,7 +947,9 @@ export function ApplicationsPanel({
                                   jobPublicHref ? (
                                     <a
                                       href={jobPublicHref}
-                                      title="Open public job page"
+                                      title="Open public job page in a new tab"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
                                       className="mt-0.5 block w-full max-w-full text-left font-medium text-[#2563EB] underline-offset-2 line-clamp-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35 dark:text-sky-400"
                                     >
                                       {r.jobTitle}

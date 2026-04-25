@@ -438,6 +438,8 @@ export function PortalDashboard({
             {marketingRolesHref ? (
               <a
                 href={marketingRolesHref}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="font-medium text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
               >
                 View on site
@@ -484,6 +486,8 @@ export function PortalDashboard({
                   {publicJobHref ? (
                     <a
                       href={publicJobHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
                     >
                       View

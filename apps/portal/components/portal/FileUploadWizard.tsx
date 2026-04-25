@@ -417,6 +417,8 @@ export function FileUploadWizard({ user, tenantId, onBack }: Props) {
                 {viewHref ? (
                   <a
                     href={viewHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(37,99,235,0.35)] transition hover:bg-[#1d4ed8]"
                   >
                     View vacancy

@@ -1,6 +1,10 @@
 /** Same as Firebase `invalid-credential` / `wrong-password` copy — use for any sign-in rejection that should look like a normal credential check. */
 export const SIGN_IN_INVALID_CREDENTIALS_MESSAGE = "Incorrect email or password. Please try again.";
 
+/** After Firebase sign-in, `POST /api/portal/auth/sync-tenant` failed (tenant claim / entry cookie / allowlist) — not a bad password. */
+export const PORTAL_ENTRY_SYNC_FAILED_MESSAGE =
+  "We couldn’t verify this portal session for your organization. Open the Recruiter portal from your marketing site (the link with your tenant) and sign in again, or contact your administrator if this keeps happening.";
+
 /**
  * Maps Firebase Auth errors to short, non-technical copy for the sign-in UI.
  */

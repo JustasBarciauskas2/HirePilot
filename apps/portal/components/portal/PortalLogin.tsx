@@ -4,10 +4,7 @@ import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import {
-  friendlySignInError,
-  SIGN_IN_INVALID_CREDENTIALS_MESSAGE,
-} from "@techrecruit/shared/lib/auth-error-message";
+import { friendlySignInError, PORTAL_ENTRY_SYNC_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
 
 const inputClass =
   "w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15";
@@ -32,13 +29,12 @@ export function PortalLogin({
     };
   }, []);
 
-  const credentialOrEntryError =
-    err ?? (entrySyncFailed || loginBlockedByMissingEntry ? SIGN_IN_INVALID_CREDENTIALS_MESSAGE : null);
+  const formError = err;
+  const sessionVerifyError = !formError && entrySyncFailed ? PORTAL_ENTRY_SYNC_FAILED_MESSAGE : null;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
-    if (loginBlockedByMissingEntry) return;
     setPending(true);
     try {
       const auth = getAuth(getApp());
@@ -72,9 +68,21 @@ export function PortalLogin({
       <p className="mt-1 text-sm leading-relaxed text-slate-600">
         Use your work email and password to manage vacancies.
       </p>
-      {credentialOrEntryError ? (
+      {loginBlockedByMissingEntry && !entrySyncFailed ? (
+        <p
+          className="mt-4 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950/90"
+          role="status"
+        >
+          {
+            "You opened the portal without using your marketing site’s Recruiter portal link, so we cannot set the organization cookie yet. You can still sign in; if access cannot be verified, use the marketing link with "
+          }
+          <code className="rounded bg-amber-100/80 px-1 py-0.5 font-mono text-xs">?tenant=…</code>
+          {" for your organization, then try again."}
+        </p>
+      ) : null}
+      {formError || sessionVerifyError ? (
         <p className="mt-4 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800" role="alert">
-          {credentialOrEntryError}
+          {formError ?? sessionVerifyError}
         </p>
       ) : null}
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -110,7 +118,7 @@ export function PortalLogin({
         </label>
         <button
           type="submit"
-          disabled={pending || loginBlockedByMissingEntry}
+          disabled={pending}
           className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(37,99,235,0.5)] transition hover:bg-[#1d4ed8] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/50 disabled:opacity-50"
         >
           {pending ? "Signing in…" : "Log in to portal"}
