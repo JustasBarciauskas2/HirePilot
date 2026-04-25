@@ -25,6 +25,21 @@ export const JOB_APPLICATION_STATUS_LABELS: Record<JobApplicationStatus, string>
   hired: "Hired",
 };
 
+/** In-house note on an application; stored on the Firestore job application document. */
+export type RecruiterApplicationComment = {
+  id: string;
+  text: string;
+  /** ISO-8601 */
+  createdAt: string;
+  /** ISO-8601, when the text was last edited */
+  updatedAt?: string;
+  authorUserId: string;
+  /** Display name (e.g. email or name from Firebase) */
+  authorName: string;
+};
+
+export const MAX_RECRUITER_COMMENT_CHARS = 4_000;
+
 export type JobApplicationRecord = {
   id: string;
   tenantId: string;
@@ -51,6 +66,8 @@ export type JobApplicationRecord = {
    * Until then, screening may still be generated — the portal shows a loading state.
    */
   webhookCompletedAt?: string;
+  /** Recruiter-only notes, persisted in Firestore. */
+  recruiterComments?: RecruiterApplicationComment[];
   /** AI screening from your tenant applications API merge — not stored in Firestore. */
   screening?: CandidateScreeningResult;
 };

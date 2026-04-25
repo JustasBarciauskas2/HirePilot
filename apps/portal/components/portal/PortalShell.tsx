@@ -14,6 +14,7 @@ import { PortalChrome } from "@/components/portal/PortalChrome";
 import { PortalDashboard } from "@/components/portal/PortalDashboard";
 import { PortalLogin } from "@/components/portal/PortalLogin";
 import { PortalThemeProvider } from "@/components/portal/PortalThemeToggle";
+import { applyPortalColorSchemeToDocument, getResolvedPortalColorScheme } from "@/lib/portal-color-scheme";
 
 function PortalInterstitial({ title, message }: { title: string; message?: string }) {
   return (
@@ -158,6 +159,16 @@ export function PortalShell({
     onEntryTenantRejection,
     onAccessVerified,
   );
+
+  /** Login, loading, and pre-dashboard states use a light page background; restore saved theme in the app shell. */
+  const isAppShell = configured && !loading && Boolean(user) && (!tenantClaimMode || claimAccessOk);
+  useLayoutEffect(() => {
+    if (isAppShell) {
+      applyPortalColorSchemeToDocument(getResolvedPortalColorScheme());
+    } else {
+      applyPortalColorSchemeToDocument("light");
+    }
+  }, [isAppShell]);
 
   if (!configured) {
     return (

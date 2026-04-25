@@ -6,6 +6,7 @@ import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
   type JobApplicationRecordClient,
   type JobApplicationStatus,
+  type RecruiterApplicationComment,
   isScreeningPendingOnRecord,
   JOB_APPLICATION_STATUSES,
 } from "@techrecruit/shared/lib/job-application-shared";
@@ -322,6 +323,92 @@ export function ApplicationsPanel({
           prev ? prev.map((r) => (r.id === id ? { ...r, status: restore } : r)) : prev,
         );
       }
+    }
+  }
+
+  async function addRecruiterComment(id: string, text: string): Promise<boolean> {
+    try {
+      const headers = await portalAuthHeaders(user);
+      const res = await fetch(`/api/portal/applications/${encodeURIComponent(id)}/comments`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) return false;
+      const data = (await res.json().catch(() => ({}))) as { comment?: RecruiterApplicationComment };
+      if (!data.comment) return false;
+      setRows((prev) => {
+        if (!prev) return prev;
+        return prev.map((r) => {
+          if (r.id !== id) return r;
+          const merged = [...(r.recruiterComments ?? []), data.comment!];
+          merged.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+          return { ...r, recruiterComments: merged };
+        });
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function updateRecruiterComment(
+    applicationId: string,
+    commentId: string,
+    text: string,
+  ): Promise<boolean> {
+    try {
+      const headers = await portalAuthHeaders(user);
+      const res = await fetch(
+        `/api/portal/applications/${encodeURIComponent(applicationId)}/comments/${encodeURIComponent(commentId)}`,
+        {
+          method: "PATCH",
+          headers: { ...headers, "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ text }),
+        },
+      );
+      if (!res.ok) return false;
+      const data = (await res.json().catch(() => ({}))) as { comment?: RecruiterApplicationComment };
+      if (!data.comment) return false;
+      setRows((prev) => {
+        if (!prev) return prev;
+        return prev.map((r) => {
+          if (r.id !== applicationId) return r;
+          return {
+            ...r,
+            recruiterComments: (r.recruiterComments ?? []).map((c) => (c.id === commentId ? data.comment! : c)),
+          };
+        });
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function deleteRecruiterComment(applicationId: string, commentId: string): Promise<boolean> {
+    try {
+      const headers = await portalAuthHeaders(user);
+      const res = await fetch(
+        `/api/portal/applications/${encodeURIComponent(applicationId)}/comments/${encodeURIComponent(commentId)}`,
+        { method: "DELETE", headers, credentials: "include" },
+      );
+      if (!res.ok) return false;
+      setRows((prev) => {
+        if (!prev) return prev;
+        return prev.map((r) => {
+          if (r.id !== applicationId) return r;
+          return {
+            ...r,
+            recruiterComments: (r.recruiterComments ?? []).filter((c) => c.id !== commentId),
+          };
+        });
+      });
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -719,7 +806,7 @@ export function ApplicationsPanel({
             ) : null}
           </div>
           <p className="mt-3 text-xs text-zinc-400 dark:text-slate-500">
-            Click a candidate to open details and AI screening. Change pipeline status in the expanded panel.
+            Click a candidate to open details, team notes, and AI screening. Change pipeline status in the expanded panel.
           </p>
           <ul className="mt-4 space-y-3">
             {sortedForCards.map((r) => (
@@ -729,6 +816,10 @@ export function ApplicationsPanel({
                 expanded={screeningExpandedId === r.id}
                 onToggle={() => setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))}
                 onUpdateStatus={updateStatus}
+                onAddComment={addRecruiterComment}
+                onUpdateComment={updateRecruiterComment}
+                onDeleteComment={deleteRecruiterComment}
+                recruiterUserId={user.uid}
                 onDownloadCv={downloadCv}
                 jobPublicHref={jobVacancyExternalHref(r, tenantId)}
                 pendingScreening={isScreeningPendingOnRecord(r)}

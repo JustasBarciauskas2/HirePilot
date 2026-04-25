@@ -2,14 +2,15 @@
 
 import { CandidateScreeningCard } from "@techrecruit/shared/components/jobs/CandidateScreeningCard";
 import {
+  MAX_RECRUITER_COMMENT_CHARS,
   type JobApplicationRecordClient,
   type JobApplicationStatus,
   isScreeningPendingOnRecord,
   JOB_APPLICATION_STATUS_LABELS,
   JOB_APPLICATION_STATUSES,
 } from "@techrecruit/shared/lib/job-application-shared";
-import { CaretRight, DownloadSimple, Star } from "@phosphor-icons/react";
-import { useCallback, type KeyboardEvent } from "react";
+import { CaretRight, DownloadSimple, NotePencil, PencilSimple, Star, Trash } from "@phosphor-icons/react";
+import { useCallback, useState, type KeyboardEvent } from "react";
 
 const AVATAR_HUES = [
   "bg-[#2563EB]",
@@ -71,6 +72,11 @@ type ApplicantRankedCardProps = {
   expanded: boolean;
   onToggle: () => void;
   onUpdateStatus: (id: string, next: JobApplicationStatus) => void | Promise<void>;
+  onAddComment: (id: string, text: string) => Promise<boolean>;
+  onUpdateComment: (applicationId: string, commentId: string, text: string) => Promise<boolean>;
+  onDeleteComment: (applicationId: string, commentId: string) => Promise<boolean>;
+  /** Signed-in user — used to show edit/delete only for own notes. */
+  recruiterUserId: string;
   onDownloadCv: (id: string) => void | Promise<void>;
   jobPublicHref: string | null;
   pendingScreening: boolean;
@@ -81,10 +87,21 @@ export function ApplicantRankedCard({
   expanded,
   onToggle,
   onUpdateStatus,
+  onAddComment,
+  onUpdateComment,
+  onDeleteComment,
+  recruiterUserId,
   onDownloadCv,
   jobPublicHref,
   pendingScreening,
 }: ApplicantRankedCardProps) {
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteErr, setNoteErr] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editErr, setEditErr] = useState<string | null>(null);
   const { pct, hasScore } = matchPercent(r);
   const highScore = hasScore && pct >= 90;
   const tags = skillPills(r);
@@ -98,6 +115,60 @@ export function ApplicantRankedCard({
       }
     },
     [onToggle],
+  );
+
+  const submitNote = useCallback(async () => {
+    const text = noteDraft.trim();
+    if (!text) return;
+    setNoteSaving(true);
+    setNoteErr(null);
+    const ok = await onAddComment(r.id, text);
+    setNoteSaving(false);
+    if (ok) setNoteDraft("");
+    else setNoteErr("Couldn’t save this note. Try again.");
+  }, [noteDraft, onAddComment, r.id]);
+
+  const startEdit = useCallback((commentId: string, currentText: string) => {
+    setEditErr(null);
+    setEditingCommentId(commentId);
+    setEditDraft(currentText);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingCommentId(null);
+    setEditDraft("");
+    setEditErr(null);
+  }, []);
+
+  const submitEdit = useCallback(async () => {
+    if (!editingCommentId) return;
+    const text = editDraft.trim();
+    if (!text) return;
+    setEditSaving(true);
+    setEditErr(null);
+    const ok = await onUpdateComment(r.id, editingCommentId, text);
+    setEditSaving(false);
+    if (ok) {
+      setEditingCommentId(null);
+      setEditDraft("");
+    } else {
+      setEditErr("Couldn’t save. You can only edit your own notes.");
+    }
+  }, [editDraft, editingCommentId, onUpdateComment, r.id]);
+
+  const removeComment = useCallback(
+    async (commentId: string) => {
+      if (!window.confirm("Delete this note? This can’t be undone.")) return;
+      const ok = await onDeleteComment(r.id, commentId);
+      if (!ok) {
+        window.alert("Couldn’t delete. You can only delete your own notes.");
+      }
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setEditDraft("");
+      }
+    },
+    [editingCommentId, onDeleteComment, r.id],
   );
 
   return (
@@ -243,6 +314,141 @@ export function ApplicantRankedCard({
             <p className="mt-3 text-xs text-zinc-500 dark:text-slate-400">
               {r.jobRef} · {r.companyName}
             </p>
+
+            <div className="mt-6">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-slate-500">
+                Team notes
+              </p>
+              <p className="mt-1 text-xs text-zinc-500 dark:text-slate-400">
+                Shared with everyone in your organization on this portal. Newest at the bottom. You can only edit
+                or delete notes you created.
+              </p>
+              {(r.recruiterComments?.length ?? 0) === 0 ? (
+                <p className="mt-2 text-sm text-zinc-400 dark:text-slate-500">No notes yet.</p>
+              ) : (
+                <ul className="mt-3 max-h-60 space-y-2.5 overflow-y-auto pr-0.5">
+                  {r.recruiterComments!.map((c) => {
+                    const isAuthor = c.authorUserId === recruiterUserId;
+                    const isEditing = editingCommentId === c.id;
+                    return (
+                      <li
+                        key={c.id}
+                        className="rounded-lg border border-zinc-200/80 bg-white/80 px-3 py-2.5 dark:border-slate-500/30 dark:bg-slate-800/40"
+                      >
+                        {isEditing ? (
+                          <div>
+                            <textarea
+                              value={editDraft}
+                              onChange={(e) => {
+                                setEditDraft(e.target.value);
+                                if (editErr) setEditErr(null);
+                              }}
+                              rows={3}
+                              maxLength={MAX_RECRUITER_COMMENT_CHARS}
+                              className="w-full max-w-xl rounded-lg border border-zinc-200/90 bg-white px-2.5 py-2 text-sm text-[#0F172A] outline-none focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
+                            />
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void submitEdit()}
+                                disabled={editSaving || !editDraft.trim()}
+                                className="rounded-lg bg-[#2563EB] px-2.5 py-1 text-xs font-semibold text-white transition enabled:hover:bg-[#1d4ed8] disabled:opacity-50"
+                              >
+                                {editSaving ? "Saving…" : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelEdit}
+                                disabled={editSaving}
+                                className="text-xs font-semibold text-zinc-600 underline-offset-2 hover:underline dark:text-slate-400"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            {editErr ? (
+                              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400" role="status">
+                                {editErr}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <>
+                            <p className="whitespace-pre-wrap text-sm text-zinc-800 dark:text-slate-200">{c.text}</p>
+                            <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-[10px] text-zinc-400 dark:text-slate-500">
+                                {c.authorName} · {formatDate(c.createdAt)}
+                                {c.updatedAt ? ` · Edited ${formatDate(c.updatedAt)}` : ""}
+                              </p>
+                              {isAuthor ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => startEdit(c.id, c.text)}
+                                    className="inline-flex items-center gap-0.5 rounded p-1 text-[10px] font-semibold text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 dark:text-slate-500 dark:hover:bg-slate-700/50 dark:hover:text-slate-200"
+                                    title="Edit note"
+                                  >
+                                    <PencilSimple className="h-3.5 w-3.5" aria-hidden />
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => void removeComment(c.id)}
+                                    className="inline-flex items-center gap-0.5 rounded p-1 text-[10px] font-semibold text-zinc-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+                                    title="Delete note"
+                                  >
+                                    <Trash className="h-3.5 w-3.5" aria-hidden />
+                                    Delete
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          </>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <div className="mt-3">
+                <label className="sr-only" htmlFor={`applicant-note-${r.id}`}>
+                  Add a note
+                </label>
+                <textarea
+                  id={`applicant-note-${r.id}`}
+                  value={noteDraft}
+                  onChange={(e) => {
+                    setNoteDraft(e.target.value);
+                    if (noteErr) setNoteErr(null);
+                  }}
+                  rows={3}
+                  maxLength={MAX_RECRUITER_COMMENT_CHARS}
+                  placeholder="Add a note (screening, interview, next steps)…"
+                  className="w-full max-w-xl rounded-xl border border-zinc-200/90 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
+                />
+                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[10px] text-zinc-400 dark:text-slate-500">
+                  <span>
+                    {noteDraft.length} / {MAX_RECRUITER_COMMENT_CHARS}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void submitNote()}
+                    disabled={noteSaving || !noteDraft.trim()}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-800 transition enabled:hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:enabled:hover:bg-slate-800/80"
+                  >
+                    <NotePencil className="h-3.5 w-3.5" weight="bold" aria-hidden />
+                    {noteSaving ? "Saving…" : "Add note"}
+                  </button>
+                  {noteErr ? (
+                    <p className="text-xs font-medium text-red-600 dark:text-red-400" role="status">
+                      {noteErr}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
             <div className="mt-3 flex flex-wrap items-center gap-3">
               {r.jobSlug?.trim() && jobPublicHref ? (
                 <a

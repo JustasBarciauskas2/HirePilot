@@ -1,13 +1,15 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { FieldValue, type DocumentSnapshot, type Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, type DocumentSnapshot } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore, getFirebaseStorageBucket } from "@techrecruit/shared/lib/firebase-admin";
 import {
   JOB_APPLICATIONS_COLLECTION,
   JOB_APPLICATION_STATUSES,
+  MAX_RECRUITER_COMMENT_CHARS,
   type JobApplicationRecord,
   type JobApplicationStatus,
+  type RecruiterApplicationComment,
 } from "@techrecruit/shared/lib/job-application-shared";
 import { getTenantInstancePayload } from "@techrecruit/shared/lib/tenant-instance";
 
@@ -15,8 +17,10 @@ export {
   JOB_APPLICATIONS_COLLECTION,
   JOB_APPLICATION_STATUSES,
   JOB_APPLICATION_STATUS_LABELS,
+  MAX_RECRUITER_COMMENT_CHARS,
   type JobApplicationRecord,
   type JobApplicationStatus,
+  type RecruiterApplicationComment,
 } from "@techrecruit/shared/lib/job-application-shared";
 
 const MAX_CV_BYTES = 5 * 1024 * 1024;
@@ -47,8 +51,54 @@ function timestampToIso(t: Timestamp | undefined): string {
   return t.toDate().toISOString();
 }
 
+const MAX_RECRUITER_COMMENTS_PER_APPLICATION = 100;
+
 function isJobApplicationStatus(v: unknown): v is JobApplicationStatus {
   return typeof v === "string" && (JOB_APPLICATION_STATUSES as readonly string[]).includes(v);
+}
+
+function mapRecruiterCommentFromFirestoreEntry(raw: unknown): RecruiterApplicationComment | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const id = typeof o.id === "string" && o.id.trim() ? o.id.trim() : null;
+  const text = typeof o.text === "string" ? o.text : "";
+  const authorUserId = typeof o.authorUserId === "string" && o.authorUserId.trim() ? o.authorUserId.trim() : null;
+  const authorName =
+    typeof o.authorName === "string" && o.authorName.trim() ? o.authorName.trim() : "Recruiter";
+  if (!id || !text.trim() || !authorUserId) return null;
+  const ts = o.createdAt as Timestamp | undefined;
+  let createdAt = "";
+  if (ts && typeof ts.toDate === "function") {
+    createdAt = ts.toDate().toISOString();
+  } else if (typeof o.createdAt === "string") {
+    const p = Date.parse(o.createdAt);
+    createdAt = Number.isNaN(p) ? "" : new Date(p).toISOString();
+  }
+  if (!createdAt) return null;
+  const uTs = o.updatedAt as Timestamp | undefined;
+  let updatedAt: string | undefined;
+  if (uTs && typeof uTs.toDate === "function") {
+    updatedAt = uTs.toDate().toISOString();
+  } else if (typeof o.updatedAt === "string" && o.updatedAt.trim()) {
+    const p = Date.parse(o.updatedAt);
+    if (!Number.isNaN(p)) updatedAt = new Date(p).toISOString();
+  }
+  const c: RecruiterApplicationComment = { id, text, createdAt, authorUserId, authorName };
+  if (updatedAt) c.updatedAt = updatedAt;
+  return c;
+}
+
+function mapRecruiterCommentsFromDoc(d: Record<string, unknown>): RecruiterApplicationComment[] | undefined {
+  const arr = d.recruiterComments;
+  if (!Array.isArray(arr) || arr.length === 0) return undefined;
+  const out: RecruiterApplicationComment[] = [];
+  for (const raw of arr) {
+    const c = mapRecruiterCommentFromFirestoreEntry(raw);
+    if (c) out.push(c);
+  }
+  if (out.length === 0) return undefined;
+  out.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return out;
 }
 
 function docToRecord(doc: DocumentSnapshot): JobApplicationRecord {
@@ -82,6 +132,7 @@ function docToRecord(doc: DocumentSnapshot): JobApplicationRecord {
       const ts = d.webhookCompletedAt as Timestamp | undefined;
       return ts?.toDate ? ts.toDate().toISOString() : undefined;
     })(),
+    recruiterComments: mapRecruiterCommentsFromDoc(d as Record<string, unknown>),
   };
 }
 
@@ -307,6 +358,162 @@ export async function updateJobApplicationStatusForTenant(
   if (!d || String(d.tenantId) !== tenantId) return false;
   await ref.update({ status });
   return true;
+}
+
+/**
+ * Appends a recruiter note to the application document. Persists in Firestore (shared across recruiters on the tenant).
+ */
+export async function addRecruiterCommentForTenant(
+  id: string,
+  tenantId: string,
+  text: string,
+  author: { userId: string; name: string },
+): Promise<RecruiterApplicationComment | null> {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length > MAX_RECRUITER_COMMENT_CHARS) {
+    return null;
+  }
+  const db = getFirebaseAdminFirestore();
+  const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return null;
+  const d = doc.data();
+  if (!d || String(d.tenantId) !== tenantId) return null;
+  const existing = Array.isArray(d.recruiterComments) ? d.recruiterComments : [];
+  if (existing.length >= MAX_RECRUITER_COMMENTS_PER_APPLICATION) {
+    return null;
+  }
+  const commentId = randomUUID();
+  const now = Timestamp.now();
+  const newEntry = {
+    id: commentId,
+    text: trimmed,
+    createdAt: now,
+    authorUserId: author.userId,
+    authorName: author.name,
+  };
+  await ref.update({ recruiterComments: FieldValue.arrayUnion(newEntry) });
+  return {
+    id: commentId,
+    text: trimmed,
+    createdAt: now.toDate().toISOString(),
+    authorUserId: author.userId,
+    authorName: author.name,
+  };
+}
+
+export type UpdateRecruiterCommentResult =
+  | { kind: "ok"; comment: RecruiterApplicationComment }
+  | { kind: "not_found" }
+  | { kind: "forbidden" }
+  | { kind: "invalid" };
+
+export type DeleteRecruiterCommentResult =
+  | { kind: "ok" }
+  | { kind: "not_found" }
+  | { kind: "forbidden" };
+
+type FirestoreCommentRow = {
+  id?: unknown;
+  text?: unknown;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+  authorUserId?: unknown;
+  authorName?: unknown;
+};
+
+/**
+ * Replaces a note’s text. Only the author (matching Firebase uid) can edit. Uses a transaction to avoid clobbering concurrent updates.
+ */
+export async function updateRecruiterCommentForTenant(
+  applicationId: string,
+  tenantId: string,
+  commentId: string,
+  newText: string,
+  requesterUserId: string,
+): Promise<UpdateRecruiterCommentResult> {
+  const trimmed = newText.trim();
+  if (!trimmed || trimmed.length > MAX_RECRUITER_COMMENT_CHARS) {
+    return { kind: "invalid" };
+  }
+  const db = getFirebaseAdminFirestore();
+  const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(applicationId);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return { kind: "not_found" } as const;
+    const d = snap.data();
+    if (!d || String(d.tenantId) !== tenantId) return { kind: "not_found" } as const;
+    const arr = Array.isArray(d.recruiterComments) ? (d.recruiterComments as FirestoreCommentRow[]) : [];
+    const match = arr.find(
+      (e) => e?.id != null && String(e.id) === commentId,
+    ) as FirestoreCommentRow | undefined;
+    if (!match) {
+      return { kind: "not_found" } as const;
+    }
+    if (String(match.authorUserId) !== requesterUserId) {
+      return { kind: "forbidden" } as const;
+    }
+    const updatedAt = Timestamp.now();
+    const name =
+      typeof match.authorName === "string" && match.authorName.trim() ? match.authorName : "Recruiter";
+    const next: Record<string, unknown>[] = arr.map((e) => {
+      if (e?.id == null || String(e.id) !== commentId) {
+        return e as unknown as Record<string, unknown>;
+      }
+      return {
+        id: String(e.id),
+        text: trimmed,
+        createdAt: e.createdAt,
+        authorUserId: String(e.authorUserId),
+        authorName: name,
+        updatedAt,
+      };
+    });
+    tx.update(ref, { recruiterComments: next });
+    const cTs = match.createdAt as Timestamp | undefined;
+    const cAt = cTs?.toDate ? cTs.toDate().toISOString() : new Date(0).toISOString();
+    return {
+      kind: "ok" as const,
+      comment: {
+        id: commentId,
+        text: trimmed,
+        createdAt: cAt,
+        updatedAt: updatedAt.toDate().toISOString(),
+        authorUserId: String(match.authorUserId),
+        authorName: name,
+      } satisfies RecruiterApplicationComment,
+    };
+  });
+}
+
+/** Deletes a note. Only the author can delete. */
+export async function deleteRecruiterCommentForTenant(
+  applicationId: string,
+  tenantId: string,
+  commentId: string,
+  requesterUserId: string,
+): Promise<DeleteRecruiterCommentResult> {
+  const db = getFirebaseAdminFirestore();
+  const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(applicationId);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return { kind: "not_found" } as const;
+    const d = snap.data();
+    if (!d || String(d.tenantId) !== tenantId) return { kind: "not_found" } as const;
+    const arr = Array.isArray(d.recruiterComments) ? (d.recruiterComments as FirestoreCommentRow[]) : [];
+    const target = arr.find(
+      (e) => e?.id != null && String(e.id) === commentId,
+    ) as FirestoreCommentRow | undefined;
+    if (!target) {
+      return { kind: "not_found" } as const;
+    }
+    if (String(target.authorUserId) !== requesterUserId) {
+      return { kind: "forbidden" } as const;
+    }
+    const next = arr.filter((e) => e?.id == null || String(e.id) !== commentId);
+    tx.update(ref, { recruiterComments: next });
+    return { kind: "ok" } as const;
+  });
 }
 
 export async function getSignedCvDownloadUrl(storagePath: string, expiresMs: number): Promise<string> {

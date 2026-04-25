@@ -1,24 +1,12 @@
 "use client";
 
 import { Moon, Sun } from "@phosphor-icons/react";
-import { PORTAL_COLOR_SCHEME_STORAGE_KEY } from "@/lib/portal-color-scheme";
+import {
+  applyPortalColorSchemeToDocument,
+  getResolvedPortalColorScheme,
+  PORTAL_COLOR_SCHEME_STORAGE_KEY,
+} from "@/lib/portal-color-scheme";
 import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-
-function readStoredMode(): "light" | "dark" | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const v = localStorage.getItem(PORTAL_COLOR_SCHEME_STORAGE_KEY);
-    if (v === "light" || v === "dark") return v;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-function applyToDocument(mode: "light" | "dark") {
-  document.documentElement.classList.toggle("dark", mode === "dark");
-  document.documentElement.style.colorScheme = mode === "dark" ? "dark" : "light";
-}
 
 type ThemeContextValue = {
   mode: "light" | "dark" | null;
@@ -32,12 +20,9 @@ export function PortalThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<"light" | "dark" | null>(null);
 
   useLayoutEffect(() => {
-    const stored = readStoredMode();
-    const m =
-      stored ??
-      (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const m = getResolvedPortalColorScheme();
     setMode(m);
-    applyToDocument(m);
+    applyPortalColorSchemeToDocument(m);
   }, []);
 
   const toggle = useCallback(() => {
@@ -49,7 +34,7 @@ export function PortalThemeProvider({ children }: { children: ReactNode }) {
       } catch {
         /* ignore */
       }
-      applyToDocument(next);
+      applyPortalColorSchemeToDocument(next);
       return next;
     });
   }, []);
