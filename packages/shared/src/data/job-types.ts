@@ -39,6 +39,11 @@ export type JobDetail = {
    * Backend / DB primary key (e.g. UUID) from your API — use for stable keys, portal delete (path `/api/vacancy/{id}`), and row identity when `ref` repeats.
    */
   id?: string;
+  /**
+   * Which site/tenant this row belongs to (portal `?tenant=…` + `TENANT_ID`). Set when saving to `data/jobs.json` so a shared
+   * portal or file store does not list other tenants’ roles. Omitted on legacy/seed rows — those follow the deployment’s default instance id.
+   */
+  tenantId?: string;
   slug: string;
   title: string;
   companyName: string;

@@ -117,8 +117,8 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const jobToSave =
     backend.ok && "vacancyId" in backend && typeof backend.vacancyId === "string" && backend.vacancyId.trim()
-      ? { ...job, id: backend.vacancyId.trim() }
-      : job;
+      ? { ...job, id: backend.vacancyId.trim(), tenantId }
+      : { ...job, tenantId };
 
   try {
     addJob(jobToSave);
@@ -229,8 +229,8 @@ export async function PUT(req: NextRequest): Promise<Response> {
 
   const jobToSave =
     backend.ok && "vacancyId" in backend && typeof backend.vacancyId === "string" && backend.vacancyId.trim()
-      ? { ...updated, id: backend.vacancyId.trim() }
-      : updated;
+      ? { ...updated, id: backend.vacancyId.trim(), tenantId }
+      : { ...updated, tenantId };
 
   try {
     upsertJobInStore(prev, jobToSave);

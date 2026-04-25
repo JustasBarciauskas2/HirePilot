@@ -427,5 +427,17 @@ function normalizeVacancyItem(item: unknown, indexInPage = 0): JobDetail | null 
       if (typeof ec === "string" && ec.trim()) return ec.trim();
       return undefined;
     })(),
+    tenantId: (() => {
+      if (typeof partial.tenantId === "string" && partial.tenantId.trim()) {
+        return partial.tenantId.trim();
+      }
+      const snake = row.tenant_id;
+      if (typeof snake === "string" && snake.trim()) return snake.trim();
+      if (row.tenant && typeof row.tenant === "object" && !Array.isArray(row.tenant)) {
+        const tid = (row.tenant as { id?: unknown }).id;
+        if (typeof tid === "string" && tid.trim()) return tid.trim();
+      }
+      return undefined;
+    })(),
   };
 }

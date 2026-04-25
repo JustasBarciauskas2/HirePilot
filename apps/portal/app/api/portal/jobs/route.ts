@@ -134,8 +134,8 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const jobToSave =
     backend.ok && "vacancyId" in backend && typeof backend.vacancyId === "string" && backend.vacancyId.trim()
-      ? { ...job, id: backend.vacancyId.trim() }
-      : job;
+      ? { ...job, id: backend.vacancyId.trim(), tenantId }
+      : { ...job, tenantId };
   addJob(jobToSave);
 
   revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");

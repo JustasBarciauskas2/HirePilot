@@ -328,7 +328,7 @@ export function PortalDashboard({
             ) : (
               <span
                 className="cursor-not-allowed font-medium text-zinc-400"
-                title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+                title="On production, set NEXT_PUBLIC_MARKETING_SITE_URL on the portal host (e.g. Netlify env). Local dev can also infer from NEXT_PUBLIC_PORTAL_URL (e.g. :3001 → :3000)."
               >
                 View on site
               </span>
@@ -374,7 +374,7 @@ export function PortalDashboard({
                   ) : (
                     <span
                       className="cursor-not-allowed text-xs font-semibold text-zinc-400"
-                      title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+                      title="On production, set NEXT_PUBLIC_MARKETING_SITE_URL on the portal host (e.g. Netlify env). Local dev can also infer from NEXT_PUBLIC_PORTAL_URL (e.g. :3001 → :3000)."
                     >
                       View
                     </span>
