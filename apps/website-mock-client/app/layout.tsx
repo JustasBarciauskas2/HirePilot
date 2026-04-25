@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { BackForwardCacheRefresh } from "@techrecruit/shared/components/BackForwardCacheRefresh";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-[#F9F9FB] text-[#1A1A1A]">
+        <BackForwardCacheRefresh />
         <div
           role="status"
           className="sticky top-0 z-50 border-b border-teal-700/20 bg-teal-600 px-4 py-2 text-center text-sm font-medium text-white shadow-sm"

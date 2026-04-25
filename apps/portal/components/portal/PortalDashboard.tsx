@@ -84,7 +84,6 @@ export function PortalDashboard({
     (tab: PortalTab) => {
       setPortalTab(tab);
       const params = new URLSearchParams(searchParams.toString());
-      params.set("tenant", tenantId);
       if (tab === "applications") {
         params.set("tab", "applications");
       } else {
@@ -95,12 +94,11 @@ export function PortalDashboard({
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
-    [pathname, router, searchParams, tenantId],
+    [pathname, router, searchParams],
   );
 
   function openApplicationsForJob(job: JobDetail) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("tenant", tenantId);
     params.set("tab", "applications");
     const vid = job.id?.trim();
     if (vid) {
@@ -118,7 +116,7 @@ export function PortalDashboard({
     const label = job.ref;
     if (!confirm(`Delete ${label}?`)) return;
     setDeleteError(null);
-    const headers = await portalAuthHeaders(user, tenantId);
+    const headers = await portalAuthHeaders(user);
     const vid = job.id?.trim();
     const qs = vid ? `?id=${encodeURIComponent(vid)}` : "";
     const res = await fetch(`/api/portal/jobs/${encodeURIComponent(job.ref)}${qs}`, {

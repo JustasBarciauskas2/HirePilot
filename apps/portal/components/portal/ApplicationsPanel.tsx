@@ -235,7 +235,6 @@ export function ApplicationsPanel({
   const syncUrl = useCallback(
     (next: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("tenant", tenantId);
       params.set("tab", "applications");
       if (!next) {
         params.delete("vacancy");
@@ -249,7 +248,7 @@ export function ApplicationsPanel({
       }
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams, tenantId],
+    [pathname, router, searchParams],
   );
 
   const load = useCallback(
@@ -261,7 +260,7 @@ export function ApplicationsPanel({
         const fetchList = async (forceRefresh: boolean) =>
           fetch("/api/portal/applications", {
             signal,
-            headers: await portalAuthHeaders(user, tenantId, { forceRefreshToken: forceRefresh }),
+            headers: await portalAuthHeaders(user, { forceRefreshToken: forceRefresh }),
             credentials: "include",
             cache: "no-store",
           });
@@ -293,7 +292,7 @@ export function ApplicationsPanel({
         }
       }
     },
-    [user, tenantId],
+    [user],
   );
 
   /** Refetch without clearing the table — used while screening is still processing. */
@@ -303,7 +302,7 @@ export function ApplicationsPanel({
         const fetchList = async (forceRefresh: boolean) =>
           fetch("/api/portal/applications", {
             signal,
-            headers: await portalAuthHeaders(user, tenantId, { forceRefreshToken: forceRefresh }),
+            headers: await portalAuthHeaders(user, { forceRefreshToken: forceRefresh }),
             credentials: "include",
             cache: "no-store",
           });
@@ -322,7 +321,7 @@ export function ApplicationsPanel({
         /* keep existing rows */
       }
     },
-    [user, tenantId],
+    [user],
   );
 
   useEffect(() => {
@@ -369,7 +368,7 @@ export function ApplicationsPanel({
     });
 
     try {
-      const headers = await portalAuthHeaders(user, tenantId);
+        const headers = await portalAuthHeaders(user);
       const res = await fetch(`/api/portal/applications/${encodeURIComponent(id)}`, {
         method: "PATCH",
         headers: { ...headers, "Content-Type": "application/json" },
@@ -393,7 +392,7 @@ export function ApplicationsPanel({
   }
 
   async function downloadCv(id: string) {
-    const headers = await portalAuthHeaders(user, tenantId);
+        const headers = await portalAuthHeaders(user);
     const res = await fetch(`/api/portal/applications/${encodeURIComponent(id)}/cv`, {
       headers,
       credentials: "include",

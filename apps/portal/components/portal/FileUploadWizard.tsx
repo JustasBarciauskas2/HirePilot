@@ -145,7 +145,7 @@ export function FileUploadWizard({ user, tenantId, onBack }: Props) {
     try {
       const fd = new FormData();
       fd.set("file", f, f.name);
-      const headers = await portalAuthHeaders(user, tenantId);
+      const headers = await portalAuthHeaders(user);
       const res = await fetch("/api/portal/job-document", {
         method: "POST",
         body: fd,

@@ -1,5 +1,66 @@
-import type { NextRequest } from "next/server";
+import type { DecodedIdToken } from "firebase-admin/auth";
+import type { NextRequest, NextResponse } from "next/server";
 import { getTenantInstancePayload } from "@techrecruit/shared/lib/tenant-instance";
+
+const PORTAL_HTTP_ONLY_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 400;
+
+/** HttpOnly cookie set by portal middleware so the active tenant is not kept in the URL. */
+export const PORTAL_TENANT_COOKIE_NAME = "portal-tenant";
+
+/**
+ * HttpOnly cookie: which marketing “Recruiter portal” link was used (from `?tenant=` / `?tenantId=`) when
+ * `PORTAL_TENANT_FIREBASE_CLAIM` is set. Sign-in is rejected unless it matches the user’s `tenantId` custom claim
+ * (see `POST /api/portal/auth/sync-tenant`).
+ */
+export const PORTAL_ENTRY_TENANT_COOKIE_NAME = "portal-entry-tenant";
+
+/** HttpOnly `portal-tenant` / `portal-entry-tenant` options (matches portal middleware and sync-tenant). */
+export function getPortalHttpOnlyCookieSetOptions() {
+  return {
+    httpOnly: true as const,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: PORTAL_HTTP_ONLY_COOKIE_MAX_AGE_SEC,
+    secure: process.env.NODE_ENV === "production",
+  };
+}
+
+export function applyClearPortalEntryAndSessionTenantCookies(res: NextResponse): void {
+  const c = {
+    path: "/",
+    maxAge: 0,
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+  };
+  res.cookies.set(PORTAL_TENANT_COOKIE_NAME, "", c);
+  res.cookies.set(PORTAL_ENTRY_TENANT_COOKIE_NAME, "", c);
+}
+
+/**
+ * When set (e.g. `tenantId`), API routes use this custom claim on the Firebase ID token as the **only** source of
+ * tenant for that user — they cannot switch orgs by editing cookies. Set via Admin SDK:
+ * `auth.setCustomUserClaims(uid, { tenantId: "…" })`. Requires `PORTAL_ALLOWED_TENANT_IDS` (or map keys) to allow the id.
+ */
+export function getPortalTenantFirebaseClaimName(): string | null {
+  const c = process.env.PORTAL_TENANT_FIREBASE_CLAIM?.trim();
+  return c || null;
+}
+
+function tenantIdFromFirebaseClaim(decoded: DecodedIdToken): string | null {
+  const claim = getPortalTenantFirebaseClaimName();
+  if (!claim) return null;
+  const v = (decoded as unknown as Record<string, unknown>)[claim];
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+/** Resolved tenant id from the ID token when `PORTAL_TENANT_FIREBASE_CLAIM` is set. */
+export function getPortalTenantIdFromDecodedToken(decoded: DecodedIdToken): string | null {
+  return tenantIdFromFirebaseClaim(decoded);
+}
+
+export const PORTAL_AUTH_ERROR_ENTRY_TENANT_REQUIRED = "entry_tenant_required" as const;
+export const PORTAL_AUTH_ERROR_ENTRY_TENANT_MISMATCH = "entry_tenant_mismatch" as const;
 
 /** Default tenant when no `?tenant=` / header (same as marketing `TENANT_ID`). */
 export function getDefaultPortalTenantId(): string {
@@ -73,13 +134,32 @@ export function resolvePortalTenantFromSearchParams(
 }
 
 /**
- * Tenant for the portal home page: `?tenant=` if valid, else default.
+ * Tenant for the portal home (server). When `PORTAL_TENANT_FIREBASE_CLAIM` is set, {@link PORTAL_ENTRY_TENANT_COOKIE_NAME}
+ * (from the marketing `?tenant=` / footer link) is preferred over {@link PORTAL_TENANT_COOKIE_NAME} so “Back to site”
+ * and public preview match the site the user opened from, not a stale `portal-tenant` from an earlier visit.
+ * Otherwise: session cookie, then in development only `?tenant=` on the URL if `PORTAL_TENANT_IN_URL` is not `0`, then
+ * the default id.
  */
-export function resolvePortalTenantForPage(
+export function resolvePortalTenantIdForPage(
   sp: Record<string, string | string[] | undefined>,
+  cookieStore: { get(name: string): { value: string } | undefined },
 ): string {
-  const fromUrl = resolvePortalTenantFromSearchParams(sp);
-  if (fromUrl) return fromUrl;
+  if (getPortalTenantFirebaseClaimName()) {
+    const fromEntry = cookieStore.get(PORTAL_ENTRY_TENANT_COOKIE_NAME)?.value?.trim();
+    if (fromEntry && isPortalTenantIdAllowed(fromEntry)) {
+      return fromEntry;
+    }
+  }
+  const fromCookie = cookieStore.get(PORTAL_TENANT_COOKIE_NAME)?.value?.trim();
+  if (fromCookie && isPortalTenantIdAllowed(fromCookie)) {
+    return fromCookie;
+  }
+  const allowUrlInDev =
+    process.env.NODE_ENV === "development" && process.env.PORTAL_TENANT_IN_URL !== "0";
+  if (allowUrlInDev) {
+    const fromUrl = resolvePortalTenantFromSearchParams(sp);
+    if (fromUrl) return fromUrl;
+  }
   return getDefaultPortalTenantId();
 }
 
@@ -88,13 +168,67 @@ export type PortalTenantResult =
   | { ok: false; response: Response };
 
 /**
- * Portal API routes: prefer `X-Tenant-Id`, validate against allowlist / default.
+ * Portal API routes: when {@link getPortalTenantFirebaseClaimName} is set, the authenticated user’s ID token claim
+ * is authoritative (user cannot act as another tenant). Otherwise: httpOnly cookie > optional legacy `X-Tenant-Id`
+ * (only if `PORTAL_TRUST_X_TENANT_ID_HEADER=1`) > default (only when `PORTAL_ALLOWED_TENANT_IDS` is unset).
  */
-export function getPortalTenantFromRequest(req: NextRequest): PortalTenantResult {
-  const header = req.headers.get("x-tenant-id")?.trim();
-  const allowed = parsePortalAllowedTenantIds();
+export function getPortalTenantFromRequest(
+  req: NextRequest,
+  decoded: DecodedIdToken | null = null,
+): PortalTenantResult {
+  const claimName = getPortalTenantFirebaseClaimName();
+  if (claimName) {
+    if (!decoded) {
+      return {
+        ok: false,
+        response: Response.json(
+          { error: "Authentication required. Tenant is bound to your account when PORTAL_TENANT_FIREBASE_CLAIM is set." },
+          { status: 401 },
+        ),
+      };
+    }
+    const fromClaim = tenantIdFromFirebaseClaim(decoded);
+    if (!fromClaim) {
+      return {
+        ok: false,
+        response: Response.json(
+          {
+            error:
+              "No tenant on this account. Ask an admin to set your tenant in Firebase (custom claim matching PORTAL_TENANT_FIREBASE_CLAIM).",
+          },
+          { status: 403 },
+        ),
+      };
+    }
+    if (!isPortalTenantIdAllowed(fromClaim)) {
+      return {
+        ok: false,
+        response: Response.json(
+          { error: "Your account’s tenant is not allowed for this portal deployment." },
+          { status: 403 },
+        ),
+      };
+    }
+    return { ok: true, tenantId: fromClaim };
+  }
 
-  if (header) {
+  const fromCookie = req.cookies.get(PORTAL_TENANT_COOKIE_NAME)?.value?.trim();
+  if (fromCookie) {
+    if (!isPortalTenantIdAllowed(fromCookie)) {
+      return {
+        ok: false,
+        response: Response.json(
+          { error: "Tenant is not allowed for this portal deployment." },
+          { status: 403 },
+        ),
+      };
+    }
+    return { ok: true, tenantId: fromCookie };
+  }
+
+  const allowHeader = process.env.PORTAL_TRUST_X_TENANT_ID_HEADER === "1" || process.env.PORTAL_TRUST_X_TENANT_ID_HEADER === "true";
+  const header = req.headers.get("x-tenant-id")?.trim();
+  if (allowHeader && header) {
     if (!isPortalTenantIdAllowed(header)) {
       return {
         ok: false,
@@ -107,6 +241,7 @@ export function getPortalTenantFromRequest(req: NextRequest): PortalTenantResult
     return { ok: true, tenantId: header };
   }
 
+  const allowed = parsePortalAllowedTenantIds();
   if (!allowed) {
     return { ok: true, tenantId: getDefaultPortalTenantId() };
   }
@@ -116,7 +251,7 @@ export function getPortalTenantFromRequest(req: NextRequest): PortalTenantResult
     response: Response.json(
       {
         error:
-          "Missing X-Tenant-Id. Open the portal from your marketing site (Recruiter portal link) or add ?tenant=… to the URL.",
+          "No tenant in session. Open the portal from your marketing site (Recruiter portal link) so your browser receives the portal tenant cookie, or set PORTAL_TENANT_FIREBASE_CLAIM to bind the tenant to your login.",
       },
       { status: 400 },
     ),

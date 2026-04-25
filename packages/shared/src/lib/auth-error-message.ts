@@ -1,3 +1,6 @@
+/** Same as Firebase `invalid-credential` / `wrong-password` copy — use for any sign-in rejection that should look like a normal credential check. */
+export const SIGN_IN_INVALID_CREDENTIALS_MESSAGE = "Incorrect email or password. Please try again.";
+
 /**
  * Maps Firebase Auth errors to short, non-technical copy for the sign-in UI.
  */
@@ -15,7 +18,7 @@ export function friendlySignInError(error: unknown): string {
     case "auth/wrong-password":
     case "auth/user-not-found":
     case "auth/invalid-email":
-      return "Incorrect email or password. Please try again.";
+      return SIGN_IN_INVALID_CREDENTIALS_MESSAGE;
     case "auth/user-disabled":
       return "This account has been disabled. Contact your administrator.";
     case "auth/too-many-requests":

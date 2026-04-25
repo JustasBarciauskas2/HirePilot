@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { BackForwardCacheRefresh } from "@techrecruit/shared/components/BackForwardCacheRefresh";
 import { FirebaseAuthProvider } from "@techrecruit/shared/components/FirebaseAuthProvider";
 import "./globals.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-[#F9F9FB] text-[#1A1A1A]">
+        <BackForwardCacheRefresh />
         <FirebaseAuthProvider>{children}</FirebaseAuthProvider>
       </body>
     </html>

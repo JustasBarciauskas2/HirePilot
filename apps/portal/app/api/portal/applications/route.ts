@@ -23,11 +23,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!isFirebaseAdminConfigured()) {
     return Response.json({ error: "Server not configured." }, { status: 503, headers: noStoreJson });
   }
-  if (!(await getFirebaseUserFromRequest(req))) {
+  const decoded = await getFirebaseUserFromRequest(req);
+  if (!decoded) {
     return Response.json({ error: "Unauthorized" }, { status: 401, headers: noStoreJson });
   }
 
-  const portalTenant = getPortalTenantFromRequest(req);
+  const portalTenant = getPortalTenantFromRequest(req, decoded);
   if (!portalTenant.ok) return portalTenant.response;
 
   try {

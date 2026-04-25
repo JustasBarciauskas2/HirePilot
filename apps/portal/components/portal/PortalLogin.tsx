@@ -2,21 +2,42 @@
 
 import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { useState } from "react";
-import { friendlySignInError } from "@techrecruit/shared/lib/auth-error-message";
+import { useEffect, useRef, useState } from "react";
+import {
+  friendlySignInError,
+  SIGN_IN_INVALID_CREDENTIALS_MESSAGE,
+} from "@techrecruit/shared/lib/auth-error-message";
 
 const inputClass =
   "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/45 focus:ring-2 focus:ring-[#7107E7]/12";
 
-export function PortalLogin() {
+export function PortalLogin({
+  entrySyncFailed,
+  onClearEntrySyncFailed,
+  loginBlockedByMissingEntry,
+}: {
+  entrySyncFailed?: boolean;
+  onClearEntrySyncFailed?: () => void;
+  loginBlockedByMissingEntry?: boolean;
+} = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  const credentialOrEntryError =
+    err ?? (entrySyncFailed || loginBlockedByMissingEntry ? SIGN_IN_INVALID_CREDENTIALS_MESSAGE : null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
+    if (loginBlockedByMissingEntry) return;
     setPending(true);
     try {
       const auth = getAuth(getApp());
@@ -24,7 +45,7 @@ export function PortalLogin() {
     } catch (e) {
       setErr(friendlySignInError(e));
     } finally {
-      setPending(false);
+      if (mounted.current) setPending(false);
     }
   }
 
@@ -34,9 +55,9 @@ export function PortalLogin() {
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
         Sign in with your work email and password to manage vacancies.
       </p>
-      {err ? (
+      {credentialOrEntryError ? (
         <p className="mt-4 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800" role="alert">
-          {err}
+          {credentialOrEntryError}
         </p>
       ) : null}
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -48,7 +69,10 @@ export function PortalLogin() {
             name="email"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              onClearEntrySyncFailed?.();
+            }}
             required
           />
         </label>
@@ -60,13 +84,16 @@ export function PortalLogin() {
             name="password"
             autoComplete="current-password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              onClearEntrySyncFailed?.();
+            }}
             required
           />
         </label>
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || loginBlockedByMissingEntry}
           className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-[#7107E7] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.45)] transition hover:bg-[#5b06c2] disabled:opacity-50"
         >
           {pending ? "Signing in…" : "Log in to portal"}

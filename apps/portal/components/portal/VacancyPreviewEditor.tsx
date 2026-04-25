@@ -482,7 +482,7 @@ export function VacancyPreviewEditor({
     setErr(null);
     setPending(true);
     try {
-      const headers = await portalAuthHeaders(user, tenantId);
+      const headers = await portalAuthHeaders(user);
       const editing = Boolean(existingJob);
       const payload = editing
         ? {

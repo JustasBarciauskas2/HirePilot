@@ -34,7 +34,7 @@ export async function DELETE(req: NextRequest, ctx: RouteContext): Promise<Respo
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const portalTenant = getPortalTenantFromRequest(req);
+  const portalTenant = getPortalTenantFromRequest(req, decoded);
   if (!portalTenant.ok) return portalTenant.response;
   const tenantId = portalTenant.tenantId;
 

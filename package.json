@@ -13,9 +13,11 @@
     "build": "npm run build --prefix apps/website && npm run build --prefix apps/website-mock-client && npm run build --prefix apps/portal",
     "start:website": "npm run start --prefix apps/website",
     "start:portal": "npm run start --prefix apps/portal",
-    "lint": "eslint apps packages --max-warnings 0"
+    "lint": "eslint apps packages --max-warnings 0",
+    "portal:set-tenant-claim": "node scripts/set-portal-tenant-claim.mjs"
   },
   "devDependencies": {
+    "firebase-admin": "^13.8.0",
     "concurrently": "^9.1.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",

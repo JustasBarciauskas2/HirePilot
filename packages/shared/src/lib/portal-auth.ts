@@ -11,18 +11,14 @@ export type PortalAuthHeadersOptions = {
 };
 
 /**
- * @param tenantId — when set, sent as `X-Tenant-Id` so portal APIs scope to that marketing tenant.
+ * Tenant is **not** sent in headers — APIs read the httpOnly `portal-tenant` cookie (set by middleware from the
+ * marketing “Recruiter portal” link) or Firebase custom claim when `PORTAL_TENANT_FIREBASE_CLAIM` is set.
+ * Use `credentials: "include"` on `fetch` so the cookie is sent.
  */
 export async function portalAuthHeaders(
   user: User,
-  tenantId?: string | null,
   options?: PortalAuthHeadersOptions,
 ): Promise<PortalAuthHeaderResult> {
   const token = await user.getIdToken(options?.forceRefreshToken === true);
-  const headers: PortalAuthHeaderResult = { Authorization: `Bearer ${token}` };
-  const tid = tenantId?.trim();
-  if (tid) {
-    headers["X-Tenant-Id"] = tid;
-  }
-  return headers;
+  return { Authorization: `Bearer ${token}` };
 }

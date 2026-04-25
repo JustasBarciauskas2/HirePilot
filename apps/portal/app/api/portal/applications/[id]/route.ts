@@ -14,11 +14,12 @@ export async function PATCH(
   if (!isFirebaseAdminConfigured()) {
     return Response.json({ error: "Server not configured." }, { status: 503 });
   }
-  if (!(await getFirebaseUserFromRequest(req))) {
+  const decoded = await getFirebaseUserFromRequest(req);
+  if (!decoded) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const portalTenant = getPortalTenantFromRequest(req);
+  const portalTenant = getPortalTenantFromRequest(req, decoded);
   if (!portalTenant.ok) return portalTenant.response;
 
   const { id } = await ctx.params;
