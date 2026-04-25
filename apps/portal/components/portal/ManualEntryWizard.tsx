@@ -49,25 +49,25 @@ export function ManualEntryWizard({
   }, [publishedJob]);
 
   return (
-    <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8">
+    <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8 dark:border-slate-500/25 dark:bg-[#243144]/80 dark:shadow-[0_12px_40px_-20px_rgba(0,0,0,0.35)]">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <button
           type="button"
           onClick={goBackToChoose}
-          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-[#7107E7]"
+          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-[#2563EB] dark:text-slate-400 dark:hover:text-sky-400"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           {publishedJob ? "Add another" : "Back"}
         </button>
-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-slate-500">
           {publishedJob ? "Published" : jobToEdit ? "Edit listing · 6 sections" : "Manual entry · 6 sections"}
         </p>
       </div>
 
-      <h2 className="mt-4 font-display text-lg font-semibold text-zinc-950">
+      <h2 className="mt-4 font-display text-lg font-semibold text-zinc-950 dark:text-slate-100">
         {publishedJob ? "You’re live" : jobToEdit ? "Edit this role" : "Add a role yourself"}
       </h2>
-      <p className="mt-1 text-sm text-zinc-500">
+      <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
         {publishedJob
           ? "This role is now listed on TechRecruit."
           : jobToEdit
@@ -79,20 +79,20 @@ export function ManualEntryWizard({
         (() => {
           const viewHref = publicJobPageHttpHrefForPortalTenant(tenantId, publishedJob.slug);
           return (
-            <div className="mt-8 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 p-6 text-center">
-              <p className="font-medium text-emerald-950">{publishedJob.title}</p>
-              <p className="mt-1 font-mono text-xs text-emerald-800">{publishedJob.ref}</p>
+            <div className="mt-8 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 p-6 text-center dark:border-emerald-800/50 dark:bg-emerald-950/35">
+              <p className="font-medium text-emerald-950 dark:text-emerald-100">{publishedJob.title}</p>
+              <p className="mt-1 font-mono text-xs text-emerald-800 dark:text-emerald-300">{publishedJob.ref}</p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 {viewHref ? (
                   <a
                     href={viewHref}
-                    className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.35)] transition hover:bg-[#5b06c2]"
+                    className="inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(37,99,235,0.35)] transition hover:bg-[#1d4ed8]"
                   >
                     View listing
                   </a>
                 ) : (
                   <span
-                    className="inline-flex cursor-not-allowed items-center justify-center rounded-xl bg-zinc-300 px-5 py-2.5 text-sm font-semibold text-white"
+                    className="inline-flex cursor-not-allowed items-center justify-center rounded-xl bg-zinc-300 px-5 py-2.5 text-sm font-semibold text-white dark:bg-slate-600"
                     title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
                   >
                     View listing
@@ -101,7 +101,7 @@ export function ManualEntryWizard({
                 <button
                   type="button"
                   onClick={goBackToChoose}
-                  className="text-sm font-medium text-emerald-900 underline-offset-4 hover:underline"
+                  className="text-sm font-medium text-emerald-900 underline-offset-4 hover:underline dark:text-emerald-300"
                 >
                   Add another role
                 </button>

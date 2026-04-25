@@ -272,7 +272,7 @@ function BulletListField({
                 type="button"
                 title="Remove bullet"
                 onClick={() => onChange(removeStringAt(items, i))}
-                className="shrink-0 self-center rounded-lg p-2 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                className="shrink-0 self-center rounded-lg p-2 text-zinc-400 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 dark:hover:text-red-400"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
@@ -531,7 +531,7 @@ export function VacancyPreviewEditor({
         </div>
 
         {err ? (
-          <p className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800" role="alert">
+          <p className="rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200" role="alert">
             {err}
           </p>
         ) : null}
@@ -719,8 +719,8 @@ export function VacancyPreviewEditor({
                             </>
                           )}
                           {listingPayLineDisplay ? (
-                            <p className="sm:col-span-2 rounded-lg border border-zinc-200/90 bg-zinc-50/80 px-3 py-2 font-mono text-xs text-zinc-700">
-                              <span className="font-sans text-zinc-500">Listing pay line: </span>
+                            <p className="sm:col-span-2 rounded-lg border border-zinc-200/90 bg-zinc-50/80 px-3 py-2 font-mono text-xs text-zinc-700 dark:border-slate-500/25 dark:bg-slate-800/50 dark:text-slate-300">
+                              <span className="font-sans text-zinc-500 dark:text-slate-500">Listing pay line: </span>
                               {listingPayLineDisplay}
                             </p>
                           ) : null}
@@ -929,7 +929,7 @@ export function VacancyPreviewEditor({
                               },
                             }))
                           }
-                          className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900`}
+                          className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900 dark:hover:border-red-800/50 dark:hover:bg-red-950/35 dark:hover:text-red-200`}
                         >
                           <span className="min-w-0 truncate">{t}</span>
                           <X className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
@@ -1029,8 +1029,8 @@ export function VacancyPreviewEditor({
               </FieldGroup>
 
               {!showFundingDetails ? (
-                <div className="rounded-xl border border-dashed border-zinc-300/90 bg-white/50 px-4 py-4">
-                  <p className="text-sm text-zinc-600">
+                <div className="rounded-xl border border-dashed border-zinc-300/90 bg-white/50 px-4 py-4 dark:border-slate-500/30 dark:bg-slate-800/30">
+                  <p className="text-sm text-zinc-600 dark:text-slate-400">
                     Funding rounds and total are optional. If your upload or API already included them, open this
                     section to review or edit.
                   </p>
@@ -1058,7 +1058,7 @@ export function VacancyPreviewEditor({
                     />
                   </label>
                   <div className="mt-4 space-y-3 sm:col-span-2">
-                    <p className="text-xs font-medium text-zinc-600">
+                    <p className="text-xs font-medium text-zinc-600 dark:text-slate-400">
                       Funding rounds (shown newest first on the job page, up to {MAX_FUNDING_ROUNDS})
                     </p>
                     {vacancy.funding.length === 0 ? (
@@ -1067,7 +1067,7 @@ export function VacancyPreviewEditor({
                       vacancy.funding.map((row, i) => (
                         <div
                           key={i}
-                          className="grid gap-2 border-b border-zinc-200/70 pb-3 last:border-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+                          className="grid gap-2 border-b border-zinc-200/70 pb-3 last:border-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end dark:border-slate-600/35"
                         >
                           <label className="block min-w-0">
                             <span className={labelClass}>Date</span>
@@ -1100,7 +1100,7 @@ export function VacancyPreviewEditor({
                             type="button"
                             title="Remove round"
                             onClick={() => removeFundingRoundAt(i)}
-                            className="flex h-10 shrink-0 items-center justify-center self-end rounded-lg text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                            className="flex h-10 shrink-0 items-center justify-center self-end rounded-lg text-zinc-400 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 dark:hover:text-red-400"
                           >
                             <X className="h-4 w-4" aria-hidden />
                           </button>
@@ -1117,7 +1117,7 @@ export function VacancyPreviewEditor({
                   <button
                     type="button"
                     onClick={() => setShowFundingDetails(false)}
-                    className="mt-3 text-sm font-medium text-zinc-500 underline-offset-4 hover:text-zinc-800 hover:underline"
+                    className="mt-3 text-sm font-medium text-zinc-500 underline-offset-4 hover:text-zinc-800 hover:underline dark:text-slate-500 dark:hover:text-slate-300"
                   >
                     Hide funding details
                   </button>
@@ -1144,7 +1144,7 @@ export function VacancyPreviewEditor({
                         title={`Remove ${s.name}`}
                         aria-label={`Remove ${s.name}`}
                         onClick={() => setVacancy((v) => ({ ...v, skills: removeSkillAt(v.skills, i) }))}
-                        className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900`}
+                        className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900 dark:hover:border-red-800/50 dark:hover:bg-red-950/35 dark:hover:text-red-200`}
                       >
                         <span className="min-w-0 truncate">{s.name}</span>
                         <X className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
@@ -1208,7 +1208,7 @@ export function VacancyPreviewEditor({
                         onClick={() =>
                           setVacancy((v) => ({ ...v, industries: removeStringAt(v.industries, i) }))
                         }
-                        className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900`}
+                        className={`${chipClass} max-w-full cursor-pointer transition hover:border-red-200/60 hover:bg-red-50/70 hover:text-red-900 dark:hover:border-red-800/50 dark:hover:bg-red-950/35 dark:hover:text-red-200`}
                       >
                         <span className="min-w-0 truncate">{ind}</span>
                         <X className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
@@ -1364,11 +1364,11 @@ export function VacancyPreviewEditor({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/90 pt-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/90 pt-6 dark:border-slate-500/25">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50"
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-800/80"
         >
           Cancel
         </button>
@@ -1377,7 +1377,7 @@ export function VacancyPreviewEditor({
             <button
               type="button"
               onClick={() => setCat((c) => c - 1)}
-              className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
+              className="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
             >
               Previous section
             </button>
@@ -1386,7 +1386,7 @@ export function VacancyPreviewEditor({
             <button
               type="button"
               onClick={() => setCat((c) => c + 1)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#7107E7] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#7107E7]/30 transition hover:bg-[#5b06c2]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#2563EB]/30 transition hover:bg-[#1d4ed8]"
             >
               Next section
               <CaretRight className="h-4 w-4" aria-hidden />
@@ -1396,7 +1396,7 @@ export function VacancyPreviewEditor({
               type="button"
               disabled={pending}
               onClick={() => void publish()}
-              className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-[#7107E7]/35 transition hover:bg-[#5b06c2] disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-[#2563EB]/35 transition hover:bg-[#1d4ed8] disabled:opacity-50"
             >
               {pending ? (existingJob ? "Saving…" : "Publishing…") : existingJob ? "Save changes" : "Publish listing"}
             </button>

@@ -2,6 +2,7 @@
 
 import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   friendlySignInError,
@@ -9,7 +10,7 @@ import {
 } from "@techrecruit/shared/lib/auth-error-message";
 
 const inputClass =
-  "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/45 focus:ring-2 focus:ring-[#7107E7]/12";
+  "w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15";
 
 export function PortalLogin({
   entrySyncFailed,
@@ -50,10 +51,26 @@ export function PortalLogin({
   }
 
   return (
-    <div className="mx-auto max-w-lg rounded-3xl border border-zinc-200/90 bg-white p-8 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.12)]">
-      <p className="font-display text-xl font-semibold text-zinc-950">Recruiter portal</p>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-        Sign in with your work email and password to manage vacancies.
+    <div className="mx-auto max-w-lg rounded-3xl border border-slate-200/80 bg-white/95 p-8 shadow-[0_20px_50px_-24px_rgba(15,23,42,0.15),0_0_0_1px_rgba(37,99,235,0.04)] backdrop-blur-sm">
+      <div className="mb-2 flex items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-50">
+          <Image
+            src="/brand-logo.png"
+            alt=""
+            width={48}
+            height={48}
+            className="h-10 w-10 object-contain"
+            priority
+            unoptimized
+          />
+        </span>
+        <div>
+          <p className="font-display text-lg font-semibold text-[#0B1F3A] sm:text-xl">Recruiter portal</p>
+          <p className="text-xs font-medium text-slate-500">Sign in to continue</p>
+        </div>
+      </div>
+      <p className="mt-1 text-sm leading-relaxed text-slate-600">
+        Use your work email and password to manage vacancies.
       </p>
       {credentialOrEntryError ? (
         <p className="mt-4 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800" role="alert">
@@ -62,7 +79,7 @@ export function PortalLogin({
       ) : null}
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs text-zinc-500">Email</span>
+          <span className="mb-1.5 block text-xs font-medium text-slate-600">Email</span>
           <input
             className={inputClass}
             type="email"
@@ -77,7 +94,7 @@ export function PortalLogin({
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-xs text-zinc-500">Password</span>
+          <span className="mb-1.5 block text-xs font-medium text-slate-600">Password</span>
           <input
             className={inputClass}
             type="password"
@@ -94,7 +111,7 @@ export function PortalLogin({
         <button
           type="submit"
           disabled={pending || loginBlockedByMissingEntry}
-          className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-[#7107E7] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.45)] transition hover:bg-[#5b06c2] disabled:opacity-50"
+          className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(37,99,235,0.5)] transition hover:bg-[#1d4ed8] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/50 disabled:opacity-50"
         >
           {pending ? "Signing in…" : "Log in to portal"}
         </button>

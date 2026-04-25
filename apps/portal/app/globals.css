@@ -1,20 +1,32 @@
 /* Base = Next app root (app/..) so Tailwind scans app/ + components/ reliably in monorepos. */
 @import "tailwindcss" source("..");
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Workspace package: explicit @source overrides default node_modules ignore (Tailwind v4 docs). */
 @source "../node_modules/@techrecruit/shared/src";
 
 :root {
-  --background: #f9f9fb;
-  --foreground: #1a1a1a;
-  --accent: #7107e7;
-  --accent-hover: #5b06c2;
-  --accent-soft: rgba(113, 7, 231, 0.14);
+  --brand-navy: #0b1f3a;
+  --brand-blue: #2563eb;
+  --brand-blue-dark: #1d4ed8;
+  --brand-surface: #f8fafc;
+  --brand-ink: #0f172a;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-navy: #0b1f3a;
+  --color-brand-blue: #2563eb;
+  --color-brand-blue-dark: #1d4ed8;
+  --color-brand-ink: #0f172a;
+  --color-brand-surface: #f8fafc;
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-inter);
@@ -71,10 +83,36 @@
   }
 }
 
+html {
+  height: 100%;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
 body {
   background-color: var(--background);
+  background-image: radial-gradient(1200px 600px at 10% -10%, rgba(37, 99, 235, 0.07), transparent 50%),
+    radial-gradient(900px 500px at 100% 0%, rgba(11, 31, 58, 0.06), transparent 45%);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+html.dark {
+  color-scheme: dark;
+  /* Softer canvas: avoid near-black + pure white pairs */
+  --background: #1a2332;
+  --foreground: #c8d1dc;
+  --brand-surface: #2a3648;
+  --portal-elevated: #243144;
+  --portal-elevated-border: rgba(100, 116, 139, 0.22);
+}
+
+html.dark body {
+  background-color: var(--background);
+  background-image: radial-gradient(950px 520px at 14% -6%, rgba(59, 130, 246, 0.07), transparent 55%),
+    radial-gradient(820px 480px at 98% 2%, rgba(15, 23, 42, 0.22), transparent 52%);
 }
 
 .font-display {
@@ -89,4 +127,8 @@ body::before {
   z-index: 0;
   opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+html.dark body::before {
+  opacity: 0.02;
 }

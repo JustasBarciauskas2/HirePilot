@@ -1,18 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { startTransition, useEffect } from "react";
 
 /**
- * When the user returns with the back/forward buttons, the page may be loaded from the browser’s bfcache with a
- * stale RSC tree and a stale `fetch` cache. Call `router.refresh()` so the App Router revalidates server state.
+ * On back/forward, the user can see a stale RSC tree:
+ * - **bfcache** (`event.persisted`): frozen page restored from memory.
+ * - **Normal history** (`NavigationTiming.type === "back_forward"`): full navigation without bfcache.
+ * In both cases we call `router.refresh()` so the App Router and server data match the current history entry.
  */
 export function BackForwardCacheRefresh() {
   const router = useRouter();
   useEffect(() => {
     const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) {
-        router.refresh();
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      const isBackForward = nav?.type === "back_forward";
+      if (e.persisted || isBackForward) {
+        startTransition(() => {
+          router.refresh();
+        });
       }
     };
     window.addEventListener("pageshow", onPageShow);

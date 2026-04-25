@@ -5,6 +5,7 @@ import { getApp } from "firebase/app";
 import type { User } from "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
 import {
+  ArrowClockwise,
   Briefcase,
   Copy,
   EnvelopeSimple,
@@ -16,9 +17,11 @@ import {
   UploadSimple,
   Users,
 } from "@phosphor-icons/react";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import {
+  marketingSiteRootHttpHrefForPortalTenant,
   marketingSiteRolesHttpHrefForPortalTenant,
   publicJobPageHttpHrefForPortalTenant,
 } from "@techrecruit/shared/lib/portal-tenant";
@@ -26,6 +29,7 @@ import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
 import { FileUploadWizard } from "@/components/portal/FileUploadWizard";
 import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
+import { PortalThemeToggle } from "@/components/portal/PortalThemeToggle";
 
 type Flow = "choose" | "file" | "manual";
 type PortalTab = "vacancies" | "applications";
@@ -148,6 +152,10 @@ export function PortalDashboard({
     () => marketingSiteRolesHttpHrefForPortalTenant(tenantId),
     [tenantId],
   );
+  const marketingRootHref = useMemo(
+    () => marketingSiteRootHttpHrefForPortalTenant(tenantId),
+    [tenantId],
+  );
 
   async function copyJobPublicLink(job: JobDetail) {
     if (typeof window === "undefined") return;
@@ -175,63 +183,174 @@ export function PortalDashboard({
     }
   }
 
+  const pageTitle = portalTab === "vacancies" ? "Vacancies" : "Applications";
+  const pageSubtitle =
+    portalTab === "vacancies"
+      ? "Create and manage open roles and listings."
+      : "Review candidates and applications.";
+
+  const tabButtonMobile = (tab: PortalTab, icon: ReactNode, label: string) => (
+    <button
+      type="button"
+      onClick={() => setPortalTabWithUrl(tab)}
+      className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition sm:text-sm ${
+        portalTab === tab
+          ? "bg-white text-[#0B1F3A] shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-600/80"
+          : "text-slate-600 hover:text-[#0F172A] dark:text-slate-400 dark:hover:text-slate-200"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
+  const tabButtonSidebar = (tab: PortalTab, icon: ReactNode, label: string) => (
+    <button
+      type="button"
+      onClick={() => setPortalTabWithUrl(tab)}
+      className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+        portalTab === tab
+          ? "bg-[#F8FAFC] text-[#0B1F3A] shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800/90 dark:text-slate-100 dark:ring-slate-600/70"
+          : "text-slate-600 hover:bg-slate-50 hover:text-[#0F172A] dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
   return (
-    <div className="mx-auto max-w-5xl space-y-12">
-      <header className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_8px_30px_-12px_rgba(24,24,27,0.08)] sm:p-6">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Portal</p>
-            <h1 className="mt-1 font-display text-xl font-semibold tracking-tight text-zinc-950">Dashboard</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-zinc-500">Signed in as</span>
-              <span className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-zinc-200/90 bg-zinc-50 px-2.5 py-1.5 font-mono text-[11px] leading-none text-zinc-800 sm:text-xs">
-                <EnvelopeSimple className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
-                <span className="truncate" title={displayName}>
-                  {displayName}
-                </span>
-              </span>
-            </div>
+    <div className="relative w-full min-h-screen flex-1 overflow-x-hidden bg-[#F8FAFC] dark:bg-background">
+      <div className="sticky top-0 z-20 shrink-0 border-b border-slate-200/90 bg-white/95 backdrop-blur-md dark:border-slate-500/20 dark:bg-[#1c2638]/90 md:hidden">
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800">
+              <Image src="/brand-logo.png" alt="" width={36} height={36} className="h-7 w-7 object-contain" unoptimized />
+            </span>
+            <span className="truncate font-display text-sm font-semibold text-[#0B1F3A] dark:text-slate-100">Recruiter portal</span>
           </div>
+          <PortalThemeToggle />
+        </div>
+        <div className="flex gap-1.5 px-2 pb-2">
+          {tabButtonMobile(
+            "vacancies",
+            <Briefcase className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
+            "Vacancies",
+          )}
+          {tabButtonMobile(
+            "applications",
+            <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
+            "Applications",
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2 text-xs dark:border-slate-700/80">
+          {marketingRootHref ? (
+            <a href={marketingRootHref} className="font-medium text-[#2563EB] dark:text-sky-400">
+              Back to site
+            </a>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             onClick={() => signOut(getAuth(getApp()))}
-            className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-[#7107E7]/35 hover:bg-[#7107E7]/[0.06] hover:text-[#5b06c2] sm:self-center"
+            className="inline-flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300"
           >
-            <SignOut className="h-4 w-4 text-zinc-500" weight="duotone" aria-hidden />
+            <SignOut className="h-3.5 w-3.5" weight="duotone" aria-hidden />
             Sign out
           </button>
         </div>
-      </header>
-
-      <div className="flex flex-wrap gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-1.5 shadow-sm">
-        <button
-          type="button"
-          onClick={() => setPortalTabWithUrl("vacancies")}
-          className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex-none ${
-            portalTab === "vacancies"
-              ? "bg-white text-zinc-950 shadow-sm ring-1 ring-zinc-200/80"
-              : "text-zinc-600 hover:text-zinc-900"
-          }`}
-        >
-          <Briefcase className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />
-          Vacancies
-        </button>
-        <button
-          type="button"
-          onClick={() => setPortalTabWithUrl("applications")}
-          className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex-none ${
-            portalTab === "applications"
-              ? "bg-white text-zinc-950 shadow-sm ring-1 ring-zinc-200/80"
-              : "text-zinc-600 hover:text-zinc-900"
-          }`}
-        >
-          <Users className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />
-          Applications
-        </button>
       </div>
 
+      <aside
+        className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-slate-200/80 bg-white dark:border-slate-500/20 dark:bg-[#1c2638]/95 md:flex lg:w-64"
+        aria-label="Recruiter portal navigation"
+      >
+        <div className="shrink-0">
+          <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-5 dark:border-slate-500/15">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800/60">
+              <Image src="/brand-logo.png" alt="" width={40} height={40} className="h-8 w-8 object-contain" priority unoptimized />
+            </span>
+            <div className="min-w-0">
+              <p className="font-display text-sm font-semibold text-[#0B1F3A] dark:text-slate-100">Recruiter portal</p>
+              <p className="text-[10px] font-medium tracking-[0.18em] text-slate-400 dark:text-slate-500">HirePilot</p>
+            </div>
+          </div>
+          <p className="px-4 pt-4 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Recruitment</p>
+        </div>
+        <nav className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-2" aria-label="Portal sections">
+          {tabButtonSidebar(
+            "vacancies",
+            <Briefcase className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
+            "Vacancies",
+          )}
+          {tabButtonSidebar(
+            "applications",
+            <Users className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
+            "Applications",
+          )}
+        </nav>
+        <div className="shrink-0 space-y-2 border-t border-slate-100 p-3 dark:border-slate-500/15">
+          <p className="flex items-center gap-1.5 truncate rounded-lg border border-slate-100 bg-slate-50/80 px-2.5 py-1.5 font-mono text-[10px] text-slate-700 dark:border-slate-500/20 dark:bg-slate-800/40 dark:text-slate-300">
+            <EnvelopeSimple className="h-3.5 w-3.5 shrink-0 text-slate-400" weight="duotone" aria-hidden />
+            <span className="truncate" title={displayName}>
+              {displayName}
+            </span>
+          </p>
+          {marketingRootHref ? (
+            <a
+              href={marketingRootHref}
+              className="flex w-full items-center justify-center rounded-lg border border-slate-200/90 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-[#2563EB]/30 hover:text-[#2563EB] dark:border-slate-500/25 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:text-sky-300"
+            >
+              Back to site
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => signOut(getAuth(getApp()))}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200/90 bg-white px-3 py-2.5 text-sm font-semibold text-[#0F172A] transition hover:border-[#2563EB]/30 hover:bg-[#2563EB]/[0.06] hover:text-[#1d4ed8] dark:border-slate-500/25 dark:bg-slate-800/50 dark:text-slate-100 dark:hover:border-sky-500/35"
+          >
+            <SignOut className="h-4 w-4 text-slate-500 dark:text-slate-400" weight="duotone" aria-hidden />
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col md:pl-60 lg:pl-64">
+        <header className="sticky top-0 z-20 hidden shrink-0 border-b border-slate-200/80 bg-white/90 px-5 py-4 backdrop-blur-sm dark:border-slate-500/20 dark:bg-[#1c2638]/90 sm:px-6 sm:py-5 md:block">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="min-w-0 sm:flex-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Recruiter portal</p>
+              <h1 className="mt-0.5 font-display text-xl font-semibold tracking-tight text-[#0B1F3A] dark:text-slate-100">{pageTitle}</h1>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{pageSubtitle}</p>
+            </div>
+            <div className="flex w-full flex-wrap items-center justify-end gap-2 self-start sm:ml-auto sm:w-auto sm:shrink-0 sm:self-center">
+              <div className="inline-flex w-full min-w-0 items-center justify-end gap-2 sm:w-auto">
+                <PortalThemeToggle />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== "undefined") window.location.reload();
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-[#2563EB]/35 hover:text-[#2563EB] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 dark:border-slate-500/25 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:text-sky-300"
+                >
+                  <ArrowClockwise className="h-4 w-4" weight="duotone" aria-hidden />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="shrink-0 border-b border-slate-200/80 bg-white/80 px-4 py-3 dark:border-slate-500/20 dark:bg-[#1c2638]/88 md:hidden">
+          <h1 className="font-display text-lg font-semibold text-[#0B1F3A] dark:text-slate-100">{pageTitle}</h1>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{pageSubtitle}</p>
+        </div>
+
+        <div className="flex-1">
+          <div className="mx-auto w-full max-w-5xl space-y-8 px-4 py-6 pb-20 sm:px-6 lg:px-8">
       {deleteError ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900" role="alert">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200" role="alert">
           {deleteError}
         </p>
       ) : null}
@@ -247,23 +366,23 @@ export function PortalDashboard({
       ) : null}
 
       {portalTab === "vacancies" && flow === "choose" ? (
-        <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8">
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">New listing</p>
-          <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950">How do you want to add this role?</h2>
-          <p className="mt-1 text-sm text-zinc-500">
+        <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8 dark:border-slate-500/25 dark:bg-[#243144]/80 dark:shadow-[0_12px_40px_-20px_rgba(0,0,0,0.35)]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-slate-500">New listing</p>
+          <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950 dark:text-slate-100">How do you want to add this role?</h2>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
             Upload a file with the job, or fill in the form yourself — whichever is easier.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setFlow("file")}
-              className="rounded-2xl border border-zinc-200/90 bg-zinc-50/50 px-5 py-6 text-left transition hover:border-[#7107E7]/40 hover:bg-[#7107E7]/[0.04]"
+              className="rounded-2xl border border-zinc-200/90 bg-zinc-50/50 px-5 py-6 text-left transition hover:border-[#2563EB]/40 hover:bg-[#2563EB]/[0.04] dark:border-slate-500/25 dark:bg-slate-800/40 dark:hover:border-[#2563EB]/30 dark:hover:bg-[#2563EB]/[0.08]"
             >
-              <span className="flex items-center gap-2 font-medium text-zinc-900">
-                <UploadSimple className="h-5 w-5 shrink-0 text-[#7107E7]" weight="duotone" aria-hidden />
+              <span className="flex items-center gap-2 font-medium text-zinc-900 dark:text-slate-100">
+                <UploadSimple className="h-5 w-5 shrink-0 text-[#2563EB] dark:text-sky-400" weight="duotone" aria-hidden />
                 Upload document
               </span>
-              <span className="mt-2 block text-xs leading-relaxed text-zinc-500">
+              <span className="mt-2 block text-xs leading-relaxed text-zinc-500 dark:text-slate-400">
                 Pick a file, then check the details before you publish.
               </span>
             </button>
@@ -273,13 +392,13 @@ export function PortalDashboard({
                 setJobToEdit(null);
                 setFlow("manual");
               }}
-              className="rounded-2xl border border-zinc-200/90 bg-zinc-50/50 px-5 py-6 text-left transition hover:border-[#7107E7]/40 hover:bg-[#7107E7]/[0.04]"
+              className="rounded-2xl border border-zinc-200/90 bg-zinc-50/50 px-5 py-6 text-left transition hover:border-[#2563EB]/40 hover:bg-[#2563EB]/[0.04] dark:border-slate-500/25 dark:bg-slate-800/40 dark:hover:border-[#2563EB]/30 dark:hover:bg-[#2563EB]/[0.08]"
             >
-              <span className="flex items-center gap-2 font-medium text-zinc-900">
-                <FileText className="h-5 w-5 shrink-0 text-[#7107E7]" weight="duotone" aria-hidden />
+              <span className="flex items-center gap-2 font-medium text-zinc-900 dark:text-slate-100">
+                <FileText className="h-5 w-5 shrink-0 text-[#2563EB] dark:text-sky-400" weight="duotone" aria-hidden />
                 Enter manually
               </span>
-              <span className="mt-2 block text-xs leading-relaxed text-zinc-500">
+              <span className="mt-2 block text-xs leading-relaxed text-zinc-500 dark:text-slate-400">
                 Same six sections as after a document upload — fill in what you need, then publish.
               </span>
             </button>
@@ -309,9 +428,9 @@ export function PortalDashboard({
 
       {portalTab === "vacancies" ? (
       <section>
-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Open listings</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-slate-500">Open listings</p>
         <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-slate-400">
             {openListingsFilter.trim()
               ? `${filteredOpenListings.length} of ${jobs.length} role${jobs.length === 1 ? "" : "s"}`
               : `${jobs.length} role${jobs.length === 1 ? "" : "s"}`}{" "}
@@ -319,13 +438,13 @@ export function PortalDashboard({
             {marketingRolesHref ? (
               <a
                 href={marketingRolesHref}
-                className="font-medium text-[#7107E7] underline-offset-2 hover:underline"
+                className="font-medium text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
               >
                 View on site
               </a>
             ) : (
               <span
-                className="cursor-not-allowed font-medium text-zinc-400"
+                className="cursor-not-allowed font-medium text-zinc-400 dark:text-slate-500"
                 title="On production, set NEXT_PUBLIC_MARKETING_SITE_URL on the portal host (e.g. Netlify env). Local dev can also infer from NEXT_PUBLIC_PORTAL_URL (e.g. :3001 → :3000)."
               >
                 View on site
@@ -334,14 +453,14 @@ export function PortalDashboard({
           </p>
           <label className="flex w-full min-w-0 max-w-full items-center gap-2 sm:max-w-sm">
             <span className="sr-only">Filter listings</span>
-            <MagnifyingGlass className="h-3.5 w-3.5 shrink-0 text-zinc-400" weight="duotone" aria-hidden />
+            <MagnifyingGlass className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-slate-500" weight="duotone" aria-hidden />
             <input
               id="portal-open-listings-filter"
               type="search"
               value={openListingsFilter}
               onChange={(e) => setOpenListingsFilter(e.target.value)}
               placeholder="Filter by title, company, ref…"
-              className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+              className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder:text-slate-500"
               autoComplete="off"
               aria-label="Filter open listings"
             />
@@ -354,24 +473,24 @@ export function PortalDashboard({
               return (
               <li
                 key={`${job.ref}-${job.id ?? ""}`}
-                className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3"
+                className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3 dark:border-slate-500/25 dark:bg-slate-800/40"
               >
                 <div className="min-w-0">
-                  <p className="font-mono text-[10px] text-zinc-400">{job.ref}</p>
-                  <p className="truncate text-sm font-medium text-zinc-900">{job.title}</p>
-                  <p className="truncate text-xs text-zinc-500">{job.companyName}</p>
+                  <p className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{job.ref}</p>
+                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-slate-100">{job.title}</p>
+                  <p className="truncate text-xs text-zinc-500 dark:text-slate-400">{job.companyName}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-3">
                   {publicJobHref ? (
                     <a
                       href={publicJobHref}
-                      className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
+                      className="text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
                     >
                       View
                     </a>
                   ) : (
                     <span
-                      className="cursor-not-allowed text-xs font-semibold text-zinc-400"
+                      className="cursor-not-allowed text-xs font-semibold text-zinc-400 dark:text-slate-500"
                       title="On production, set NEXT_PUBLIC_MARKETING_SITE_URL on the portal host (e.g. Netlify env). Local dev can also infer from NEXT_PUBLIC_PORTAL_URL (e.g. :3001 → :3000)."
                     >
                       View
@@ -383,7 +502,7 @@ export function PortalDashboard({
                       setJobToEdit(job);
                       setFlow("manual");
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 transition hover:text-[#5b06c2] hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] underline-offset-2 transition hover:text-[#1d4ed8] hover:underline dark:text-sky-400"
                     title="Edit this vacancy"
                   >
                     <PencilSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
@@ -392,7 +511,7 @@ export function PortalDashboard({
                   <button
                     type="button"
                     onClick={() => openApplicationsForJob(job)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 transition hover:text-[#5b06c2] hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] underline-offset-2 transition hover:text-[#1d4ed8] hover:underline dark:text-sky-400"
                     title="Open applications for this vacancy"
                   >
                     <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
@@ -401,7 +520,7 @@ export function PortalDashboard({
                   <button
                     type="button"
                     onClick={() => void copyJobPublicLink(job)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline dark:text-slate-400 dark:hover:text-slate-200"
                     title="Copy public link to this vacancy"
                   >
                     <Copy className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
@@ -411,7 +530,7 @@ export function PortalDashboard({
                     type="button"
                     aria-label={`Delete ${job.ref}`}
                     onClick={() => handleDelete(job)}
-                    className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-700"
+                    className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 dark:hover:text-red-400"
                   >
                     <Trash className="h-4 w-4" aria-hidden />
                   </button>
@@ -422,17 +541,20 @@ export function PortalDashboard({
           </ul>
         ) : null}
         {jobs.length > 0 && filteredOpenListings.length === 0 ? (
-          <p className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center text-sm text-zinc-600">
+          <p className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center text-sm text-zinc-600 dark:border-slate-500/30 dark:bg-slate-800/30 dark:text-slate-400">
             No listings match &ldquo;{openListingsFilter.trim()}&rdquo;. Try another search or clear the filter.
           </p>
         ) : null}
         {jobs.length === 0 ? (
-          <p className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center text-sm text-zinc-600">
+          <p className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-6 text-center text-sm text-zinc-600 dark:border-slate-500/30 dark:bg-slate-800/30 dark:text-slate-400">
             No open listings yet — add a role above.
           </p>
         ) : null}
       </section>
       ) : null}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

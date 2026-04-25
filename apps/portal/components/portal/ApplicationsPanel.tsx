@@ -112,8 +112,8 @@ function ScreeningCta({
   variant: "mobile" | "table";
 }) {
   const card =
-    "w-full max-w-full rounded-lg border border-[#7107E7]/30 bg-[#7107E7]/[0.07] px-2.5 py-2 text-left text-xs font-semibold leading-snug text-[#5b06c2] shadow-sm";
-  const mobileExtras = variant === "mobile" ? " transition hover:border-[#7107E7]/45 hover:bg-[#7107E7]/10 sm:max-w-xs sm:self-center" : " transition hover:border-[#7107E7]/45 hover:bg-[#7107E7]/10";
+    "w-full max-w-full rounded-lg border border-[#2563EB]/30 bg-[#2563EB]/[0.07] px-2.5 py-2 text-left text-xs font-semibold leading-snug text-[#1d4ed8] shadow-sm";
+  const mobileExtras = variant === "mobile" ? " transition hover:border-[#2563EB]/45 hover:bg-[#2563EB]/10 sm:max-w-xs sm:self-center" : " transition hover:border-[#2563EB]/45 hover:bg-[#2563EB]/10";
 
   if (r.screening) {
     return (
@@ -133,7 +133,7 @@ function ScreeningCta({
         aria-live="polite"
         className={`inline-flex items-center gap-2 ${card}${variant === "mobile" ? " sm:max-w-xs sm:self-center" : ""}`}
       >
-        <CircleNotch className="h-4 w-4 shrink-0 animate-spin text-[#7107E7]" weight="bold" aria-hidden />
+        <CircleNotch className="h-4 w-4 shrink-0 animate-spin text-[#2563EB]" weight="bold" aria-hidden />
         <span className="font-semibold">Screening loading…</span>
       </div>
     );
@@ -509,21 +509,21 @@ export function ApplicationsPanel({
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8">
+    <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8 dark:border-slate-500/25 dark:bg-[#243144]/80 dark:shadow-[0_12px_40px_-20px_rgba(0,0,0,0.35)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400">Candidates</p>
-          <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950">Applications</h2>
-          <p className="mt-1 max-w-xl text-sm text-zinc-500">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-slate-500">Candidates</p>
+          <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950 dark:text-slate-100">Applications</h2>
+          <p className="mt-1 max-w-xl text-sm text-zinc-500 dark:text-slate-400">
             Pick a vacancy (search as you type), then review applicants. Use the field below to filter rows by
             candidate name, job title, reference, company, or slug.
           </p>
         </div>
         <div className="flex w-full max-w-xl flex-col gap-3 lg:max-w-none lg:flex-1 lg:items-end xl:max-w-2xl">
           <div ref={vacancyComboRef} className="flex w-full min-w-0 flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-600" htmlFor="vacancy-combobox-input">
+            <label className="text-xs font-medium text-zinc-600 dark:text-slate-400" htmlFor="vacancy-combobox-input">
               <span className="inline-flex items-center gap-1.5">
-                <Funnel className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
+                <Funnel className="h-3.5 w-3.5 text-zinc-400 dark:text-slate-500" weight="duotone" aria-hidden />
                 Vacancy
               </span>
             </label>
@@ -554,7 +554,7 @@ export function ApplicationsPanel({
                   if (e.key === "Escape") setVacancyComboOpen(false);
                 }}
                 placeholder="Search by ref, title, company, or slug — then pick a row"
-                className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-3 pr-20 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+                className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-3 pr-20 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder:text-slate-500"
                 autoComplete="off"
               />
               <div className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
@@ -563,7 +563,7 @@ export function ApplicationsPanel({
                     type="button"
                     tabIndex={-1}
                     aria-label="Clear vacancy search"
-                    className="pointer-events-auto rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+                    className="pointer-events-auto rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       clearVacancyCombo();
@@ -576,7 +576,7 @@ export function ApplicationsPanel({
                   type="button"
                   tabIndex={-1}
                   aria-label={vacancyComboOpen ? "Close vacancy list" : "Open vacancy list"}
-                  className="pointer-events-auto rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+                  className="pointer-events-auto rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   onMouseDown={(e) => {
                     e.preventDefault();
                   }}
@@ -589,7 +589,7 @@ export function ApplicationsPanel({
                 <ul
                   id="vacancy-combobox-listbox"
                   role="listbox"
-                  className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 text-left text-sm shadow-lg ring-1 ring-zinc-950/5"
+                  className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 text-left text-sm shadow-lg ring-1 ring-zinc-950/5 dark:border-slate-500/30 dark:bg-slate-800 dark:ring-slate-900/30"
                 >
                   <li role="presentation" className="px-1">
                     <button
@@ -598,8 +598,8 @@ export function ApplicationsPanel({
                       aria-selected={filterKey === ""}
                       className={`flex w-full rounded-lg px-3 py-2 text-left transition ${
                         filterKey === ""
-                          ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]"
-                          : "text-zinc-800 hover:bg-[#7107E7]/10 hover:font-medium hover:text-[#5b06c2]"
+                          ? "bg-[#2563EB]/10 font-medium text-[#1d4ed8] dark:bg-sky-500/15 dark:text-sky-300"
+                          : "text-zinc-800 hover:bg-[#2563EB]/10 hover:font-medium hover:text-[#1d4ed8] dark:text-slate-200 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"
                       }`}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => selectVacancy("")}
@@ -618,8 +618,8 @@ export function ApplicationsPanel({
                           aria-selected={selected}
                           className={`flex w-full rounded-lg px-3 py-2 text-left transition ${
                             selected
-                              ? "bg-[#7107E7]/10 font-medium text-[#5b06c2]"
-                              : "text-zinc-800 hover:bg-[#7107E7]/10 hover:font-medium hover:text-[#5b06c2]"
+                              ? "bg-[#2563EB]/10 font-medium text-[#1d4ed8] dark:bg-sky-500/15 dark:text-sky-300"
+                              : "text-zinc-800 hover:bg-[#2563EB]/10 hover:font-medium hover:text-[#1d4ed8] dark:text-slate-200 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"
                           }`}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => selectVacancy(v)}
@@ -635,9 +635,9 @@ export function ApplicationsPanel({
               ) : null}
             </div>
           </div>
-          <label className="flex w-full min-w-0 flex-col gap-1.5 text-xs font-medium text-zinc-600">
+          <label className="flex w-full min-w-0 flex-col gap-1.5 text-xs font-medium text-zinc-600 dark:text-slate-400">
             <span className="inline-flex items-center gap-1.5">
-              <MagnifyingGlass className="h-3.5 w-3.5 text-zinc-400" weight="duotone" aria-hidden />
+              <MagnifyingGlass className="h-3.5 w-3.5 text-zinc-400 dark:text-slate-500" weight="duotone" aria-hidden />
               Filter applicants by job or name
             </span>
             <input
@@ -645,7 +645,7 @@ export function ApplicationsPanel({
               value={vacancyRowSearch}
               onChange={(e) => setVacancyRowSearch(e.target.value)}
               placeholder="Match name, title, ref, company, or slug on each row…"
-              className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+              className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder:text-slate-500"
               autoComplete="off"
             />
           </label>
@@ -653,7 +653,7 @@ export function ApplicationsPanel({
             <button
               type="button"
               onClick={() => void load()}
-              className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100"
+              className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-slate-500/25 dark:bg-slate-800/40 dark:text-slate-200 dark:hover:bg-slate-800/70"
             >
               Refresh
             </button>
@@ -662,9 +662,9 @@ export function ApplicationsPanel({
               disabled={loading || !rows?.length}
               onClick={downloadAllApplicationsCsv}
               title="Download every application in your account as a CSV (not limited by the vacancy filter)."
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-500/25 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
             >
-              <FileCsv className="h-4 w-4 text-[#7107E7]" weight="duotone" aria-hidden />
+              <FileCsv className="h-4 w-4 text-[#2563EB]" weight="duotone" aria-hidden />
               Download CSV
             </button>
           </div>
@@ -673,24 +673,24 @@ export function ApplicationsPanel({
 
       {!loading && rows !== null && newApplicationCount > 0 ? (
         <div
-          className="mt-6 flex flex-col gap-2 rounded-2xl border border-[#7107E7]/25 bg-gradient-to-br from-[#7107E7]/[0.08] via-white to-amber-50/30 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+          className="mt-6 flex flex-col gap-2 rounded-2xl border border-[#2563EB]/25 bg-gradient-to-br from-[#2563EB]/[0.08] via-white to-amber-50/30 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 dark:border-sky-500/20 dark:from-sky-500/10 dark:via-slate-800/40 dark:to-slate-800/20"
           role="status"
           aria-live="polite"
         >
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7107E7]/15 text-[#5b06c2]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/15 text-[#1d4ed8] dark:bg-sky-500/20 dark:text-sky-300">
               <Bell className="h-5 w-5" weight="duotone" aria-hidden />
             </span>
             <div>
-              <p className="font-display text-lg font-semibold text-zinc-950">
+              <p className="font-display text-lg font-semibold text-zinc-950 dark:text-slate-100">
                 {newApplicationCount} new {newApplicationCount === 1 ? "application" : "applications"}
               </p>
-              <p className="mt-0.5 text-sm text-zinc-600">
+              <p className="mt-0.5 text-sm text-zinc-600 dark:text-slate-400">
                 {activeFilterLabel ? (
                   <>
-                    In this filter: <span className="font-medium text-zinc-800">{activeFilterLabel}</span>
+                    In this filter: <span className="font-medium text-zinc-800 dark:text-slate-200">{activeFilterLabel}</span>
                     {filterKey.startsWith("ref:") ? (
-                      <span className="text-zinc-400"> · by job reference</span>
+                      <span className="text-zinc-400 dark:text-slate-500"> · by job reference</span>
                     ) : null}
                   </>
                 ) : (
@@ -709,9 +709,9 @@ export function ApplicationsPanel({
       ) : null}
 
       {loading ? (
-        <p className="mt-8 text-sm text-zinc-500">Loading…</p>
+        <p className="mt-8 text-sm text-zinc-500 dark:text-slate-400">Loading…</p>
       ) : err ? null : displayed.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-10 text-center text-sm text-zinc-500">
+        <div className="mt-8 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 px-4 py-10 text-center text-sm text-zinc-500 dark:border-slate-500/30 dark:bg-slate-800/30 dark:text-slate-400">
           <p>
             {!rows?.length
               ? "No applications yet."
@@ -733,11 +733,11 @@ export function ApplicationsPanel({
               return (
               <li
                 key={r.id}
-                className="rounded-xl border border-zinc-200/90 bg-white p-4 shadow-sm ring-1 ring-zinc-100"
+                className="rounded-xl border border-zinc-200/90 bg-white p-4 shadow-sm ring-1 ring-zinc-100 dark:border-slate-500/25 dark:bg-slate-800/40 dark:ring-slate-600/20"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-medium text-zinc-950">
+                    <p className="font-medium text-zinc-950 dark:text-slate-100">
                       {r.firstName} {r.lastName}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-500">{formatDate(r.createdAt)}</p>
@@ -746,7 +746,7 @@ export function ApplicationsPanel({
                     value={r.status}
                     title={JOB_APPLICATION_STATUS_LABELS[r.status]}
                     onChange={(e) => void updateStatus(r.id, e.target.value as JobApplicationStatus)}
-                    className="max-w-[min(100%,9rem)] min-w-0 shrink-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+                    className="max-w-[min(100%,9rem)] min-w-0 shrink-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
                   >
                     {JOB_APPLICATION_STATUSES.map((s) => (
                       <option key={s} value={s}>
@@ -755,13 +755,13 @@ export function ApplicationsPanel({
                     ))}
                   </select>
                 </div>
-                <div className="mt-3 space-y-1 border-t border-zinc-100 pt-3 text-xs">
-                  <p className="font-mono text-[10px] text-zinc-400">{r.jobRef}</p>
+                <div className="mt-3 space-y-1 border-t border-zinc-100 pt-3 text-xs dark:border-slate-600/40">
+                  <p className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{r.jobRef}</p>
                   {r.jobSlug?.trim() ? (
                     jobPublicHref ? (
                       <a
                         href={jobPublicHref}
-                        className="block w-full text-left font-medium text-[#7107E7] underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
+                        className="block w-full text-left font-medium text-[#2563EB] underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
                       >
                         {r.jobTitle}
                       </a>
@@ -774,12 +774,12 @@ export function ApplicationsPanel({
                       </span>
                     )
                   ) : (
-                    <p className="font-medium text-zinc-900">{r.jobTitle}</p>
+                    <p className="font-medium text-zinc-900 dark:text-slate-100">{r.jobTitle}</p>
                   )}
-                  <p className="text-zinc-500">{r.companyName}</p>
+                  <p className="text-zinc-500 dark:text-slate-400">{r.companyName}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                  <a href={`mailto:${r.email}`} className="font-medium text-[#7107E7] underline-offset-2 hover:underline">
+                  <a href={`mailto:${r.email}`} className="font-medium text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400">
                     {r.email}
                   </a>
                   {r.phone ? (
@@ -792,7 +792,7 @@ export function ApplicationsPanel({
                   <button
                     type="button"
                     onClick={() => void downloadCv(r.id)}
-                    className="inline-flex w-fit items-center gap-1 self-end text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline sm:self-center"
+                    className="inline-flex w-fit items-center gap-1 self-end text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline sm:self-center"
                   >
                     <DownloadSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
                     Download CV
@@ -821,14 +821,14 @@ export function ApplicationsPanel({
 
           {/* Desktop table — column widths persist per signed-in user (localStorage) */}
           <div className="mt-6 hidden md:block">
-            <p className="mb-2 text-xs text-zinc-400">
-              Drag the <span className="font-medium text-zinc-500">⋮⋮</span> handle to reorder columns. Drag column
+            <p className="mb-2 text-xs text-zinc-400 dark:text-slate-500">
+              Drag the <span className="font-medium text-zinc-500 dark:text-slate-400">⋮⋮</span> handle to reorder columns. Drag column
               borders to resize. Order and widths are saved for your account on this browser. Job titles link to the
-              public vacancy page. Use <span className="font-medium text-zinc-500">View screening</span> when AI
+              public vacancy page. Use <span className="font-medium text-zinc-500 dark:text-slate-400">View screening</span> when AI
               screening data is available.
             </p>
-            <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-zinc-200/90">
-              <table className="w-full min-w-0 table-fixed divide-y divide-zinc-200 text-left text-sm">
+            <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-zinc-200/90 dark:border-slate-500/30">
+              <table className="w-full min-w-0 table-fixed divide-y divide-zinc-200 text-left text-sm dark:divide-slate-600/35">
                 <colgroup>
                   {columnOrder.map((logical) => (
                     <col
@@ -840,7 +840,7 @@ export function ApplicationsPanel({
                     />
                   ))}
                 </colgroup>
-                <thead className="bg-zinc-50/90 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <thead className="bg-zinc-50/90 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:bg-slate-800/50 dark:text-slate-400">
                   <tr>
                     {columnOrder.map((logical, visualIndex) => {
                       const meta = APPLICATIONS_TABLE_COLUMNS[logical];
@@ -885,7 +885,7 @@ export function ApplicationsPanel({
                               tabIndex={-1}
                               aria-label={`Resize between ${meta.label} and next column`}
                               title="Drag to resize column"
-                              className="absolute right-0 top-0 z-10 h-full w-3 translate-x-1/2 cursor-col-resize border-0 bg-transparent p-0 hover:bg-[#7107E7]/20 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
+                              className="absolute right-0 top-0 z-10 h-full w-3 translate-x-1/2 cursor-col-resize border-0 bg-transparent p-0 hover:bg-[#2563EB]/20 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
                               onMouseDown={onResizeBetweenLogical(logical, columnOrder[visualIndex + 1]!)}
                             />
                           ) : null}
@@ -894,26 +894,26 @@ export function ApplicationsPanel({
                     })}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 bg-white">
+                <tbody className="divide-y divide-zinc-100 bg-white dark:divide-slate-600/30 dark:bg-slate-800/30">
                   {displayed.map((r) => {
                     const jobPublicHref = jobVacancyExternalHref(r, tenantId);
                     return (
                     <Fragment key={r.id}>
-                      <tr className="align-top text-zinc-800 transition hover:bg-zinc-50/80">
+                      <tr className="align-top text-zinc-800 transition hover:bg-zinc-50/80 dark:text-slate-200 dark:hover:bg-slate-800/50">
                       {columnOrder.map((logical) => {
                         switch (logical) {
                           case 0:
                             return (
                               <td
                                 key={logical}
-                                className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-3 py-3 text-xs text-zinc-500 sm:px-4"
+                                className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-3 py-3 text-xs text-zinc-500 sm:px-4 dark:text-slate-400"
                               >
                                 {formatDate(r.createdAt)}
                               </td>
                             );
                           case 1:
                             return (
-                              <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 font-medium text-zinc-950 sm:px-4">
+                              <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 font-medium text-zinc-950 sm:px-4 dark:text-slate-100">
                                 <span className="line-clamp-2 break-words">
                                   {r.firstName} {r.lastName}
                                 </span>
@@ -924,12 +924,12 @@ export function ApplicationsPanel({
                               <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 text-xs sm:px-4">
                                 <a
                                   href={`mailto:${r.email}`}
-                                  className="break-all text-[#7107E7] underline-offset-2 hover:underline"
+                                  className="break-all text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
                                 >
                                   {r.email}
                                 </a>
                                 {r.phone ? (
-                                  <p className="mt-1 text-zinc-600">
+                                  <p className="mt-1 text-zinc-600 dark:text-slate-400">
                                     <a href={`tel:${r.phone}`} className="hover:underline">
                                       {r.phone}
                                     </a>
@@ -940,13 +940,13 @@ export function ApplicationsPanel({
                           case 3:
                             return (
                               <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 text-xs sm:px-4">
-                                <span className="font-mono text-[10px] text-zinc-400">{r.jobRef}</span>
+                                <span className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{r.jobRef}</span>
                                 {r.jobSlug?.trim() ? (
                                   jobPublicHref ? (
                                     <a
                                       href={jobPublicHref}
                                       title="Open public job page"
-                                      className="mt-0.5 block w-full max-w-full text-left font-medium text-[#7107E7] underline-offset-2 line-clamp-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
+                                      className="mt-0.5 block w-full max-w-full text-left font-medium text-[#2563EB] underline-offset-2 line-clamp-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35 dark:text-sky-400"
                                     >
                                       {r.jobTitle}
                                     </a>
@@ -959,9 +959,9 @@ export function ApplicationsPanel({
                                     </span>
                                   )
                                 ) : (
-                                  <p className="mt-0.5 line-clamp-2 font-medium text-zinc-900">{r.jobTitle}</p>
+                                  <p className="mt-0.5 line-clamp-2 font-medium text-zinc-900 dark:text-slate-100">{r.jobTitle}</p>
                                 )}
-                                <p className="line-clamp-1 text-zinc-500">{r.companyName}</p>
+                                <p className="line-clamp-1 text-zinc-500 dark:text-slate-400">{r.companyName}</p>
                               </td>
                             );
                           case 4:
@@ -974,7 +974,7 @@ export function ApplicationsPanel({
                                   value={r.status}
                                   title={JOB_APPLICATION_STATUS_LABELS[r.status]}
                                   onChange={(e) => void updateStatus(r.id, e.target.value as JobApplicationStatus)}
-                                  className="box-border w-full min-w-0 max-w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#7107E7]/40 focus:ring-2 focus:ring-[#7107E7]/12"
+                                  className="box-border w-full min-w-0 max-w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
                                 >
                                   {JOB_APPLICATION_STATUSES.map((s) => (
                                     <option key={s} value={s}>
@@ -994,7 +994,7 @@ export function ApplicationsPanel({
                                   <button
                                     type="button"
                                     onClick={() => void downloadCv(r.id)}
-                                    className="inline-flex w-fit shrink-0 items-center gap-1 text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
+                                    className="inline-flex w-fit shrink-0 items-center gap-1 text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
                                   >
                                     <DownloadSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
                                     Download CV

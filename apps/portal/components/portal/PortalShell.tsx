@@ -13,6 +13,20 @@ import {
 import { PortalChrome } from "@/components/portal/PortalChrome";
 import { PortalDashboard } from "@/components/portal/PortalDashboard";
 import { PortalLogin } from "@/components/portal/PortalLogin";
+import { PortalThemeProvider } from "@/components/portal/PortalThemeToggle";
+
+function PortalInterstitial({ title, message }: { title: string; message?: string }) {
+  return (
+    <div className="mx-auto max-w-sm rounded-2xl border border-slate-200/80 bg-white/90 px-8 py-10 text-center shadow-[0_16px_48px_-20px_rgba(15,23,42,0.12)]">
+      <div
+        className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[#2563EB]"
+        aria-hidden
+      />
+      <p className="font-display text-sm font-semibold text-[#0B1F3A]">{title}</p>
+      {message ? <p className="mt-1 text-xs text-slate-500">{message}</p> : null}
+    </div>
+  );
+}
 
 function useSyncPortalTenantCookieWithClaim(
   user: User | null,
@@ -125,15 +139,17 @@ export function PortalShell({
     }
   }, [user, user?.uid, tenantClaimMode]);
   useEffect(() => {
-    const onBfcacheRestore = (e: PageTransitionEvent) => {
-      if (!e.persisted) return;
-      lastVerifiedClaimUid.current = null;
-      const { user: u, tenantClaimMode: tcm } = claimContextRef.current;
-      if (u && tcm) setClaimAccessOk(false);
+    const onHistoryShow = (e: PageTransitionEvent) => {
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      const isBackForward = e.persisted || nav?.type === "back_forward";
+      if (!isBackForward) return;
+      // Re-run tenant sync, but do not block the dashboard on "Signing you in…" — the same user/session is
+      // restored; clearing claim state here raced with router.refresh() and could leave the UI stuck until
+      // a manual refresh. Cookie sync still runs via bfcacheNonce; 403 from the API signs out as before.
       setBfcacheNonce((n) => n + 1);
     };
-    window.addEventListener("pageshow", onBfcacheRestore);
-    return () => window.removeEventListener("pageshow", onBfcacheRestore);
+    window.addEventListener("pageshow", onHistoryShow);
+    return () => window.removeEventListener("pageshow", onHistoryShow);
   }, []);
   useSyncPortalTenantCookieWithClaim(
     user,
@@ -171,7 +187,7 @@ export function PortalShell({
     return (
       <PortalChrome tenantId={tenantId}>
         <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-          <p className="mx-auto max-w-2xl text-center text-sm text-zinc-500">Loading…</p>
+          <PortalInterstitial title="Loading…" message="Preparing your workspace" />
         </main>
       </PortalChrome>
     );
@@ -197,26 +213,30 @@ export function PortalShell({
     return (
       <PortalChrome tenantId={tenantId}>
         <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-          <p className="mx-auto max-w-2xl text-center text-sm text-zinc-500">Signing in…</p>
+          <PortalInterstitial title="Signing you in…" message="Verifying your organization" />
         </main>
       </PortalChrome>
     );
   }
 
   return (
-    <PortalChrome tenantId={tenantId}>
-      <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+    <PortalChrome tenantId={tenantId} layout="app">
+      <main className="relative z-10 flex min-w-0 flex-1 flex-col">
         <Suspense
           fallback={
-            <div className="mx-auto max-w-5xl py-12 text-center text-sm text-zinc-500">Loading portal…</div>
+            <div className="flex flex-1 items-center justify-center py-16">
+              <p className="text-sm font-medium text-slate-500">Loading portal…</p>
+            </div>
           }
         >
-          <PortalDashboard
-            initialJobs={initialJobs}
-            tenantId={tenantId}
-            user={user}
-            displayName={user.displayName ?? user.email ?? "Recruiter"}
-          />
+          <PortalThemeProvider>
+            <PortalDashboard
+              initialJobs={initialJobs}
+              tenantId={tenantId}
+              user={user}
+              displayName={user.displayName ?? user.email ?? "Recruiter"}
+            />
+          </PortalThemeProvider>
         </Suspense>
       </main>
     </PortalChrome>
