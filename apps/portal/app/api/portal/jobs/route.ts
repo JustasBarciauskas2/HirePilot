@@ -140,7 +140,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
   revalidatePath("/");
-  await revalidateMarketingSite({ jobSlug: jobToSave.slug });
+  await revalidateMarketingSite({ jobSlug: jobToSave.slug, tenantId });
 
   return Response.json({ ok: true, job: jobToSave, backend });
 }

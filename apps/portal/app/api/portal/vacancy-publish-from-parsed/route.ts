@@ -124,7 +124,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     addJob(jobToSave);
     revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
     revalidatePath("/");
-    await revalidateMarketingSite({ jobSlug: jobToSave.slug });
+    await revalidateMarketingSite({ jobSlug: jobToSave.slug, tenantId });
   } catch (e) {
     console.error(LOG, "POST failed after backend (jobs store / revalidate)", e);
     throw e;
@@ -236,7 +236,7 @@ export async function PUT(req: NextRequest): Promise<Response> {
     upsertJobInStore(prev, jobToSave);
     revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
     revalidatePath("/");
-    await revalidateMarketingSite({ jobSlug: jobToSave.slug });
+    await revalidateMarketingSite({ jobSlug: jobToSave.slug, tenantId });
   } catch (e) {
     console.error(LOG, "PUT failed after backend (jobs store / revalidate)", e);
     throw e;

@@ -13,7 +13,7 @@ import { useApplicationsTableColumnOrder } from "@techrecruit/shared/hooks/useAp
 import { useApplicationsTableColumnWidths } from "@techrecruit/shared/hooks/useApplicationsTableColumnWidths";
 import { APPLICATIONS_TABLE_COLUMNS } from "@techrecruit/shared/lib/applications-table-columns";
 import { buildApplicationsCsv, triggerCsvDownload } from "@techrecruit/shared/lib/applications-csv";
-import { getPublicJobPageUrlForTenant } from "@techrecruit/shared/lib/portal-tenant";
+import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import {
   Bell,
@@ -27,7 +27,6 @@ import {
   X,
 } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -95,10 +94,10 @@ function formatJobLabel(j: JobDetail): string {
 }
 
 /** Absolute public job URL on the marketing site (portal has no `/jobs/[slug]` route). */
-function jobVacancyHref(r: JobApplicationRecordClient, tenantId: string): string {
+function jobVacancyExternalHref(r: JobApplicationRecordClient, tenantId: string): string | null {
   const slug = r.jobSlug?.trim();
-  if (!slug) return "#";
-  return getPublicJobPageUrlForTenant(tenantId, slug);
+  if (!slug) return null;
+  return publicJobPageHttpHrefForPortalTenant(tenantId, slug);
 }
 
 function ScreeningCta({
@@ -253,57 +252,83 @@ export function ApplicationsPanel({
     [pathname, router, searchParams, tenantId],
   );
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setErr(null);
-    setRows(null);
-    try {
-      const headers = await portalAuthHeaders(user, tenantId);
-      const res = await fetch("/api/portal/applications", {
-        headers,
-        credentials: "include",
-        cache: "no-store",
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        applications?: JobApplicationRecordClient[];
-        error?: string;
-        detail?: string;
-      };
-      if (!res.ok) {
-        const base = typeof data.error === "string" ? data.error : `Failed (${res.status})`;
-        const extra = typeof data.detail === "string" && data.detail.trim() ? `: ${data.detail.trim()}` : "";
-        throw new Error(base + extra);
-      }
-      setRows(data.applications ?? []);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not load applications.");
+  const load = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      setErr(null);
       setRows(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, tenantId]);
+      try {
+        const fetchList = async (forceRefresh: boolean) =>
+          fetch("/api/portal/applications", {
+            signal,
+            headers: await portalAuthHeaders(user, tenantId, { forceRefreshToken: forceRefresh }),
+            credentials: "include",
+            cache: "no-store",
+          });
+        let res = await fetchList(false);
+        if (res.status === 401) {
+          res = await fetchList(true);
+        }
+        if (signal?.aborted) return;
+        const data = (await res.json().catch(() => ({}))) as {
+          applications?: JobApplicationRecordClient[];
+          error?: string;
+          detail?: string;
+        };
+        if (!res.ok) {
+          const base = typeof data.error === "string" ? data.error : `Failed (${res.status})`;
+          const extra =
+            typeof data.detail === "string" && data.detail.trim() ? `: ${data.detail.trim()}` : "";
+          throw new Error(base + extra);
+        }
+        setRows(data.applications ?? []);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        if (signal?.aborted) return;
+        setErr(e instanceof Error ? e.message : "Could not load applications.");
+        setRows(null);
+      } finally {
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
+      }
+    },
+    [user, tenantId],
+  );
 
   /** Refetch without clearing the table — used while screening is still processing. */
-  const refreshApplicationsSilently = useCallback(async () => {
-    try {
-      const headers = await portalAuthHeaders(user, tenantId);
-      const res = await fetch("/api/portal/applications", {
-        headers,
-        credentials: "include",
-        cache: "no-store",
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        applications?: JobApplicationRecordClient[];
-      };
-      if (!res.ok) return;
-      setRows(data.applications ?? []);
-    } catch {
-      /* keep existing rows */
-    }
-  }, [user, tenantId]);
+  const refreshApplicationsSilently = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        const fetchList = async (forceRefresh: boolean) =>
+          fetch("/api/portal/applications", {
+            signal,
+            headers: await portalAuthHeaders(user, tenantId, { forceRefreshToken: forceRefresh }),
+            credentials: "include",
+            cache: "no-store",
+          });
+        let res = await fetchList(false);
+        if (res.status === 401) {
+          res = await fetchList(true);
+        }
+        if (signal?.aborted) return;
+        const data = (await res.json().catch(() => ({}))) as {
+          applications?: JobApplicationRecordClient[];
+        };
+        if (!res.ok) return;
+        setRows(data.applications ?? []);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        /* keep existing rows */
+      }
+    },
+    [user, tenantId],
+  );
 
   useEffect(() => {
-    void load();
+    const ac = new AbortController();
+    void load(ac.signal);
+    return () => ac.abort();
   }, [load]);
 
   /** Warm token cache so PATCH does not wait on a cold `getIdToken()` after the user picks a status. */
@@ -318,8 +343,16 @@ export function ApplicationsPanel({
 
   useEffect(() => {
     if (!hasPendingScreening) return;
-    const id = window.setInterval(() => void refreshApplicationsSilently(), 4000);
-    return () => window.clearInterval(id);
+    let inFlight: AbortController | null = null;
+    const id = window.setInterval(() => {
+      inFlight?.abort();
+      inFlight = new AbortController();
+      void refreshApplicationsSilently(inFlight.signal);
+    }, 4000);
+    return () => {
+      window.clearInterval(id);
+      inFlight?.abort();
+    };
   }, [hasPendingScreening, refreshApplicationsSilently]);
 
   async function updateStatus(id: string, status: JobApplicationStatus) {
@@ -696,7 +729,9 @@ export function ApplicationsPanel({
         <>
           {/* Mobile cards */}
           <ul className="mt-6 space-y-3 md:hidden">
-            {displayed.map((r) => (
+            {displayed.map((r) => {
+              const jobPublicHref = jobVacancyExternalHref(r, tenantId);
+              return (
               <li
                 key={r.id}
                 className="rounded-xl border border-zinc-200/90 bg-white p-4 shadow-sm ring-1 ring-zinc-100"
@@ -724,12 +759,21 @@ export function ApplicationsPanel({
                 <div className="mt-3 space-y-1 border-t border-zinc-100 pt-3 text-xs">
                   <p className="font-mono text-[10px] text-zinc-400">{r.jobRef}</p>
                   {r.jobSlug?.trim() ? (
-                    <Link
-                      href={jobVacancyHref(r, tenantId)}
-                      className="block w-full text-left font-medium text-[#7107E7] underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
-                    >
-                      {r.jobTitle}
-                    </Link>
+                    jobPublicHref ? (
+                      <a
+                        href={jobPublicHref}
+                        className="block w-full text-left font-medium text-[#7107E7] underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
+                      >
+                        {r.jobTitle}
+                      </a>
+                    ) : (
+                      <span
+                        className="block w-full cursor-not-allowed text-left font-medium text-zinc-500"
+                        title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+                      >
+                        {r.jobTitle}
+                      </span>
+                    )
                   ) : (
                     <p className="font-medium text-zinc-900">{r.jobTitle}</p>
                   )}
@@ -772,7 +816,8 @@ export function ApplicationsPanel({
                   </div>
                 ) : null}
               </li>
-            ))}
+              );
+            })}
           </ul>
 
           {/* Desktop table — column widths persist per signed-in user (localStorage) */}
@@ -851,7 +896,9 @@ export function ApplicationsPanel({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 bg-white">
-                  {displayed.map((r) => (
+                  {displayed.map((r) => {
+                    const jobPublicHref = jobVacancyExternalHref(r, tenantId);
+                    return (
                     <Fragment key={r.id}>
                       <tr className="align-top text-zinc-800 transition hover:bg-zinc-50/80">
                       {columnOrder.map((logical) => {
@@ -896,13 +943,22 @@ export function ApplicationsPanel({
                               <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 text-xs sm:px-4">
                                 <span className="font-mono text-[10px] text-zinc-400">{r.jobRef}</span>
                                 {r.jobSlug?.trim() ? (
-                                  <Link
-                                    href={jobVacancyHref(r, tenantId)}
-                                    title="Open public job page"
-                                    className="mt-0.5 block w-full max-w-full text-left font-medium text-[#7107E7] underline-offset-2 line-clamp-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
-                                  >
-                                    {r.jobTitle}
-                                  </Link>
+                                  jobPublicHref ? (
+                                    <a
+                                      href={jobPublicHref}
+                                      title="Open public job page"
+                                      className="mt-0.5 block w-full max-w-full text-left font-medium text-[#7107E7] underline-offset-2 line-clamp-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#7107E7]/35"
+                                    >
+                                      {r.jobTitle}
+                                    </a>
+                                  ) : (
+                                    <span
+                                      className="mt-0.5 line-clamp-2 cursor-not-allowed font-medium text-zinc-500"
+                                      title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+                                    >
+                                      {r.jobTitle}
+                                    </span>
+                                  )
                                 ) : (
                                   <p className="mt-0.5 line-clamp-2 font-medium text-zinc-900">{r.jobTitle}</p>
                                 )}
@@ -971,7 +1027,8 @@ export function ApplicationsPanel({
                         </tr>
                       ) : null}
                     </Fragment>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>

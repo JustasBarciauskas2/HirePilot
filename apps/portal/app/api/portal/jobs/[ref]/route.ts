@@ -85,7 +85,7 @@ export async function DELETE(req: NextRequest, ctx: RouteContext): Promise<Respo
 
   revalidateTag(VACANCIES_LIST_FETCH_TAG, "max");
   revalidatePath("/");
-  await revalidateMarketingSite({ jobSlug: slug });
+  await revalidateMarketingSite({ jobSlug: slug, tenantId });
 
   return Response.json({ ok: true, backend, removedLocal });
 }

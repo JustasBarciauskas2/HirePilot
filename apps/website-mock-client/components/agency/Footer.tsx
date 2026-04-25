@@ -1,14 +1,12 @@
+import {
+  buildRecruiterPortalFooterHref,
+  recruiterPortalLinkOpenProps,
+} from "@techrecruit/shared/lib/recruiter-portal-link";
 import Link from "next/link";
 
-function recruiterPortalHref(): string {
-  const base = process.env.NEXT_PUBLIC_PORTAL_URL?.trim().replace(/\/$/, "");
-  const tenant = process.env.NEXT_PUBLIC_TENANT_ID?.trim();
-  const qs = tenant ? `?tenant=${encodeURIComponent(tenant)}` : "";
-  if (base) return `${base}/${qs}`;
-  return `http://localhost:3001/${qs}`;
-}
-
 export function Footer() {
+  const portalHref = buildRecruiterPortalFooterHref();
+  const portalOpen = portalHref ? recruiterPortalLinkOpenProps(portalHref) : {};
   return (
     <footer className="relative z-10 border-t border-zinc-200/80 bg-zinc-100/40">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
@@ -81,9 +79,22 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <a href={recruiterPortalHref()} className="transition hover:text-[#7107E7]">
-                    Recruiter portal
-                  </a>
+                  {portalHref ? (
+                    <a
+                      href={portalHref}
+                      className="transition hover:text-[#7107E7]"
+                      {...portalOpen}
+                    >
+                      Recruiter portal
+                    </a>
+                  ) : (
+                    <span
+                      className="text-zinc-400"
+                      title="Set NEXT_PUBLIC_PORTAL_URL on this marketing site’s build (your deployed portal origin)."
+                    >
+                      Recruiter portal
+                    </span>
+                  )}
                 </li>
               </ul>
             </div>

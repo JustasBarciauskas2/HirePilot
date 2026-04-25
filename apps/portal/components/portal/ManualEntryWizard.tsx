@@ -3,10 +3,9 @@
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import type { User } from "firebase/auth";
 import { ArrowLeft } from "@phosphor-icons/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { getPublicJobPageUrlForTenant } from "@techrecruit/shared/lib/portal-tenant";
+import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 import { mergeVacancyDefaults } from "@techrecruit/shared/lib/merge-vacancy-defaults";
 import { normalizedVacancyFromJobDetail } from "@techrecruit/shared/lib/job-to-normalized-vacancy";
 import { VacancyPreviewEditor } from "@/components/portal/VacancyPreviewEditor";
@@ -21,7 +20,13 @@ type Props = {
   onAfterPublish?: () => void;
 };
 
-export function ManualEntryWizard({ user, tenantId, onBack, jobToEdit = null, onAfterPublish }: Props) {
+export function ManualEntryWizard({
+  user,
+  tenantId,
+  onBack,
+  jobToEdit = null,
+  onAfterPublish,
+}: Props) {
   const router = useRouter();
   const initialVacancy = useMemo(
     () =>
@@ -71,25 +76,39 @@ export function ManualEntryWizard({ user, tenantId, onBack, jobToEdit = null, on
       </p>
 
       {publishedJob ? (
-        <div className="mt-8 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 p-6 text-center">
-          <p className="font-medium text-emerald-950">{publishedJob.title}</p>
-          <p className="mt-1 font-mono text-xs text-emerald-800">{publishedJob.ref}</p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href={getPublicJobPageUrlForTenant(tenantId, publishedJob.slug)}
-              className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.35)] transition hover:bg-[#5b06c2]"
-            >
-              View listing
-            </Link>
-            <button
-              type="button"
-              onClick={goBackToChoose}
-              className="text-sm font-medium text-emerald-900 underline-offset-4 hover:underline"
-            >
-              Add another role
-            </button>
-          </div>
-        </div>
+        (() => {
+          const viewHref = publicJobPageHttpHrefForPortalTenant(tenantId, publishedJob.slug);
+          return (
+            <div className="mt-8 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 p-6 text-center">
+              <p className="font-medium text-emerald-950">{publishedJob.title}</p>
+              <p className="mt-1 font-mono text-xs text-emerald-800">{publishedJob.ref}</p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                {viewHref ? (
+                  <a
+                    href={viewHref}
+                    className="inline-flex items-center justify-center rounded-xl bg-[#7107E7] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(113,7,231,0.35)] transition hover:bg-[#5b06c2]"
+                  >
+                    View listing
+                  </a>
+                ) : (
+                  <span
+                    className="inline-flex cursor-not-allowed items-center justify-center rounded-xl bg-zinc-300 px-5 py-2.5 text-sm font-semibold text-white"
+                    title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+                  >
+                    View listing
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={goBackToChoose}
+                  className="text-sm font-medium text-emerald-900 underline-offset-4 hover:underline"
+                >
+                  Add another role
+                </button>
+              </div>
+            </div>
+          );
+        })()
       ) : (
         <VacancyPreviewEditor
           key={jobToEdit ? `${jobToEdit.ref}-${jobToEdit.id ?? ""}` : "create"}

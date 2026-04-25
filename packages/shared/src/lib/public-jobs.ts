@@ -6,9 +6,12 @@ import { readJobs } from "@techrecruit/shared/lib/jobs-store";
 /**
  * Jobs shown on the public site (home + /jobs/[ref]) and portal “Open listings”.
  *
- * When a vacancies list URL is configured and the GET **succeeds**, we show **only** that response (no merge with `jobs.json`).
+ * When a vacancies list URL is configured and the GET **succeeds**, the list is the primary source for listings.
  * When the GET **fails**, we show **no** vacancies.
  * If no list URL is configured, we use `data/jobs.json` only.
+ *
+ * **Detail pages:** {@link getPublicJobBySlug} also checks `data/jobs.json` when the slug is missing from the API
+ * list so a role the portal just wrote locally still opens (backend list can lag behind publish).
  */
 export const getPublicJobs = cache(async (): Promise<JobDetail[]> => {
   const result = await fetchTenantVacanciesResult();
@@ -28,7 +31,12 @@ export async function getPublicJobsForTenant(tenantId: string): Promise<JobDetai
 export async function getPublicJobBySlug(slug: string): Promise<JobDetail | undefined> {
   const jobs = await getPublicJobs();
   const key = slug.toLowerCase();
-  return jobs.find((j) => j.slug.toLowerCase() === key);
+  const fromList = jobs.find((j) => j.slug.toLowerCase() === key);
+  if (fromList) return fromList;
+  const fromFile = readJobs();
+  const bySlug = fromFile.find((j) => j.slug.toLowerCase() === key);
+  if (bySlug) return bySlug;
+  return fromFile.find((j) => j.ref.toLowerCase() === key);
 }
 
 /**

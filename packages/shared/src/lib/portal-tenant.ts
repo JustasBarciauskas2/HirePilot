@@ -123,6 +123,34 @@ export function getPortalTenantFromRequest(req: NextRequest): PortalTenantResult
   };
 }
 
+/**
+ * Normalizes a marketing site origin from env (often missing `https://`, e.g. `localhost:3000` or `mysite.netlify.app`).
+ * Without a scheme, `portalExternalMarketingHref` would reject the built URL and “View” links would not navigate.
+ */
+export function normalizeMarketingSiteOriginForPortalLinks(raw: string): string | null {
+  const t = raw.trim().replace(/\/$/, "");
+  if (!t) return null;
+  if (/^https?:\/\//i.test(t)) {
+    try {
+      return new URL(t).origin;
+    } catch {
+      return null;
+    }
+  }
+  const host = t.replace(/^\/+/, "");
+  const looksLocal =
+    /^localhost\b/i.test(host) ||
+    /^127\.0\.0\.1\b/i.test(host) ||
+    /^localhost:\d+/i.test(host) ||
+    /^127\.0\.0\.1:\d+/i.test(host);
+  const scheme = looksLocal ? "http" : "https";
+  try {
+    return new URL(`${scheme}://${host}`).origin;
+  } catch {
+    return null;
+  }
+}
+
 /** Public job link base for “Copy link” in the portal (per tenant). */
 export function getMarketingSiteOriginForTenant(tenantId: string): string | null {
   const raw = process.env.NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS?.trim();
@@ -131,31 +159,104 @@ export function getMarketingSiteOriginForTenant(tenantId: string): string | null
     const map = JSON.parse(raw) as unknown;
     if (!map || typeof map !== "object" || Array.isArray(map)) return null;
     const v = (map as Record<string, unknown>)[tenantId];
-    return typeof v === "string" && v.trim() ? v.trim().replace(/\/$/, "") : null;
+    if (typeof v !== "string" || !v.trim()) return null;
+    return normalizeMarketingSiteOriginForPortalLinks(v.trim()) ?? null;
   } catch {
     return null;
   }
 }
 
 /**
- * When env is unset, local monorepo defaults so portal “View” / “Back to site” are not `href="#"`.
- * Override with `NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS` or `NEXT_PUBLIC_MARKETING_SITE_URL` on the portal.
+ * In this monorepo, marketing runs on :3000, portal on :3001, mock site on :3002. If the portal’s public URL
+ * is set but `NEXT_PUBLIC_MARKETING_SITE_URL` is not, infer the main marketing origin so you don’t need a second
+ * copy-pasted local URL. Only applies to localhost (production should set `NEXT_PUBLIC_MARKETING_SITE_URL`).
  */
-function devMonorepoMarketingOriginFallback(tenantId: string): string | null {
-  if (process.env.NODE_ENV !== "development") return null;
-  const id = tenantId.trim();
-  if (id === "mock-client-acme") return "http://localhost:3002";
-  if (id === "testing") return "http://localhost:3000";
+function inferMarketingOriginFromPublicPortalUrl(): string | null {
+  const raw = process.env.NEXT_PUBLIC_PORTAL_URL?.trim();
+  if (!raw) return null;
+  let base = raw.replace(/\/$/, "");
+  if (!base.startsWith("http://") && !base.startsWith("https://")) {
+    base = `https://${base}`;
+  }
+  try {
+    const u = new URL(base);
+    const host = u.hostname;
+    if (host !== "localhost" && host !== "127.0.0.1") {
+      return null;
+    }
+    /** This repo’s `apps/portal` dev server uses port 3001; main marketing is 3000 on the same host. */
+    if (u.port === "3001") {
+      u.port = "3000";
+      u.pathname = "";
+      u.search = "";
+      u.hash = "";
+      return u.origin;
+    }
+  } catch {
+    return null;
+  }
   return null;
 }
 
-/** Marketing site origin for links from the portal: tenant map, then `NEXT_PUBLIC_MARKETING_SITE_URL`. */
+/**
+ * `apps/website-mock-client` in this monorepo (port 3002) is paired with this tenant id in `NEXT_PUBLIC_TENANT_ID`. */
+export const MOCK_CLIENT_ACME_TENANT_ID = "mock-client-acme";
+
+/**
+ * In development, the mock marketing site is always on :3002 for this tenant — even when the portal also sets
+ * `NEXT_PUBLIC_MARKETING_SITE_URL` to the main :3000 app (otherwise `?tenant=mock-client-acme` would open the wrong site).
+ * Override in production with `NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS` if needed.
+ */
+function devMonorepoMockClientMarketingOrigin(tenantId: string): string | null {
+  if (process.env.NODE_ENV !== "development") return null;
+  if (tenantId.trim() !== MOCK_CLIENT_ACME_TENANT_ID) return null;
+  return "http://localhost:3002";
+}
+
+/** Local dev default when no other source applies. */
+function devMonorepoMarketingOriginFallback(_tenantId: string): string | null {
+  if (process.env.NODE_ENV !== "development") return null;
+  return "http://localhost:3000";
+}
+
+/**
+ * Where “View on site” / “Back to site” should go.
+ *
+ * Resolution (first hit wins):
+ * 1. `NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS` JSON entry for this `tenantId` (optional).
+ * 2. **Development only:** `tenantId ===` {@link MOCK_CLIENT_ACME_TENANT_ID} → `http://localhost:3002` (mock second marketing app).
+ * 3. `NEXT_PUBLIC_MARKETING_SITE_URL` (usual single production / default local :3000).
+ * 4. Local dev: infer from `NEXT_PUBLIC_PORTAL_URL` (localhost:3001 → `http://localhost:3000`).
+ * 5. Local dev: `http://localhost:3000`.
+ */
 export function resolveMarketingSiteOriginForPortalLinks(tenantId: string): string | null {
   const fromMap = getMarketingSiteOriginForTenant(tenantId);
   if (fromMap) return fromMap;
-  const raw = process.env.NEXT_PUBLIC_MARKETING_SITE_URL?.trim();
-  if (raw) return raw.replace(/\/$/, "");
-  return devMonorepoMarketingOriginFallback(tenantId);
+  const mockDev = devMonorepoMockClientMarketingOrigin(tenantId);
+  if (mockDev) return mockDev;
+  const fromMarketingEnv = process.env.NEXT_PUBLIC_MARKETING_SITE_URL?.trim();
+  if (fromMarketingEnv) {
+    return normalizeMarketingSiteOriginForPortalLinks(fromMarketingEnv);
+  }
+  return inferMarketingOriginFromPublicPortalUrl() ?? devMonorepoMarketingOriginFallback(tenantId);
+}
+
+/**
+ * Build “roles” / homepage anchor URLs from an origin resolved on the **server** (see `app/page.tsx`).
+ * Prefer this in client components so links work after `next build && next start` even when `NEXT_PUBLIC_*`
+ * was missing at build time (client bundle would otherwise have a stale/empty value).
+ */
+export function buildMarketingRolesUrlFromOrigin(origin: string | null): string {
+  if (!origin) return "#";
+  return `${origin.replace(/\/$/, "")}/#roles`;
+}
+
+/** Build `/jobs/[slug]` URLs from a server-resolved origin (same rationale as {@link buildMarketingRolesUrlFromOrigin}). */
+export function buildPublicJobPageUrlFromOrigin(origin: string | null, slug: string): string {
+  const o = origin?.replace(/\/$/, "") ?? "";
+  const s = slug.trim();
+  if (!s || !o) return "#";
+  return `${o}/jobs/${encodeURIComponent(s)}`;
 }
 
 /** Homepage roles anchor on the marketing site for this tenant. */
@@ -167,11 +268,61 @@ export function getMarketingSiteRolesUrlForTenant(tenantId: string): string {
 
 /**
  * Absolute public job URL on the marketing site — never portal-relative (the portal has no `/jobs/[slug]` page).
- * Configure `NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS` and/or `NEXT_PUBLIC_MARKETING_SITE_URL` on the portal app.
+ * See {@link resolveMarketingSiteOriginForPortalLinks} for which env vars set the base URL.
  */
 export function getPublicJobPageUrlForTenant(tenantId: string, slug: string): string {
   const origin = resolveMarketingSiteOriginForPortalLinks(tenantId);
   const s = slug.trim();
   if (!s || !origin) return "#";
   return `${origin}/jobs/${encodeURIComponent(s)}`;
+}
+
+/**
+ * Resolves portal-built marketing URLs (`getPublicJobPageUrlForTenant`, `getMarketingSiteRolesUrlForTenant`)
+ * to a real absolute URL, or `null` when env is missing (placeholder `#`).
+ * Use `<a href={…}>` for non-null — Next.js `<Link href="#">` is treated as in-app navigation and will not open the marketing site.
+ */
+export function portalExternalMarketingHref(href: string): string | null {
+  const h = href.trim();
+  if (h.startsWith("http://") || h.startsWith("https://")) return h;
+  const slash = h.indexOf("/");
+  const originPart = slash === -1 ? h : h.slice(0, slash);
+  const pathPart = slash === -1 ? "" : h.slice(slash);
+  const origin = normalizeMarketingSiteOriginForPortalLinks(originPart);
+  if (!origin) return null;
+  if (!pathPart) return origin;
+  return `${origin}${pathPart.startsWith("/") ? pathPart : `/${pathPart}`}`;
+}
+
+/**
+ * Absolute public job URL for use in `href` — resolves from {@link getPublicJobPageUrlForTenant} so the link matches
+ * the origin from {@link resolveMarketingSiteOriginForPortalLinks} for `tenantId`, not a separately passed origin.
+ * Returns `null` when no marketing origin is configured.
+ */
+export function publicJobPageHttpHrefForPortalTenant(tenantId: string, slug: string): string | null {
+  const s = slug.trim();
+  if (!s) return null;
+  const raw = getPublicJobPageUrlForTenant(tenantId, s);
+  if (!raw || raw === "#") return null;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return portalExternalMarketingHref(raw) ?? raw;
+  }
+  return null;
+}
+
+/** Marketing site root (origin only) for “Back to site” and similar — from {@link resolveMarketingSiteOriginForPortalLinks}. */
+export function marketingSiteRootHttpHrefForPortalTenant(tenantId: string): string | null {
+  const o = resolveMarketingSiteOriginForPortalLinks(tenantId);
+  if (!o) return null;
+  return portalExternalMarketingHref(o) ?? o;
+}
+
+/** `/#roles` on the marketing site for the tenant (open listings on site). */
+export function marketingSiteRolesHttpHrefForPortalTenant(tenantId: string): string | null {
+  const raw = getMarketingSiteRolesUrlForTenant(tenantId);
+  if (!raw || raw === "#") return null;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return portalExternalMarketingHref(raw) ?? raw;
+  }
+  return null;
 }

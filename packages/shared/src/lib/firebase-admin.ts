@@ -43,52 +43,67 @@ export function isFirebaseAdminConfigured(): boolean {
   );
 }
 
+function looksLikeInlineServiceAccountJson(s: string): boolean {
+  const t = s.trim();
+  return t.startsWith("{") && t.includes('"type"') && t.includes("service_account");
+}
+
+function initializeAppFromServiceAccountJson(json: string): void {
+  const raw = JSON.parse(json) as {
+    project_id: string;
+    client_email: string;
+    private_key: string;
+  };
+  const bucket = resolveDefaultStorageBucketName(raw.project_id);
+  initializeApp({
+    credential: cert({
+      projectId: raw.project_id,
+      clientEmail: raw.client_email,
+      privateKey: raw.private_key,
+    }),
+    ...(bucket ? { storageBucket: bucket } : {}),
+  });
+}
+
 export function getFirebaseAdminAuth(): Auth {
   if (cachedAuth) return cachedAuth;
 
   if (getApps().length === 0) {
     const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();
-    if (gac) {
+    const fsaJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+
+    if (fsaJson) {
+      initializeAppFromServiceAccountJson(fsaJson);
+    } else if (gac && looksLikeInlineServiceAccountJson(gac)) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          "[firebase-admin] GOOGLE_APPLICATION_CREDENTIALS contains JSON, not a file path. Use a path to a .json file, or set FIREBASE_SERVICE_ACCOUNT_JSON instead.",
+        );
+      }
+      initializeAppFromServiceAccountJson(gac);
+    } else if (gac) {
       const bucket = resolveDefaultStorageBucketName();
       initializeApp({
         credential: applicationDefault(),
         ...(bucket ? { storageBucket: bucket } : {}),
       });
+    } else if (
+      process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_CLIENT_EMAIL &&
+      process.env.FIREBASE_PRIVATE_KEY
+    ) {
+      const pid = process.env.FIREBASE_PROJECT_ID;
+      const bucket = resolveDefaultStorageBucketName(pid);
+      initializeApp({
+        credential: cert({
+          projectId: pid,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+        }),
+        ...(bucket ? { storageBucket: bucket } : {}),
+      });
     } else {
-      const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
-      if (json) {
-        const raw = JSON.parse(json) as {
-          project_id: string;
-          client_email: string;
-          private_key: string;
-        };
-        const bucket = resolveDefaultStorageBucketName(raw.project_id);
-        initializeApp({
-          credential: cert({
-            projectId: raw.project_id,
-            clientEmail: raw.client_email,
-            privateKey: raw.private_key,
-          }),
-          ...(bucket ? { storageBucket: bucket } : {}),
-        });
-      } else if (
-        process.env.FIREBASE_PROJECT_ID &&
-        process.env.FIREBASE_CLIENT_EMAIL &&
-        process.env.FIREBASE_PRIVATE_KEY
-      ) {
-        const pid = process.env.FIREBASE_PROJECT_ID;
-        const bucket = resolveDefaultStorageBucketName(pid);
-        initializeApp({
-          credential: cert({
-            projectId: pid,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-          }),
-          ...(bucket ? { storageBucket: bucket } : {}),
-        });
-      } else {
-        throw new Error("Firebase Admin SDK is not configured");
-      }
+      throw new Error("Firebase Admin SDK is not configured");
     }
   }
 

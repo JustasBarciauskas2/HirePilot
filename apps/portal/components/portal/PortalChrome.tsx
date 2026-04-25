@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { resolveMarketingSiteOriginForPortalLinks } from "@techrecruit/shared/lib/portal-tenant";
+import { marketingSiteRootHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 
 export function PortalChrome({
   children,
   tenantId,
 }: {
   children: React.ReactNode;
+  /** Drives the marketing “Back to site” link via `NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS[tenantId]` and fallbacks. */
   tenantId: string;
 }) {
-  const marketing = resolveMarketingSiteOriginForPortalLinks(tenantId);
+  const marketing = marketingSiteRootHttpHrefForPortalTenant(tenantId);
 
   return (
     <>
@@ -22,12 +22,12 @@ export function PortalChrome({
             </span>
           </div>
           {marketing ? (
-            <Link
+            <a
               href={marketing}
               className="text-sm font-medium text-zinc-600 transition hover:text-[#7107E7]"
             >
               Back to site
-            </Link>
+            </a>
           ) : null}
         </div>
       </header>

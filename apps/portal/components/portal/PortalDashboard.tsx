@@ -16,12 +16,11 @@ import {
   UploadSimple,
   Users,
 } from "@phosphor-icons/react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import {
-  getMarketingSiteRolesUrlForTenant,
-  getPublicJobPageUrlForTenant,
+  marketingSiteRolesHttpHrefForPortalTenant,
+  publicJobPageHttpHrefForPortalTenant,
 } from "@techrecruit/shared/lib/portal-tenant";
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
@@ -147,13 +146,15 @@ export function PortalDashboard({
     [jobs, openListingsFilter],
   );
 
-  const marketingRolesUrl = getMarketingSiteRolesUrlForTenant(tenantId);
-  const marketingSiteUrlMissing = marketingRolesUrl === "#";
+  const marketingRolesHref = useMemo(
+    () => marketingSiteRolesHttpHrefForPortalTenant(tenantId),
+    [tenantId],
+  );
 
   async function copyJobPublicLink(job: JobDetail) {
     if (typeof window === "undefined") return;
-    const url = getPublicJobPageUrlForTenant(tenantId, job.slug);
-    if (url === "#") return;
+    const url = publicJobPageHttpHrefForPortalTenant(tenantId, job.slug);
+    if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedRef(job.ref);
@@ -289,7 +290,11 @@ export function PortalDashboard({
       ) : null}
 
       {portalTab === "vacancies" && flow === "file" ? (
-        <FileUploadWizard user={user} tenantId={tenantId} onBack={() => setFlow("choose")} />
+        <FileUploadWizard
+          user={user}
+          tenantId={tenantId}
+          onBack={() => setFlow("choose")}
+        />
       ) : null}
       {portalTab === "vacancies" && flow === "manual" ? (
         <ManualEntryWizard
@@ -313,17 +318,21 @@ export function PortalDashboard({
               ? `${filteredOpenListings.length} of ${jobs.length} role${jobs.length === 1 ? "" : "s"}`
               : `${jobs.length} role${jobs.length === 1 ? "" : "s"}`}{" "}
             ·{" "}
-            <Link
-              href={marketingRolesUrl}
-              className="font-medium text-[#7107E7] underline-offset-2 hover:underline"
-              title={
-                marketingSiteUrlMissing
-                  ? "Set NEXT_PUBLIC_MARKETING_SITE_URL or NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS on the portal app."
-                  : undefined
-              }
-            >
-              View on site
-            </Link>
+            {marketingRolesHref ? (
+              <a
+                href={marketingRolesHref}
+                className="font-medium text-[#7107E7] underline-offset-2 hover:underline"
+              >
+                View on site
+              </a>
+            ) : (
+              <span
+                className="cursor-not-allowed font-medium text-zinc-400"
+                title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+              >
+                View on site
+              </span>
+            )}
           </p>
           <label className="flex w-full min-w-0 max-w-full items-center gap-2 sm:max-w-sm">
             <span className="sr-only">Filter listings</span>
@@ -343,8 +352,7 @@ export function PortalDashboard({
         {filteredOpenListings.length > 0 ? (
           <ul className="mt-3 space-y-3">
             {filteredOpenListings.map((job) => {
-              const publicJobUrl = getPublicJobPageUrlForTenant(tenantId, job.slug);
-              const publicJobUrlMissing = publicJobUrl === "#";
+              const publicJobHref = publicJobPageHttpHrefForPortalTenant(tenantId, job.slug);
               return (
               <li
                 key={`${job.ref}-${job.id ?? ""}`}
@@ -356,17 +364,21 @@ export function PortalDashboard({
                   <p className="truncate text-xs text-zinc-500">{job.companyName}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-3">
-                  <Link
-                    href={publicJobUrl}
-                    className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
-                    title={
-                      publicJobUrlMissing
-                        ? "Set NEXT_PUBLIC_MARKETING_SITE_URL or NEXT_PUBLIC_PORTAL_TENANT_SITE_ORIGINS on the portal app."
-                        : undefined
-                    }
-                  >
-                    View
-                  </Link>
+                  {publicJobHref ? (
+                    <a
+                      href={publicJobHref}
+                      className="text-xs font-semibold text-[#7107E7] underline-offset-2 hover:underline"
+                    >
+                      View
+                    </a>
+                  ) : (
+                    <span
+                      className="cursor-not-allowed text-xs font-semibold text-zinc-400"
+                      title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
+                    >
+                      View
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => {

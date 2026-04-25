@@ -6,7 +6,12 @@ export async function getFirebaseUserFromRequest(
   req: NextRequest,
 ): Promise<DecodedIdToken | null> {
   const header = req.headers.get("authorization");
-  if (!header) return null;
+  if (!header) {
+    if (process.env.NODE_ENV === "development" && process.env.DEBUG_FIREBASE_TOKEN_ERRORS === "true") {
+      console.warn("[portal] GET/POST: missing Authorization header (client must send Bearer ID token).");
+    }
+    return null;
+  }
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
   const token = match?.[1]?.trim();
   if (!token) return null;
