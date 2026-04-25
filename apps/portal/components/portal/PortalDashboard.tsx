@@ -7,6 +7,7 @@ import { getAuth, signOut } from "firebase/auth";
 import {
   ArrowClockwise,
   Briefcase,
+  ChartLine,
   Copy,
   EnvelopeSimple,
   FileText,
@@ -29,10 +30,11 @@ import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
 import { FileUploadWizard } from "@/components/portal/FileUploadWizard";
 import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
+import { PortalAnalyticsPanel } from "@/components/portal/PortalAnalyticsPanel";
 import { PortalThemeToggle } from "@/components/portal/PortalThemeToggle";
 
 type Flow = "choose" | "file" | "manual";
-type PortalTab = "vacancies" | "applications";
+type PortalTab = "vacancies" | "applications" | "analytics";
 
 function jobMatchesOpenListingsFilter(job: JobDetail, q: string): boolean {
   const trimmed = q.trim().toLowerCase();
@@ -65,8 +67,10 @@ export function PortalDashboard({
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
   const [openListingsFilter, setOpenListingsFilter] = useState("");
   const [portalTab, setPortalTab] = useState<PortalTab>(() => {
+    const t = searchParams.get("tab");
+    if (t === "analytics") return "analytics";
     const open =
-      searchParams.get("tab") === "applications" ||
+      t === "applications" ||
       Boolean(searchParams.get("vacancy")?.trim()) ||
       Boolean(searchParams.get("ref")?.trim());
     return open ? "applications" : "vacancies";
@@ -77,8 +81,13 @@ export function PortalDashboard({
   }, [initialJobs]);
 
   useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "analytics") {
+      setPortalTab("analytics");
+      return;
+    }
     const open =
-      searchParams.get("tab") === "applications" ||
+      t === "applications" ||
       Boolean(searchParams.get("vacancy")?.trim()) ||
       Boolean(searchParams.get("ref")?.trim());
     setPortalTab(open ? "applications" : "vacancies");
@@ -90,6 +99,10 @@ export function PortalDashboard({
       const params = new URLSearchParams(searchParams.toString());
       if (tab === "applications") {
         params.set("tab", "applications");
+      } else if (tab === "analytics") {
+        params.set("tab", "analytics");
+        params.delete("vacancy");
+        params.delete("ref");
       } else {
         params.delete("tab");
         params.delete("vacancy");
@@ -183,11 +196,14 @@ export function PortalDashboard({
     }
   }
 
-  const pageTitle = portalTab === "vacancies" ? "Vacancies" : "Applications";
+  const pageTitle =
+    portalTab === "vacancies" ? "Vacancies" : portalTab === "analytics" ? "Analytics" : "Applications";
   const pageSubtitle =
     portalTab === "vacancies"
       ? "Create and manage open roles and listings."
-      : "Review candidates and applications.";
+      : portalTab === "analytics"
+        ? "Pipeline, intake, and applications by vacancy."
+        : "Review candidates and applications.";
 
   const tabButtonMobile = (tab: PortalTab, icon: ReactNode, label: string) => (
     <button
@@ -231,7 +247,7 @@ export function PortalDashboard({
           </div>
           <PortalThemeToggle />
         </div>
-        <div className="flex gap-1.5 px-2 pb-2">
+        <div className="flex gap-1 px-2 pb-2">
           {tabButtonMobile(
             "vacancies",
             <Briefcase className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
@@ -241,6 +257,11 @@ export function PortalDashboard({
             "applications",
             <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
             "Applications",
+          )}
+          {tabButtonMobile(
+            "analytics",
+            <ChartLine className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
+            "Analytics",
           )}
         </div>
         <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2 text-xs dark:border-slate-700/80">
@@ -288,6 +309,11 @@ export function PortalDashboard({
             "applications",
             <Users className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
             "Applications",
+          )}
+          {tabButtonSidebar(
+            "analytics",
+            <ChartLine className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
+            "Analytics",
           )}
         </nav>
         <div className="shrink-0 space-y-2 border-t border-slate-100 p-3 dark:border-slate-500/15">
@@ -362,6 +388,15 @@ export function PortalDashboard({
           jobs={jobs}
           initialVacancyId={searchParams.get("vacancy") ?? undefined}
           initialJobRef={searchParams.get("ref") ?? undefined}
+        />
+      ) : null}
+
+      {portalTab === "analytics" ? (
+        <PortalAnalyticsPanel
+          user={user}
+          tenantId={tenantId}
+          jobs={jobs}
+          onOpenApplicationsForJob={openApplicationsForJob}
         />
       ) : null}
 

@@ -1,46 +1,30 @@
 "use client";
 
-import { CandidateScreeningCard } from "@techrecruit/shared/components/jobs/CandidateScreeningCard";
+import { ApplicantRankedCard } from "@/components/portal/ApplicantRankedCard";
+import { StatusFilterChips } from "@/components/portal/StatusFilterChips";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
   type JobApplicationRecordClient,
   type JobApplicationStatus,
   isScreeningPendingOnRecord,
-  JOB_APPLICATION_STATUS_LABELS,
   JOB_APPLICATION_STATUSES,
 } from "@techrecruit/shared/lib/job-application-shared";
-import { useApplicationsTableColumnOrder } from "@techrecruit/shared/hooks/useApplicationsTableColumnOrder";
-import { useApplicationsTableColumnWidths } from "@techrecruit/shared/hooks/useApplicationsTableColumnWidths";
-import { APPLICATIONS_TABLE_COLUMNS } from "@techrecruit/shared/lib/applications-table-columns";
 import { buildApplicationsCsv, triggerCsvDownload } from "@techrecruit/shared/lib/applications-csv";
 import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import {
   Bell,
   CaretDown,
-  CircleNotch,
-  DotsSixVertical,
-  DownloadSimple,
   FileCsv,
   Funnel,
   MagnifyingGlass,
+  Sparkle,
   X,
 } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  } catch {
-    return iso;
-  }
-}
 
 /** Canonical form for vacancy UUIDs in filter keys and comparisons (avoids case mismatches). */
 function normVacancyUuid(s: string | undefined | null): string {
@@ -100,57 +84,6 @@ function jobVacancyExternalHref(r: JobApplicationRecordClient, tenantId: string)
   return publicJobPageHttpHrefForPortalTenant(tenantId, slug);
 }
 
-function ScreeningCta({
-  r,
-  expanded,
-  onToggle,
-  variant,
-}: {
-  r: JobApplicationRecordClient;
-  expanded: boolean;
-  onToggle: () => void;
-  variant: "mobile" | "table";
-}) {
-  const card =
-    "w-full max-w-full rounded-lg border border-[#2563EB]/30 bg-[#2563EB]/[0.07] px-2.5 py-2 text-left text-xs font-semibold leading-snug text-[#1d4ed8] shadow-sm";
-  const mobileExtras = variant === "mobile" ? " transition hover:border-[#2563EB]/45 hover:bg-[#2563EB]/10 sm:max-w-xs sm:self-center" : " transition hover:border-[#2563EB]/45 hover:bg-[#2563EB]/10";
-
-  if (r.screening) {
-    return (
-      <button type="button" onClick={onToggle} className={`${card}${mobileExtras}`}>
-        <span className="block whitespace-normal">{expanded ? "Hide screening" : "View screening"}</span>
-        <span className="mt-0.5 block font-mono text-[11px] font-medium tabular-nums text-zinc-600">
-          Score {Math.round(r.screening.match.score)}/{r.screening.match.scoreMax ?? 100}
-        </span>
-      </button>
-    );
-  }
-
-  if (isScreeningPendingOnRecord(r)) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className={`inline-flex items-center gap-2 ${card}${variant === "mobile" ? " sm:max-w-xs sm:self-center" : ""}`}
-      >
-        <CircleNotch className="h-4 w-4 shrink-0 animate-spin text-[#2563EB]" weight="bold" aria-hidden />
-        <span className="font-semibold">Screening loading…</span>
-      </div>
-    );
-  }
-
-  const noScreeningClass =
-    variant === "mobile"
-      ? "text-right text-[10px] leading-snug text-zinc-400 sm:text-left"
-      : "text-[10px] leading-snug text-zinc-400";
-
-  return (
-    <span className={noScreeningClass} title="When your backend returns screening, it appears here.">
-      No screening
-    </span>
-  );
-}
-
 export function ApplicationsPanel({
   user,
   tenantId,
@@ -179,6 +112,10 @@ export function ApplicationsPanel({
   const vacancyComboInputRef = useRef<HTMLInputElement | null>(null);
   /** Filters visible rows by candidate name and job fields (title, ref, company, slug). */
   const [vacancyRowSearch, setVacancyRowSearch] = useState("");
+  /** Pipeline stages to include; at least one remains selected (see `StatusFilterChips`). */
+  const [statusIncluded, setStatusIncluded] = useState<Set<JobApplicationStatus>>(
+    () => new Set(JOB_APPLICATION_STATUSES),
+  );
   const [rows, setRows] = useState<JobApplicationRecordClient[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -228,9 +165,6 @@ export function ApplicationsPanel({
     });
     return () => window.cancelAnimationFrame(id);
   }, [vacancyComboOpen]);
-
-  const { widths: columnWidths, onResizeBetweenLogical } = useApplicationsTableColumnWidths(user.uid);
-  const { columnOrder, moveColumn } = useApplicationsTableColumnOrder(user.uid);
 
   const syncUrl = useCallback(
     (next: string) => {
@@ -431,10 +365,15 @@ export function ApplicationsPanel({
     return list;
   }, [rows, filterKey, jobs]);
 
+  const filteredByStatus = useMemo(
+    () => filteredByVacancy.filter((r) => statusIncluded.has(r.status)),
+    [filteredByVacancy, statusIncluded],
+  );
+
   const displayed = useMemo(() => {
     const q = vacancyRowSearch.trim().toLowerCase();
-    if (!q) return filteredByVacancy;
-    return filteredByVacancy.filter((r) => {
+    if (!q) return filteredByStatus;
+    return filteredByStatus.filter((r) => {
       const fullName = `${r.firstName} ${r.lastName}`.trim().toLowerCase();
       const blob = [
         r.firstName,
@@ -449,7 +388,7 @@ export function ApplicationsPanel({
         .toLowerCase();
       return blob.includes(q);
     });
-  }, [filteredByVacancy, vacancyRowSearch]);
+  }, [filteredByStatus, vacancyRowSearch]);
 
   const jobsForSelect = useMemo(() => {
     const q = vacancyComboQuery.trim().toLowerCase();
@@ -484,10 +423,30 @@ export function ApplicationsPanel({
     [displayed],
   );
 
-  const columnWidthTotal = useMemo(
-    () => columnWidths.reduce((a, b) => a + b, 0) || 1,
-    [columnWidths],
-  );
+  /** AI match first when screening exists; else newest first. */
+  const sortedForCards = useMemo(() => {
+    const list = [...displayed];
+    const scoreValue = (r: JobApplicationRecordClient): number | null => {
+      if (!r.screening) return null;
+      const m = r.screening.match;
+      const max = m.scoreMax ?? 100;
+      if (max <= 0) return 0;
+      return (m.score / max) * 100;
+    };
+    list.sort((a, b) => {
+      const sa = scoreValue(a);
+      const sb = scoreValue(b);
+      if (sa != null && sb != null && sa !== sb) return sb - sa;
+      if (sa != null && sb == null) return -1;
+      if (sa == null && sb != null) return 1;
+      return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+    });
+    return list;
+  }, [displayed]);
+
+  const listHeaderJob = filterKey ? jobFromFilterKey(filterKey, jobs) : undefined;
+  const aiScreeningAllIdle = !displayed.some((r) => isScreeningPendingOnRecord(r));
+  const hasAnyScreening = displayed.some((r) => r.screening);
 
   function onFilterChange(next: string) {
     setFilterKey(next);
@@ -515,8 +474,7 @@ export function ApplicationsPanel({
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-400 dark:text-slate-500">Candidates</p>
           <h2 className="mt-1 font-display text-lg font-semibold text-zinc-950 dark:text-slate-100">Applications</h2>
           <p className="mt-1 max-w-xl text-sm text-zinc-500 dark:text-slate-400">
-            Pick a vacancy (search as you type), then review applicants. Use the field below to filter rows by
-            candidate name, job title, reference, company, or slug.
+            Pick a vacancy (search as you type), narrow by pipeline status, then filter by name or job fields.
           </p>
         </div>
         <div className="flex w-full max-w-xl flex-col gap-3 lg:max-w-none lg:flex-1 lg:items-end xl:max-w-2xl">
@@ -649,6 +607,12 @@ export function ApplicationsPanel({
               autoComplete="off"
             />
           </label>
+          <StatusFilterChips
+            included={statusIncluded}
+            onChange={setStatusIncluded}
+            id="applications-status-filter"
+            className="w-full"
+          />
           <div className="flex w-full flex-wrap gap-3 sm:justify-end">
             <button
               type="button"
@@ -719,323 +683,58 @@ export function ApplicationsPanel({
                 ? activeFilterLabel
                   ? "No applications for this vacancy."
                   : "No applications yet."
-                : vacancyRowSearch.trim()
-                  ? "No applicants match your search — try different keywords or clear the search."
-                  : "No applications yet."}
+                : filteredByStatus.length === 0
+                  ? "No applicants match the selected status filters — turn on at least one stage above."
+                  : vacancyRowSearch.trim()
+                    ? "No applicants match your search — try different keywords or clear the search."
+                    : "No applications yet."}
           </p>
         </div>
       ) : (
         <>
-          {/* Mobile cards */}
-          <ul className="mt-6 space-y-3 md:hidden">
-            {displayed.map((r) => {
-              const jobPublicHref = jobVacancyExternalHref(r, tenantId);
-              return (
-              <li
-                key={r.id}
-                className="rounded-xl border border-zinc-200/90 bg-white p-4 shadow-sm ring-1 ring-zinc-100 dark:border-slate-500/25 dark:bg-slate-800/40 dark:ring-slate-600/20"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-zinc-950 dark:text-slate-100">
-                      {r.firstName} {r.lastName}
-                    </p>
-                    <p className="mt-0.5 text-xs text-zinc-500">{formatDate(r.createdAt)}</p>
-                  </div>
-                  <select
-                    value={r.status}
-                    title={JOB_APPLICATION_STATUS_LABELS[r.status]}
-                    onChange={(e) => void updateStatus(r.id, e.target.value as JobApplicationStatus)}
-                    className="max-w-[min(100%,9rem)] min-w-0 shrink-0 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
-                  >
-                    {JOB_APPLICATION_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {JOB_APPLICATION_STATUS_LABELS[s]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mt-3 space-y-1 border-t border-zinc-100 pt-3 text-xs dark:border-slate-600/40">
-                  <p className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{r.jobRef}</p>
-                  {r.jobSlug?.trim() ? (
-                    jobPublicHref ? (
-                      <a
-                        href={jobPublicHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full text-left font-medium text-[#2563EB] underline-offset-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
-                      >
-                        {r.jobTitle}
-                      </a>
-                    ) : (
-                      <span
-                        className="block w-full cursor-not-allowed text-left font-medium text-zinc-500"
-                        title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
-                      >
-                        {r.jobTitle}
-                      </span>
-                    )
-                  ) : (
-                    <p className="font-medium text-zinc-900 dark:text-slate-100">{r.jobTitle}</p>
-                  )}
-                  <p className="text-zinc-500 dark:text-slate-400">{r.companyName}</p>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                  <a href={`mailto:${r.email}`} className="font-medium text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400">
-                    {r.email}
-                  </a>
-                  {r.phone ? (
-                    <a href={`tel:${r.phone}`} className="text-zinc-600 hover:underline">
-                      {r.phone}
-                    </a>
-                  ) : null}
-                </div>
-                <div className="mt-3 flex flex-col items-stretch gap-2 border-t border-zinc-100 pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void downloadCv(r.id)}
-                    className="inline-flex w-fit items-center gap-1 self-end text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline sm:self-center"
-                  >
-                    <DownloadSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
-                    Download CV
-                  </button>
-                  <ScreeningCta
-                    r={r}
-                    expanded={screeningExpandedId === r.id}
-                    onToggle={() =>
-                      setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))
-                    }
-                    variant="mobile"
-                  />
-                </div>
-                {screeningExpandedId === r.id && r.screening ? (
-                  <div className="mt-3 border-t border-zinc-100 pt-3">
-                    <CandidateScreeningCard
-                      screening={r.screening}
-                      onClose={() => setScreeningExpandedId(null)}
-                    />
-                  </div>
-                ) : null}
-              </li>
-              );
-            })}
-          </ul>
-
-          {/* Desktop table — column widths persist per signed-in user (localStorage) */}
-          <div className="mt-6 hidden md:block">
-            <p className="mb-2 text-xs text-zinc-400 dark:text-slate-500">
-              Drag the <span className="font-medium text-zinc-500 dark:text-slate-400">⋮⋮</span> handle to reorder columns. Drag column
-              borders to resize. Order and widths are saved for your account on this browser. Job titles link to the
-              public vacancy page. Use <span className="font-medium text-zinc-500 dark:text-slate-400">View screening</span> when AI
-              screening data is available.
-            </p>
-            <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-zinc-200/90 dark:border-slate-500/30">
-              <table className="w-full min-w-0 table-fixed divide-y divide-zinc-200 text-left text-sm dark:divide-slate-600/35">
-                <colgroup>
-                  {columnOrder.map((logical) => (
-                    <col
-                      key={logical}
-                      style={{
-                        width: `${(columnWidths[logical]! / columnWidthTotal) * 100}%`,
-                        ...(logical === 4 ? { minWidth: 168 } : {}),
-                      }}
-                    />
-                  ))}
-                </colgroup>
-                <thead className="bg-zinc-50/90 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:bg-slate-800/50 dark:text-slate-400">
-                  <tr>
-                    {columnOrder.map((logical, visualIndex) => {
-                      const meta = APPLICATIONS_TABLE_COLUMNS[logical];
-                      return (
-                        <th
-                          key={logical}
-                          scope="col"
-                          title={meta.title}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = "move";
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const raw = e.dataTransfer.getData("text/plain");
-                            const from = parseInt(raw, 10);
-                            if (!Number.isNaN(from) && from !== visualIndex) {
-                              moveColumn(from, visualIndex);
-                            }
-                          }}
-                          className="relative min-w-0 px-2 py-3 sm:px-3"
-                        >
-                          <div className="flex items-start gap-1 pr-1">
-                            <button
-                              type="button"
-                              draggable
-                              aria-label={`Move column: ${meta.label}`}
-                              title="Drag to reorder column"
-                              className="mt-0.5 shrink-0 cursor-grab rounded border-0 bg-transparent p-0.5 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-600 active:cursor-grabbing"
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData("text/plain", String(visualIndex));
-                                e.dataTransfer.effectAllowed = "move";
-                              }}
-                            >
-                              <DotsSixVertical className="h-4 w-4" weight="bold" aria-hidden />
-                            </button>
-                            <span className="min-w-0 flex-1 leading-snug break-words">{meta.label}</span>
-                          </div>
-                          {visualIndex < columnOrder.length - 1 ? (
-                            <button
-                              type="button"
-                              tabIndex={-1}
-                              aria-label={`Resize between ${meta.label} and next column`}
-                              title="Drag to resize column"
-                              className="absolute right-0 top-0 z-10 h-full w-3 translate-x-1/2 cursor-col-resize border-0 bg-transparent p-0 hover:bg-[#2563EB]/20 focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35"
-                              onMouseDown={onResizeBetweenLogical(logical, columnOrder[visualIndex + 1]!)}
-                            />
-                          ) : null}
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 bg-white dark:divide-slate-600/30 dark:bg-slate-800/30">
-                  {displayed.map((r) => {
-                    const jobPublicHref = jobVacancyExternalHref(r, tenantId);
-                    return (
-                    <Fragment key={r.id}>
-                      <tr className="align-top text-zinc-800 transition hover:bg-zinc-50/80 dark:text-slate-200 dark:hover:bg-slate-800/50">
-                      {columnOrder.map((logical) => {
-                        switch (logical) {
-                          case 0:
-                            return (
-                              <td
-                                key={logical}
-                                className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-3 py-3 text-xs text-zinc-500 sm:px-4 dark:text-slate-400"
-                              >
-                                {formatDate(r.createdAt)}
-                              </td>
-                            );
-                          case 1:
-                            return (
-                              <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 font-medium text-zinc-950 sm:px-4 dark:text-slate-100">
-                                <span className="line-clamp-2 break-words">
-                                  {r.firstName} {r.lastName}
-                                </span>
-                              </td>
-                            );
-                          case 2:
-                            return (
-                              <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 text-xs sm:px-4">
-                                <a
-                                  href={`mailto:${r.email}`}
-                                  className="break-all text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
-                                >
-                                  {r.email}
-                                </a>
-                                {r.phone ? (
-                                  <p className="mt-1 text-zinc-600 dark:text-slate-400">
-                                    <a href={`tel:${r.phone}`} className="hover:underline">
-                                      {r.phone}
-                                    </a>
-                                  </p>
-                                ) : null}
-                              </td>
-                            );
-                          case 3:
-                            return (
-                              <td key={logical} className="min-w-0 overflow-hidden px-3 py-3 text-xs sm:px-4">
-                                <span className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{r.jobRef}</span>
-                                {r.jobSlug?.trim() ? (
-                                  jobPublicHref ? (
-                                    <a
-                                      href={jobPublicHref}
-                                      title="Open public job page in a new tab"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="mt-0.5 block w-full max-w-full text-left font-medium text-[#2563EB] underline-offset-2 line-clamp-2 hover:underline focus-visible:rounded focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/35 dark:text-sky-400"
-                                    >
-                                      {r.jobTitle}
-                                    </a>
-                                  ) : (
-                                    <span
-                                      className="mt-0.5 line-clamp-2 cursor-not-allowed font-medium text-zinc-500"
-                                      title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal, or for local dev NEXT_PUBLIC_PORTAL_URL (e.g. http://localhost:3001) to infer the marketing site."
-                                    >
-                                      {r.jobTitle}
-                                    </span>
-                                  )
-                                ) : (
-                                  <p className="mt-0.5 line-clamp-2 font-medium text-zinc-900 dark:text-slate-100">{r.jobTitle}</p>
-                                )}
-                                <p className="line-clamp-1 text-zinc-500 dark:text-slate-400">{r.companyName}</p>
-                              </td>
-                            );
-                          case 4:
-                            return (
-                              <td
-                                key={logical}
-                                className="min-w-0 overflow-hidden px-3 py-3 sm:px-4"
-                              >
-                                <select
-                                  value={r.status}
-                                  title={JOB_APPLICATION_STATUS_LABELS[r.status]}
-                                  onChange={(e) => void updateStatus(r.id, e.target.value as JobApplicationStatus)}
-                                  className="box-border w-full min-w-0 max-w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-900 outline-none focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
-                                >
-                                  {JOB_APPLICATION_STATUSES.map((s) => (
-                                    <option key={s} value={s}>
-                                      {JOB_APPLICATION_STATUS_LABELS[s]}
-                                    </option>
-                                  ))}
-                                </select>
-                              </td>
-                            );
-                          case 5:
-                            return (
-                              <td
-                                key={logical}
-                                className="min-w-[12rem] max-w-none px-3 py-3 align-top sm:min-w-[14rem] sm:px-4"
-                              >
-                                <div className="flex min-w-0 flex-col gap-2.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => void downloadCv(r.id)}
-                                    className="inline-flex w-fit shrink-0 items-center gap-1 text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
-                                  >
-                                    <DownloadSimple className="h-3.5 w-3.5 shrink-0" weight="bold" aria-hidden />
-                                    Download CV
-                                  </button>
-                                  <ScreeningCta
-                                    r={r}
-                                    expanded={screeningExpandedId === r.id}
-                                    onToggle={() =>
-                                      setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))
-                                    }
-                                    variant="table"
-                                  />
-                                </div>
-                              </td>
-                            );
-                          default:
-                            return null;
-                        }
-                      })}
-                      </tr>
-                      {screeningExpandedId === r.id && r.screening ? (
-                        <tr className="bg-zinc-50/90">
-                          <td colSpan={columnOrder.length} className="p-4 sm:p-6">
-                            <CandidateScreeningCard
-                              screening={r.screening}
-                              onClose={() => setScreeningExpandedId(null)}
-                            />
-                          </td>
-                        </tr>
-                      ) : null}
-                    </Fragment>
-                  );
-                  })}
-                </tbody>
-              </table>
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h3 className="font-display text-base font-semibold text-zinc-950 dark:text-slate-100 sm:text-lg">
+                {listHeaderJob
+                  ? `${listHeaderJob.title} · ${displayed.length} applicant${displayed.length === 1 ? "" : "s"}`
+                  : `All vacancies · ${displayed.length} applicant${displayed.length === 1 ? "" : "s"}`}
+              </h3>
+              <p className="mt-0.5 text-sm text-zinc-500 dark:text-slate-400">
+                {hasAnyScreening
+                  ? "Ranked by AI match score"
+                  : "Sorted by application date (newest first)"}
+              </p>
             </div>
+            {displayed.length > 0 ? (
+              <div
+                className={`inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-xs font-medium ${
+                  aiScreeningAllIdle
+                    ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800/50"
+                    : "bg-amber-50 text-amber-900 ring-1 ring-amber-200/80 dark:bg-amber-950/30 dark:text-amber-200 dark:ring-amber-800/40"
+                }`}
+              >
+                <Sparkle className="h-3.5 w-3.5" weight="fill" aria-hidden />
+                {aiScreeningAllIdle ? "AI screening complete" : "AI screening in progress"}
+              </div>
+            ) : null}
           </div>
+          <p className="mt-3 text-xs text-zinc-400 dark:text-slate-500">
+            Click a candidate to open details and AI screening. Change pipeline status in the expanded panel.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {sortedForCards.map((r) => (
+              <ApplicantRankedCard
+                key={r.id}
+                r={r}
+                expanded={screeningExpandedId === r.id}
+                onToggle={() => setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))}
+                onUpdateStatus={updateStatus}
+                onDownloadCv={downloadCv}
+                jobPublicHref={jobVacancyExternalHref(r, tenantId)}
+                pendingScreening={isScreeningPendingOnRecord(r)}
+              />
+            ))}
+          </ul>
         </>
       )}
     </section>
