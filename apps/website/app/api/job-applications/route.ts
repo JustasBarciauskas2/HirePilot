@@ -9,6 +9,7 @@ import {
   uploadApplicationCv,
   getTenantIdForApplications,
 } from "@techrecruit/shared/lib/job-applications";
+import { sendNewApplicationNotificationEmails } from "@techrecruit/shared/lib/application-notification-email";
 import { forwardJobApplicationToBackend } from "@techrecruit/shared/lib/forward-job-application";
 import { getPublicJobBySlug } from "@techrecruit/shared/lib/public-jobs";
 
@@ -176,6 +177,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       { status: 500 },
     );
   }
+
+  after(() => {
+    void sendNewApplicationNotificationEmails({
+      applicationId: id,
+      tenantId,
+      jobRef: job.ref,
+      jobSlug: job.slug,
+      jobTitle: job.title,
+      companyName: job.companyName,
+      firstName,
+      lastName,
+      applicantEmail: email,
+      phone,
+    }).catch((e) => console.error("[job-applications] notification emails", e));
+  });
 
   const webhookPayload = {
     applicationId: id,
