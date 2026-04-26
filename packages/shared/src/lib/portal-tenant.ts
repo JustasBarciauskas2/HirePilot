@@ -8,9 +8,9 @@ const PORTAL_HTTP_ONLY_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 400;
 export const PORTAL_TENANT_COOKIE_NAME = "portal-tenant";
 
 /**
- * HttpOnly cookie: which marketing “Recruiter portal” link was used (from `?tenant=` / `?tenantId=`) when
- * `PORTAL_TENANT_FIREBASE_CLAIM` is set. Sign-in is rejected unless it matches the user’s `tenantId` custom claim
- * (see `POST /api/portal/auth/sync-tenant`).
+ * HttpOnly cookie: marketing-site entry tenant (from `?tenant=` / `?tenantId=`). When `PORTAL_TENANT_FIREBASE_CLAIM` is
+ * set, `POST /api/portal/auth/sync-tenant` overwrites this and `portal-tenant` to match the signed-in user’s claim so
+ * bookmarks and direct portal URLs still work.
  */
 export const PORTAL_ENTRY_TENANT_COOKIE_NAME = "portal-entry-tenant";
 
@@ -135,8 +135,8 @@ export function resolvePortalTenantFromSearchParams(
 
 /**
  * Tenant for the portal home (server). When `PORTAL_TENANT_FIREBASE_CLAIM` is set, {@link PORTAL_ENTRY_TENANT_COOKIE_NAME}
- * (from the marketing `?tenant=` / footer link) is preferred over {@link PORTAL_TENANT_COOKIE_NAME} so “Back to site”
- * and public preview match the site the user opened from, not a stale `portal-tenant` from an earlier visit.
+ * (from the marketing `?tenant=` link when present) is checked first, then {@link PORTAL_TENANT_COOKIE_NAME} — after
+ * sign-in, `sync-tenant` aligns both with the user’s claim, so direct portal URLs work without visiting the marketing site.
  * Otherwise: session cookie, then in development only `?tenant=` on the URL if `PORTAL_TENANT_IN_URL` is not `0`, then
  * the default id.
  */

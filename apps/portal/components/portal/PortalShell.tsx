@@ -6,10 +6,6 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } f
 import { useRouter } from "next/navigation";
 import { useFirebaseAuth } from "@techrecruit/shared/components/FirebaseAuthProvider";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
-import {
-  PORTAL_AUTH_ERROR_ENTRY_TENANT_MISMATCH,
-  PORTAL_AUTH_ERROR_ENTRY_TENANT_REQUIRED,
-} from "@techrecruit/shared/lib/portal-tenant";
 import { PortalChrome } from "@/components/portal/PortalChrome";
 import { PortalDashboard } from "@/components/portal/PortalDashboard";
 import { PortalLogin } from "@/components/portal/PortalLogin";
@@ -56,14 +52,6 @@ function useSyncPortalTenantCookieWithClaim(
         };
         if (cancelled) return;
         if (res.status === 403) {
-          const code = data.code ?? "";
-          if (code === PORTAL_AUTH_ERROR_ENTRY_TENANT_MISMATCH || code === PORTAL_AUTH_ERROR_ENTRY_TENANT_REQUIRED) {
-            await signOut(getAuth(getApp()));
-            onEntryTenantRejection();
-            onAccessVerified(true, null);
-            router.refresh();
-            return;
-          }
           await signOut(getAuth(getApp()));
           onEntryTenantRejection();
           onAccessVerified(true, null);
