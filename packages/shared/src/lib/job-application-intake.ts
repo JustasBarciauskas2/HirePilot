@@ -28,7 +28,7 @@ function storageSubmitError(e: unknown): string {
   if (/NOT_FOUND|^\s*5\s+NOT_FOUND/i.test(raw)) {
     return (
       "Firebase Storage: bucket not found or wrong name. In Console → Storage, copy the bucket id from the gs:// URL " +
-      "(e.g. your-project-id.firebasestorage.app) and set FIREBASE_STORAGE_BUCKET and NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET to that value. " +
+      "(e.g. your-project-id.firebasestorage.app) and set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET to that value. " +
       "Restart the dev server after changing .env."
     );
   }

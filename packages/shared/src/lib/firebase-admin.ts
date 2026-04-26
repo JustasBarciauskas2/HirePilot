@@ -10,12 +10,10 @@ let cachedStorage: Storage | null = null;
 /**
  * Default GCS bucket name for Firebase Storage (no `gs://` prefix).
  * New projects use `{projectId}.firebasestorage.app`; older ones use `{projectId}.appspot.com`.
- * Set `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` / `FIREBASE_STORAGE_BUCKET` if yours differs.
+ * Set `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` if yours differs (same value the Firebase web client uses).
  */
 function resolveDefaultStorageBucketName(projectIdHint?: string): string | undefined {
-  const explicit =
-    process.env.FIREBASE_STORAGE_BUCKET?.trim() ||
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim();
+  const explicit = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim();
   if (explicit) return explicit;
   const pid =
     projectIdHint?.trim() ||
@@ -129,9 +127,7 @@ export function getFirebaseAdminStorage(): Storage {
  * Resolves the bucket passed to `storage.bucket(name)`. Defaults match `initializeApp` (`*.firebasestorage.app` for new projects).
  */
 export function getFirebaseStorageBucket() {
-  const name =
-    process.env.FIREBASE_STORAGE_BUCKET?.trim() ||
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim();
+  const name = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim();
   const storage = getFirebaseAdminStorage();
   return name ? storage.bucket(name) : storage.bucket();
 }
