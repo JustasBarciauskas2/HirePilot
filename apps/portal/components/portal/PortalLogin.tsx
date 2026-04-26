@@ -3,14 +3,41 @@
 import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Image from "next/image";
+import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
 import { friendlySignInError, PORTAL_CAPTCHA_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
+
+declare global {
+  interface Window {
+    grecaptcha?: {
+      ready: (cb: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+    };
+  }
+}
 
 const inputClass =
   "w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15";
 
 const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY?.trim() ?? "";
+
+/** Must match `RECAPTCHA_V3_ACTION` in `app/api/portal/auth/verify-recaptcha/route.ts`. */
+const RECAPTCHA_V3_ACTION = "portal_login";
+
+async function executeRecaptchaV3(siteKey: string): Promise<string> {
+  const g = typeof window !== "undefined" ? window.grecaptcha : undefined;
+  if (!g) {
+    throw new Error("CAPTCHA not loaded");
+  }
+  return new Promise((resolve, reject) => {
+    g.ready(() => {
+      void g
+        .execute(siteKey, { action: RECAPTCHA_V3_ACTION })
+        .then(resolve)
+        .catch(reject);
+    });
+  });
+}
 
 export function PortalLogin({
   entrySyncErrorMessage,
@@ -24,13 +51,10 @@ export function PortalLogin({
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const mounted = useRef(true);
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
-  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+  const [recaptchaScriptReady, setRecaptchaScriptReady] = useState(!recaptchaSiteKey);
 
   useEffect(() => {
-    setRecaptchaReady(true);
     return () => {
       mounted.current = false;
     };
@@ -38,11 +62,7 @@ export function PortalLogin({
 
   const formError = err;
   const sessionVerifyError = !formError && entrySyncErrorMessage?.trim() ? entrySyncErrorMessage.trim() : null;
-
-  function resetCaptcha() {
-    recaptchaRef.current?.reset();
-    setCaptchaToken(null);
-  }
+  const captchaBlocking = Boolean(recaptchaSiteKey) && !recaptchaScriptReady;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,7 +70,13 @@ export function PortalLogin({
     setPending(true);
     try {
       if (recaptchaSiteKey) {
-        const token = captchaToken ?? recaptchaRef.current?.getValue() ?? null;
+        let token: string;
+        try {
+          token = await executeRecaptchaV3(recaptchaSiteKey);
+        } catch {
+          setErr(PORTAL_CAPTCHA_FAILED_MESSAGE);
+          return;
+        }
         if (!token) {
           setErr(PORTAL_CAPTCHA_FAILED_MESSAGE);
           return;
@@ -63,17 +89,14 @@ export function PortalLogin({
         const data = (await verify.json().catch(() => ({}))) as { error?: string };
         if (!verify.ok) {
           setErr(typeof data.error === "string" && data.error.trim() ? data.error : PORTAL_CAPTCHA_FAILED_MESSAGE);
-          resetCaptcha();
           return;
         }
       }
 
       const auth = getAuth(getApp());
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      resetCaptcha();
     } catch (e) {
       setErr(friendlySignInError(e));
-      resetCaptcha();
     } finally {
       if (mounted.current) setPending(false);
     }
@@ -81,6 +104,13 @@ export function PortalLogin({
 
   return (
     <div className="mx-auto max-w-lg rounded-3xl border border-slate-200/80 bg-white/95 p-8 shadow-[0_20px_50px_-24px_rgba(15,23,42,0.15),0_0_0_1px_rgba(37,99,235,0.04)] backdrop-blur-sm">
+      {recaptchaSiteKey ? (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(recaptchaSiteKey)}`}
+          strategy="afterInteractive"
+          onReady={() => setRecaptchaScriptReady(true)}
+        />
+      ) : null}
       <div className="mb-2 flex items-center gap-3">
         <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-50">
           <Image
@@ -137,17 +167,12 @@ export function PortalLogin({
             required
           />
         </label>
-        {recaptchaSiteKey && recaptchaReady ? (
-          <div className="flex justify-center overflow-x-auto py-1">
-            <ReCAPTCHA ref={recaptchaRef} sitekey={recaptchaSiteKey} onChange={(t) => setCaptchaToken(t)} />
-          </div>
-        ) : null}
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || captchaBlocking}
           className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(37,99,235,0.5)] transition hover:bg-[#1d4ed8] focus-visible:outline focus-visible:ring-2 focus-visible:ring-[#2563EB]/50 disabled:opacity-50"
         >
-          {pending ? "Signing in…" : "Log in to portal"}
+          {captchaBlocking ? "Loading…" : pending ? "Signing in…" : "Log in to portal"}
         </button>
       </form>
     </div>
