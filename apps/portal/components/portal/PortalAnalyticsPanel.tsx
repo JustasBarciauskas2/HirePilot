@@ -11,7 +11,7 @@ import {
 } from "@techrecruit/shared/lib/job-application-shared";
 import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
-import { Users } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight, MagnifyingGlass, Users } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -110,6 +110,8 @@ export function PortalAnalyticsPanel({
     () => new Set(applicationPipeline.map((s) => s.id)),
   );
   const [intakeView, setIntakeView] = useState<"chart" | "calendar">("chart");
+  const [vacancySearch, setVacancySearch] = useState("");
+  const [vacancyListPage, setVacancyListPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -195,6 +197,45 @@ export function PortalAnalyticsPanel({
     }
     return [...map.values()].sort((a, b) => b.count - a.count || a.jobTitle.localeCompare(b.jobTitle));
   }, [filteredRows, jobs]);
+
+  const VACANCY_PAGE_SIZE = 10;
+
+  const vacanciesFiltered = useMemo(() => {
+    const q = vacancySearch.trim().toLowerCase();
+    if (!q) return byVacancy;
+    return byVacancy.filter((v) => {
+      const blob = [v.jobRef, v.jobTitle, v.companyName].join(" ").toLowerCase();
+      return blob.includes(q);
+    });
+  }, [byVacancy, vacancySearch]);
+
+  const vacancyMaxCount = useMemo(
+    () => (vacanciesFiltered.length ? Math.max(...vacanciesFiltered.map((v) => v.count)) : 0),
+    [vacanciesFiltered],
+  );
+
+  const vacancyTotalPages = Math.max(1, Math.ceil(vacanciesFiltered.length / VACANCY_PAGE_SIZE));
+
+  useEffect(() => {
+    setVacancyListPage(1);
+  }, [vacancySearch, statusAnalyticsKey]);
+
+  useEffect(() => {
+    setVacancyListPage((p) => (p > vacancyTotalPages ? vacancyTotalPages : p));
+  }, [vacancyTotalPages]);
+
+  const vacancyPageSafe = Math.min(Math.max(1, vacancyListPage), vacancyTotalPages);
+  const vacanciesPageSlice = useMemo(() => {
+    const start = (vacancyPageSafe - 1) * VACANCY_PAGE_SIZE;
+    return vacanciesFiltered.slice(start, start + VACANCY_PAGE_SIZE);
+  }, [vacanciesFiltered, vacancyPageSafe]);
+
+  const vacancyRangeLabel = useMemo(() => {
+    if (vacanciesFiltered.length === 0) return "0";
+    const from = (vacancyPageSafe - 1) * VACANCY_PAGE_SIZE + 1;
+    const to = Math.min(vacancyPageSafe * VACANCY_PAGE_SIZE, vacanciesFiltered.length);
+    return `${from}–${to}`;
+  }, [vacanciesFiltered.length, vacancyPageSafe]);
 
   const newLast7d = useMemo(() => {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -427,67 +468,163 @@ export function PortalAnalyticsPanel({
           <div>
             <h3 className="font-display text-sm font-semibold text-zinc-900 dark:text-slate-100">Applications by vacancy</h3>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-slate-400">
-              Where candidates applied — your listings and their volume.
+              Where candidates applied — volume bars scale to the busiest listing in the current filter and search.
             </p>
-            <ul className="mt-4 space-y-2">
-              {byVacancy.map((v) => {
-                const publicHref = v.job
-                  ? publicJobPageHttpHrefForPortalTenant(tenantId, v.job.slug)
-                  : null;
-                return (
-                  <li
-                    key={v.key}
-                    className="flex flex-col gap-3 rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-500/25 dark:bg-slate-800/40"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{v.jobRef}</p>
-                      <p className="truncate text-sm font-medium text-zinc-900 dark:text-slate-100">{v.jobTitle}</p>
-                      <p className="truncate text-xs text-zinc-500 dark:text-slate-400">{v.companyName}</p>
+            {byVacancy.length > 0 ? (
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <label className="relative block min-w-[min(100%,18rem)] flex-1 sm:max-w-md">
+                  <span className="sr-only">Search vacancies</span>
+                  <MagnifyingGlass
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500"
+                    weight="duotone"
+                    aria-hidden
+                  />
+                  <input
+                    type="search"
+                    value={vacancySearch}
+                    onChange={(e) => setVacancySearch(e.target.value)}
+                    placeholder="Search by ref, title, or company…"
+                    className="w-full rounded-xl border border-zinc-200/90 bg-white py-2.5 pl-10 pr-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/35 dark:bg-slate-800/60 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    autoComplete="off"
+                  />
+                </label>
+                <p className="text-xs tabular-nums text-zinc-500 dark:text-slate-400">
+                  <span className="font-medium text-zinc-700 dark:text-slate-300">{vacanciesFiltered.length}</span>{" "}
+                  listing{vacanciesFiltered.length === 1 ? "" : "s"}
+                  {vacanciesFiltered.length > VACANCY_PAGE_SIZE ? (
+                    <>
+                      {" "}
+                      · showing {vacancyRangeLabel}
+                    </>
+                  ) : null}
+                </p>
+              </div>
+            ) : null}
+
+            {byVacancy.length === 0 ? (
+              <p className="mt-4 text-sm text-zinc-500 dark:text-slate-400">
+                No applications in view — widen the pipeline filter above or wait for new applicants.
+              </p>
+            ) : vacanciesFiltered.length === 0 ? (
+              <p className="mt-4 text-sm text-zinc-500 dark:text-slate-400">No vacancies match your search.</p>
+            ) : (
+              <>
+                <ul className="mt-4 max-h-[min(28rem,70vh)] space-y-2 overflow-y-auto pr-1 [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-300/90 dark:[&::-webkit-scrollbar-thumb]:bg-slate-600">
+                  {vacanciesPageSlice.map((v) => {
+                    const publicHref = v.job
+                      ? publicJobPageHttpHrefForPortalTenant(tenantId, v.job.slug)
+                      : null;
+                    const barPct = vacancyMaxCount > 0 ? (v.count / vacancyMaxCount) * 100 : 0;
+                    return (
+                      <li
+                        key={v.key}
+                        className="rounded-xl border border-zinc-200/70 bg-white/80 px-4 py-3 dark:border-slate-500/25 dark:bg-slate-800/40"
+                      >
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-mono text-[10px] text-zinc-400 dark:text-slate-500">{v.jobRef}</p>
+                            <p className="truncate text-sm font-medium text-zinc-900 dark:text-slate-100">{v.jobTitle}</p>
+                            <p className="truncate text-xs text-zinc-500 dark:text-slate-400">{v.companyName}</p>
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col gap-1.5 lg:max-w-md">
+                            <div
+                              className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-slate-700/80"
+                              role="presentation"
+                              aria-hidden
+                            >
+                              <div
+                                className="h-full min-w-0 rounded-full bg-[#2563EB] transition-[width] dark:bg-sky-500"
+                                style={{
+                                  width: `${barPct}%`,
+                                  minWidth: v.count > 0 ? "4px" : undefined,
+                                }}
+                              />
+                            </div>
+                            <p className="text-[11px] font-medium tabular-nums text-zinc-600 dark:text-slate-400">
+                              {v.count} applicant{v.count === 1 ? "" : "s"}
+                              {vacancyMaxCount > 0 ? (
+                                <span className="font-normal text-zinc-400 dark:text-slate-500">
+                                  {" "}
+                                  ({Math.round((v.count / vacancyMaxCount) * 100)}% of top listing)
+                                </span>
+                              ) : null}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 lg:justify-end">
+                            {publicHref ? (
+                              <a
+                                href={publicHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
+                              >
+                                View job
+                              </a>
+                            ) : v.job ? (
+                              <span
+                                className="cursor-not-allowed text-xs font-semibold text-zinc-400 dark:text-slate-500"
+                                title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal host to open the public job page."
+                              >
+                                View job
+                              </span>
+                            ) : null}
+                            {v.job ? (
+                              <button
+                                type="button"
+                                onClick={() => onOpenApplicationsForJob(v.job!)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-[#2563EB]/25 bg-[#2563EB]/8 px-2.5 py-1.5 text-xs font-semibold text-[#1d4ed8] transition hover:bg-[#2563EB]/12 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/15"
+                                title="Open applications for this vacancy"
+                              >
+                                <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
+                                Applications
+                              </button>
+                            ) : (
+                              <span
+                                className="text-[10px] text-zinc-400 dark:text-slate-500"
+                                title="No matching vacancy in your portal — job may be from legacy data."
+                              >
+                                Not in directory
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {vacancyTotalPages > 1 ? (
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200/70 pt-4 dark:border-slate-500/25">
+                    <p className="text-xs text-zinc-500 dark:text-slate-400">
+                      Page{" "}
+                      <span className="font-semibold tabular-nums text-zinc-800 dark:text-slate-200">
+                        {vacancyPageSafe}
+                      </span>{" "}
+                      of {vacancyTotalPages}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={vacancyPageSafe <= 1}
+                        onClick={() => setVacancyListPage((p) => Math.max(1, p - 1))}
+                        className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-500/35 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
+                      >
+                        <CaretLeft className="h-3.5 w-3.5" aria-hidden />
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        disabled={vacancyPageSafe >= vacancyTotalPages}
+                        onClick={() => setVacancyListPage((p) => Math.min(vacancyTotalPages, p + 1))}
+                        className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-500/35 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
+                      >
+                        Next
+                        <CaretRight className="h-3.5 w-3.5" aria-hidden />
+                      </button>
                     </div>
-                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-3">
-                      <span className="text-xs font-semibold tabular-nums text-zinc-600 dark:text-slate-400">
-                        {v.count} applicant{v.count === 1 ? "" : "s"}
-                      </span>
-                      {publicHref ? (
-                        <a
-                          href={publicHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-semibold text-[#2563EB] underline-offset-2 hover:underline dark:text-sky-400"
-                        >
-                          View
-                        </a>
-                      ) : v.job ? (
-                        <span
-                          className="cursor-not-allowed text-xs font-semibold text-zinc-400 dark:text-slate-500"
-                          title="Set NEXT_PUBLIC_MARKETING_SITE_URL on the portal host to open the public job page."
-                        >
-                          View
-                        </span>
-                      ) : null}
-                      {v.job ? (
-                        <button
-                          type="button"
-                          onClick={() => onOpenApplicationsForJob(v.job!)}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] underline-offset-2 transition hover:text-[#1d4ed8] hover:underline dark:text-sky-400"
-                          title="Open applications for this vacancy"
-                        >
-                          <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />
-                          Applications
-                        </button>
-                      ) : (
-                        <span
-                          className="text-[10px] text-zinc-400 dark:text-slate-500"
-                          title="No matching vacancy in your portal — job may be from legacy data."
-                        >
-                          Not in directory
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
         </div>
