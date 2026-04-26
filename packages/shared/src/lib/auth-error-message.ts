@@ -1,9 +1,13 @@
 /** Same as Firebase `invalid-credential` / `wrong-password` copy — use for any sign-in rejection that should look like a normal credential check. */
 export const SIGN_IN_INVALID_CREDENTIALS_MESSAGE = "Incorrect email or password. Please try again.";
 
-/** After Firebase sign-in, `POST /api/portal/auth/sync-tenant` failed (e.g. missing tenant claim or allowlist) — not a bad password. */
+/** reCAPTCHA token invalid, expired, or server verification failed — user should retry the checkbox. */
+export const PORTAL_CAPTCHA_FAILED_MESSAGE =
+  "Please complete the security check again, then try signing in.";
+
+/** Fallback when sync-tenant fails without a specific server message (e.g. network error). */
 export const PORTAL_ENTRY_SYNC_FAILED_MESSAGE =
-  "We couldn’t finish signing you in for this portal. Your account may be missing an organization assignment, or it isn’t allowed on this deployment. Contact your administrator if this keeps happening.";
+  "We couldn’t verify your session with the portal server. Check your connection, try again, or contact your administrator.";
 
 /**
  * Maps Firebase Auth errors to short, non-technical copy for the sign-in UI.

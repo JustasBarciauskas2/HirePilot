@@ -6,6 +6,7 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } f
 import { useRouter } from "next/navigation";
 import { useFirebaseAuth } from "@techrecruit/shared/components/FirebaseAuthProvider";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
+import { PORTAL_ENTRY_SYNC_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
 import { PortalChrome } from "@/components/portal/PortalChrome";
 import { PortalDashboard } from "@/components/portal/PortalDashboard";
 import { PortalLogin } from "@/components/portal/PortalLogin";
@@ -29,7 +30,7 @@ function useSyncPortalTenantCookieWithClaim(
   user: User | null,
   tenantClaimMode: boolean,
   bfcacheNonce: number,
-  onEntryTenantRejection: () => void,
+  onEntryTenantRejection: (detail?: string) => void,
   onAccessVerified: (ok: boolean, verifiedUid: string | null) => void,
 ) {
   const router = useRouter();
@@ -38,7 +39,8 @@ function useSyncPortalTenantCookieWithClaim(
     let cancelled = false;
     (async () => {
       try {
-        const token = await user.getIdToken();
+        /** Force refresh so custom claims set after account creation are present on first portal sign-in. */
+        const token = await user.getIdToken(true);
         const res = await fetch("/api/portal/auth/sync-tenant", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -51,16 +53,17 @@ function useSyncPortalTenantCookieWithClaim(
           code?: string;
         };
         if (cancelled) return;
+        const serverMsg = typeof data.error === "string" && data.error.trim() ? data.error.trim() : undefined;
         if (res.status === 403) {
           await signOut(getAuth(getApp()));
-          onEntryTenantRejection();
+          onEntryTenantRejection(serverMsg);
           onAccessVerified(true, null);
           router.refresh();
           return;
         }
         if (!res.ok) {
           await signOut(getAuth(getApp()));
-          onEntryTenantRejection();
+          onEntryTenantRejection(serverMsg);
           onAccessVerified(true, null);
           router.refresh();
           return;
@@ -98,14 +101,14 @@ export function PortalShell({
   tenantClaimMode: boolean;
 }) {
   const { user, loading, configured } = useFirebaseAuth();
-  const [entrySyncFailed, setEntrySyncFailed] = useState(false);
+  const [entrySyncError, setEntrySyncError] = useState<string | null>(null);
   const [claimAccessOk, setClaimAccessOk] = useState(!tenantClaimMode);
   const [bfcacheNonce, setBfcacheNonce] = useState(0);
   const lastVerifiedClaimUid = useRef<string | null>(null);
   const claimContextRef = useRef({ user: null as User | null, tenantClaimMode: false });
   claimContextRef.current = { user, tenantClaimMode };
-  const onEntryTenantRejection = useCallback(() => {
-    setEntrySyncFailed(true);
+  const onEntryTenantRejection = useCallback((detail?: string) => {
+    setEntrySyncError(detail?.trim() || PORTAL_ENTRY_SYNC_FAILED_MESSAGE);
   }, []);
   const onAccessVerified = useCallback((ok: boolean, verifiedUid: string | null) => {
     if (ok && verifiedUid) lastVerifiedClaimUid.current = verifiedUid;
@@ -195,8 +198,8 @@ export function PortalShell({
       <PortalChrome tenantId={tenantId}>
         <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
           <PortalLogin
-            entrySyncFailed={entrySyncFailed}
-            onClearEntrySyncFailed={() => setEntrySyncFailed(false)}
+            entrySyncErrorMessage={entrySyncError}
+            onClearEntrySyncFailed={() => setEntrySyncError(null)}
           />
         </main>
       </PortalChrome>

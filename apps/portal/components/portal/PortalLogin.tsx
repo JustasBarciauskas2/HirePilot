@@ -4,41 +4,76 @@ import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { friendlySignInError, PORTAL_ENTRY_SYNC_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
+import ReCAPTCHA from "react-google-recaptcha";
+import { friendlySignInError, PORTAL_CAPTCHA_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
 
 const inputClass =
   "w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition placeholder:text-slate-400 focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15";
 
+const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY?.trim() ?? "";
+
 export function PortalLogin({
-  entrySyncFailed,
+  entrySyncErrorMessage,
   onClearEntrySyncFailed,
 }: {
-  entrySyncFailed?: boolean;
+  /** Server message after tenant sync failed (e.g. missing Firebase custom claim). */
+  entrySyncErrorMessage?: string | null;
   onClearEntrySyncFailed?: () => void;
 } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const mounted = useRef(true);
+  const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+
   useEffect(() => {
+    setRecaptchaReady(true);
     return () => {
       mounted.current = false;
     };
   }, []);
 
   const formError = err;
-  const sessionVerifyError = !formError && entrySyncFailed ? PORTAL_ENTRY_SYNC_FAILED_MESSAGE : null;
+  const sessionVerifyError = !formError && entrySyncErrorMessage?.trim() ? entrySyncErrorMessage.trim() : null;
+
+  function resetCaptcha() {
+    recaptchaRef.current?.reset();
+    setCaptchaToken(null);
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
     setPending(true);
     try {
+      if (recaptchaSiteKey) {
+        const token = captchaToken ?? recaptchaRef.current?.getValue() ?? null;
+        if (!token) {
+          setErr(PORTAL_CAPTCHA_FAILED_MESSAGE);
+          return;
+        }
+        const verify = await fetch("/api/portal/auth/verify-recaptcha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        const data = (await verify.json().catch(() => ({}))) as { error?: string };
+        if (!verify.ok) {
+          setErr(typeof data.error === "string" && data.error.trim() ? data.error : PORTAL_CAPTCHA_FAILED_MESSAGE);
+          resetCaptcha();
+          return;
+        }
+      }
+
       const auth = getAuth(getApp());
       await signInWithEmailAndPassword(auth, email.trim(), password);
+      resetCaptcha();
     } catch (e) {
       setErr(friendlySignInError(e));
+      resetCaptcha();
     } finally {
       if (mounted.current) setPending(false);
     }
@@ -102,6 +137,11 @@ export function PortalLogin({
             required
           />
         </label>
+        {recaptchaSiteKey && recaptchaReady ? (
+          <div className="flex justify-center overflow-x-auto py-1">
+            <ReCAPTCHA ref={recaptchaRef} sitekey={recaptchaSiteKey} onChange={(t) => setCaptchaToken(t)} />
+          </div>
+        ) : null}
         <button
           type="submit"
           disabled={pending}
