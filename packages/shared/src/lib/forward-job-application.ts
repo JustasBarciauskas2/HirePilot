@@ -25,6 +25,11 @@ export type JobApplicationWebhookPayload = {
   cvStoragePath: string;
   cvFileName: string;
   cvContentType: string;
+  /**
+   * When `false`, appends multipart field `notifyEmails=false` so your backend can skip transactional email
+   * (e.g. portal manual intake). Omit or `true`: same as legacy public apply (field not sent).
+   */
+  notifyEmails?: boolean;
 };
 
 /**
@@ -49,6 +54,9 @@ export function appendJobApplicationFormFields(form: FormData, payload: JobAppli
   form.append("cvStoragePath", payload.cvStoragePath);
   form.append("cvFileName", payload.cvFileName);
   form.append("cvContentType", payload.cvContentType);
+  if (payload.notifyEmails === false) {
+    form.append("notifyEmails", "false");
+  }
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {

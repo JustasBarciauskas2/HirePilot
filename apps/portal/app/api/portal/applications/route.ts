@@ -146,6 +146,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     phone,
     cv: { buffer, originalName: cv.name || "cv.pdf", contentType: mime },
     runAfter: after,
+    /** Same Storage, Firestore, and Java webhook as public apply; no Resend / transactional mail from this path. */
+    sendTransactionalEmails: false,
   });
 
   if (!result.ok) {

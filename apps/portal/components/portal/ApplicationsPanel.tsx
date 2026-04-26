@@ -844,7 +844,8 @@ export function ApplicationsPanel({
                   Add applicant manually
                 </h3>
                 <p className="mt-1 text-sm leading-relaxed text-zinc-500 dark:text-slate-400">
-                  Headhunters and internal teams: same flow as the public job page—CV, notifications, and AI screening.
+                  Headhunters and internal teams: same apply pipeline as the public job page (storage, Firestore, Java
+                  webhook, AI screening)—without applicant or recruiter notification emails.
                 </p>
               </div>
               <button

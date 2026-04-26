@@ -72,9 +72,10 @@ export type JobApplicationIntakeResult =
   | { ok: false; status: number; body: JobApplicationIntakeErrorBody };
 
 /**
- * Full pipeline after validation: upload CV, Firestore application doc, optional notification emails, backend webhook
- * (screening). Same behavior as `POST` on the public marketing site apply API — use for portal manual intake with an
- * explicit `tenantId` and resolved `job` row.
+ * Full pipeline after validation: upload CV, Firestore doc, optional Resend notification emails, then the same
+ * Java job-application webhook as public apply (`forwardJobApplicationToBackend`). Portal manual intake should pass
+ * `sendTransactionalEmails: false` to skip Resend and send `notifyEmails=false` on the webhook multipart form when
+ * your backend supports it.
  */
 export async function runJobApplicationIntake(params: {
   tenantId: string;
@@ -85,8 +86,14 @@ export async function runJobApplicationIntake(params: {
   phone: string;
   cv: { buffer: Buffer; originalName: string; contentType: string };
   runAfter: RunAfter;
+  /**
+   * When `false`, skips {@link sendNewApplicationNotificationEmails} and sets `notifyEmails=false` on the backend
+   * webhook form. Default `true` (public apply).
+   */
+  sendTransactionalEmails?: boolean;
 }): Promise<JobApplicationIntakeResult> {
   const { tenantId, job, firstName, lastName, email, phone, cv, runAfter } = params;
+  const sendTransactionalEmails = params.sendTransactionalEmails !== false;
   const mime = cv.contentType || "application/octet-stream";
   if (!isAllowedCvMime(mime)) {
     return {
@@ -165,20 +172,22 @@ export async function runJobApplicationIntake(params: {
     };
   }
 
-  runAfter(() => {
-    void sendNewApplicationNotificationEmails({
-      applicationId: id,
-      tenantId,
-      jobRef: job.ref,
-      jobSlug: job.slug,
-      jobTitle: job.title,
-      companyName: job.companyName,
-      firstName,
-      lastName,
-      applicantEmail: email,
-      phone,
-    }).catch((e) => console.error("[job-application-intake] notification emails", e));
-  });
+  if (sendTransactionalEmails) {
+    runAfter(() => {
+      void sendNewApplicationNotificationEmails({
+        applicationId: id,
+        tenantId,
+        jobRef: job.ref,
+        jobSlug: job.slug,
+        jobTitle: job.title,
+        companyName: job.companyName,
+        firstName,
+        lastName,
+        applicantEmail: email,
+        phone,
+      }).catch((e) => console.error("[job-application-intake] notification emails", e));
+    });
+  }
 
   const webhookPayload = {
     applicationId: id,
@@ -195,6 +204,7 @@ export async function runJobApplicationIntake(params: {
     cvStoragePath: storagePath,
     cvFileName: fileName,
     cvContentType: contentType,
+    ...(sendTransactionalEmails ? {} : { notifyEmails: false as const }),
   };
 
   const syncWebhook =
