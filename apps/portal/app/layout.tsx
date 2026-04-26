@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   appleWebApp: { statusBarStyle: "default" },
 };
 
-/** Runs before paint so `html.dark` matches localStorage and Tailwind `dark:` applies without a flash. */
-const portalColorSchemeInitScript = `(function(k){try{var s=localStorage.getItem(k);var d=s==="dark"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light";}catch(e){}})(${JSON.stringify(PORTAL_COLOR_SCHEME_STORAGE_KEY)})`;
+/** Runs before paint so `html.dark` matches localStorage; default light when unset (matches `getResolvedPortalColorScheme`). */
+const portalColorSchemeInitScript = `(function(k){try{var s=localStorage.getItem(k);var d=s==="dark";var r=document.documentElement;r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light";}catch(e){}})(${JSON.stringify(PORTAL_COLOR_SCHEME_STORAGE_KEY)})`;
 
 export default function RootLayout({
   children,

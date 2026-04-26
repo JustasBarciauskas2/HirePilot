@@ -2,6 +2,7 @@
 
 import { ApplicantRankedCard } from "@/components/portal/ApplicantRankedCard";
 import { StatusFilterChips } from "@/components/portal/StatusFilterChips";
+import { countUnreadApplications } from "@/lib/application-inbox-storage";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
   type JobApplicationRecordClient,
@@ -86,47 +87,25 @@ function jobVacancyExternalHref(r: JobApplicationRecordClient, tenantId: string)
   return publicJobPageHttpHrefForPortalTenant(tenantId, slug);
 }
 
-const VIEWED_IDS_STORAGE_V = "v1";
-
-function viewedIdsStorageKey(tenantId: string, userId: string): string {
-  return `portal-app-viewed:${VIEWED_IDS_STORAGE_V}:${tenantId}:${userId}`;
-}
-
-function loadViewedApplicationIds(tenantId: string, userId: string): Set<string> {
-  if (typeof window === "undefined") return new Set();
-  try {
-    const raw = localStorage.getItem(viewedIdsStorageKey(tenantId, userId));
-    if (!raw) return new Set();
-    const arr = JSON.parse(raw) as unknown;
-    if (!Array.isArray(arr)) return new Set();
-    return new Set(arr.filter((x): x is string => typeof x === "string" && x.trim().length > 0));
-  } catch {
-    return new Set();
-  }
-}
-
-function persistViewedApplicationIds(tenantId: string, userId: string, ids: Set<string>): void {
-  try {
-    const arr = [...ids];
-    const capped = arr.length > 1000 ? arr.slice(arr.length - 1000) : arr;
-    localStorage.setItem(viewedIdsStorageKey(tenantId, userId), JSON.stringify(capped));
-  } catch {
-    /* quota / private mode */
-  }
-}
-
 export function ApplicationsPanel({
   user,
   tenantId,
   jobs,
   initialVacancyId,
   initialJobRef,
+  viewedApplicationIds,
+  onMarkApplicantViewed,
+  onApplicationRowsLoaded,
 }: {
   user: User;
   tenantId: string;
   jobs: JobDetail[];
   initialVacancyId?: string;
   initialJobRef?: string;
+  viewedApplicationIds: Set<string>;
+  onMarkApplicantViewed: (applicationId: string) => void;
+  /** Lets the shell keep an unread badge in sync with the same list the panel uses. */
+  onApplicationRowsLoaded?: (rows: JobApplicationRecordClient[] | null) => void;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -152,27 +131,6 @@ export function ApplicationsPanel({
   const [loading, setLoading] = useState(true);
   /** Expanded application row for AI screening details (recruiter-only). */
   const [screeningExpandedId, setScreeningExpandedId] = useState<string | null>(null);
-  /** Firestore ids the recruiter has opened (per browser); used for inbox-style unread on `new` applications. */
-  const [viewedApplicationIds, setViewedApplicationIds] = useState<Set<string>>(() =>
-    loadViewedApplicationIds(tenantId, user.uid),
-  );
-
-  useEffect(() => {
-    setViewedApplicationIds(loadViewedApplicationIds(tenantId, user.uid));
-  }, [tenantId, user.uid]);
-
-  const markApplicantViewed = useCallback(
-    (applicationId: string) => {
-      setViewedApplicationIds((prev) => {
-        if (prev.has(applicationId)) return prev;
-        const next = new Set(prev);
-        next.add(applicationId);
-        persistViewedApplicationIds(tenantId, user.uid, next);
-        return next;
-      });
-    },
-    [tenantId, user.uid],
-  );
 
   useEffect(() => {
     setFilterKey(buildInitialFilterKey(initialVacancyId, initialJobRef));
@@ -266,19 +224,22 @@ export function ApplicationsPanel({
             typeof data.detail === "string" && data.detail.trim() ? `: ${data.detail.trim()}` : "";
           throw new Error(base + extra);
         }
-        setRows(data.applications ?? []);
+        const nextRows = data.applications ?? [];
+        setRows(nextRows);
+        onApplicationRowsLoaded?.(nextRows);
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") return;
         if (signal?.aborted) return;
         setErr(e instanceof Error ? e.message : "Could not load applications.");
         setRows(null);
+        onApplicationRowsLoaded?.(null);
       } finally {
         if (!signal?.aborted) {
           setLoading(false);
         }
       }
     },
-    [user],
+    [user, onApplicationRowsLoaded],
   );
 
   /** Refetch without clearing the table — used while screening is still processing. */
@@ -301,13 +262,15 @@ export function ApplicationsPanel({
           applications?: JobApplicationRecordClient[];
         };
         if (!res.ok) return;
-        setRows(data.applications ?? []);
+        const nextRows = data.applications ?? [];
+        setRows(nextRows);
+        onApplicationRowsLoaded?.(nextRows);
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") return;
         /* keep existing rows */
       }
     },
-    [user],
+    [user, onApplicationRowsLoaded],
   );
 
   useEffect(() => {
@@ -648,10 +611,10 @@ export function ApplicationsPanel({
     }
   }
 
-  /** Inbox-style: `new` applications not yet opened in this browser (see localStorage-backed `viewedApplicationIds`). */
+  /** Full-list unread count (same basis as the sidebar badge). */
   const unreadInboxCount = useMemo(
-    () => displayed.filter((r) => r.status === "new" && !viewedApplicationIds.has(r.id)).length,
-    [displayed, viewedApplicationIds],
+    () => countUnreadApplications(rows, viewedApplicationIds),
+    [rows, viewedApplicationIds],
   );
 
   /** AI match first when screening exists; else newest first. */
@@ -1085,7 +1048,7 @@ export function ApplicationsPanel({
                 {unreadInboxCount > 0 ? (
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full bg-[#2563EB]/10 px-2.5 py-0.5 text-xs font-semibold text-[#1d4ed8] ring-1 ring-[#2563EB]/20 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/25"
-                    title="New applications you have not opened yet in this browser"
+                    title="Applications you have not opened yet in this browser"
                     role="status"
                     aria-live="polite"
                     aria-atomic="true"
@@ -1110,8 +1073,8 @@ export function ApplicationsPanel({
             ) : null}
           </div>
           <p className="mt-3 text-xs text-zinc-400 dark:text-slate-500">
-            Open a row to read it—unread <span className="font-medium text-zinc-500 dark:text-slate-400">New</span>{" "}
-            applications show a blue dot until you do. Team notes, CV, and AI screening live in the expanded panel.
+            Open a row to read it—any applicant you have not opened yet shows a blue dot. Team notes, CV, and AI
+            screening live in the expanded panel.
           </p>
           <ul className="mt-4 space-y-3">
             {sortedForCards.map((r) => (
@@ -1119,11 +1082,11 @@ export function ApplicationsPanel({
                 key={r.id}
                 r={r}
                 expanded={screeningExpandedId === r.id}
-                unread={r.status === "new" && !viewedApplicationIds.has(r.id)}
+                unread={!viewedApplicationIds.has(r.id)}
                 onToggle={() => {
                   setScreeningExpandedId((cur) => {
                     if (cur === r.id) return null;
-                    markApplicantViewed(r.id);
+                    onMarkApplicantViewed(r.id);
                     return r.id;
                   });
                 }}

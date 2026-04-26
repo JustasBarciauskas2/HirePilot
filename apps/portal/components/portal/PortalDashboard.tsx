@@ -1,6 +1,7 @@
 "use client";
 
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
+import type { JobApplicationRecordClient } from "@techrecruit/shared/lib/job-application-shared";
 import { getApp } from "firebase/app";
 import type { User } from "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
@@ -29,6 +30,11 @@ import {
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
 import { FileUploadWizard } from "@/components/portal/FileUploadWizard";
+import {
+  countUnreadApplications,
+  loadViewedApplicationIds,
+  persistViewedApplicationIds,
+} from "@/lib/application-inbox-storage";
 import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
 import { PortalAnalyticsPanel } from "@/components/portal/PortalAnalyticsPanel";
 import { PortalThemeToggle } from "@/components/portal/PortalThemeToggle";
@@ -75,6 +81,60 @@ export function PortalDashboard({
       Boolean(searchParams.get("ref")?.trim());
     return open ? "applications" : "vacancies";
   });
+
+  /** Full applications list for unread badge when not on Applications tab (panel syncs when it is). */
+  const [inboxApplicationRows, setInboxApplicationRows] = useState<JobApplicationRecordClient[] | null>(null);
+  const [viewedApplicationIds, setViewedApplicationIds] = useState<Set<string>>(() =>
+    loadViewedApplicationIds(tenantId, user.uid),
+  );
+
+  useEffect(() => {
+    setViewedApplicationIds(loadViewedApplicationIds(tenantId, user.uid));
+  }, [tenantId, user.uid]);
+
+  const markApplicantViewed = useCallback(
+    (applicationId: string) => {
+      setViewedApplicationIds((prev) => {
+        if (prev.has(applicationId)) return prev;
+        const next = new Set(prev);
+        next.add(applicationId);
+        persistViewedApplicationIds(tenantId, user.uid, next);
+        return next;
+      });
+    },
+    [tenantId, user.uid],
+  );
+
+  const onApplicationRowsLoaded = useCallback((rows: JobApplicationRecordClient[] | null) => {
+    setInboxApplicationRows(rows);
+  }, []);
+
+  const fetchInboxApplications = useCallback(async () => {
+    try {
+      const fetchList = async (forceRefresh: boolean) =>
+        fetch("/api/portal/applications", {
+          headers: await portalAuthHeaders(user, { forceRefreshToken: forceRefresh }),
+          credentials: "include",
+          cache: "no-store",
+        });
+      let res = await fetchList(false);
+      if (res.status === 401) res = await fetchList(true);
+      const data = (await res.json().catch(() => ({}))) as { applications?: JobApplicationRecordClient[] };
+      if (res.ok) setInboxApplicationRows(data.applications ?? []);
+    } catch {
+      /* keep prior */
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (portalTab === "applications") return;
+    void fetchInboxApplications();
+  }, [portalTab, fetchInboxApplications]);
+
+  const applicationsUnreadCount = useMemo(
+    () => countUnreadApplications(inboxApplicationRows, viewedApplicationIds),
+    [inboxApplicationRows, viewedApplicationIds],
+  );
 
   useEffect(() => {
     setJobs(initialJobs);
@@ -205,35 +265,72 @@ export function PortalDashboard({
         ? "Pipeline, intake, and applications by vacancy."
         : "Review candidates and applications.";
 
-  const tabButtonMobile = (tab: PortalTab, icon: ReactNode, label: string) => (
-    <button
-      type="button"
-      onClick={() => setPortalTabWithUrl(tab)}
-      className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition sm:text-sm ${
-        portalTab === tab
-          ? "bg-white text-[#0B1F3A] shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-600/80"
-          : "text-slate-600 hover:text-[#0F172A] dark:text-slate-400 dark:hover:text-slate-200"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
+  const tabButtonMobile = (
+    tab: PortalTab,
+    icon: ReactNode,
+    label: string,
+    options?: { unreadBadge?: number },
+  ) => {
+    const n = options?.unreadBadge ?? 0;
+    const showBadge = tab === "applications" && n > 0;
+    return (
+      <button
+        type="button"
+        onClick={() => setPortalTabWithUrl(tab)}
+        aria-label={showBadge ? `${label}, ${n} unread` : label}
+        className={`inline-flex flex-1 items-center justify-center gap-1 rounded-lg px-1.5 py-2 text-xs font-semibold transition sm:gap-1.5 sm:px-2 sm:text-sm ${
+          portalTab === tab
+            ? "bg-white text-[#0B1F3A] shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-600/80"
+            : "text-slate-600 hover:text-[#0F172A] dark:text-slate-400 dark:hover:text-slate-200"
+        }`}
+      >
+        <span className="relative inline-flex shrink-0">
+          {icon}
+          {showBadge ? (
+            <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 max-w-[2.25rem] items-center justify-center rounded-full bg-[#2563EB] px-0.5 text-[9px] font-bold leading-none text-white dark:bg-sky-500">
+              {n > 99 ? "99+" : n}
+            </span>
+          ) : null}
+        </span>
+        <span className="truncate">{label}</span>
+      </button>
+    );
+  };
 
-  const tabButtonSidebar = (tab: PortalTab, icon: ReactNode, label: string) => (
-    <button
-      type="button"
-      onClick={() => setPortalTabWithUrl(tab)}
-      className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
-        portalTab === tab
-          ? "bg-[#F8FAFC] text-[#0B1F3A] shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800/90 dark:text-slate-100 dark:ring-slate-600/70"
-          : "text-slate-600 hover:bg-slate-50 hover:text-[#0F172A] dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
+  const tabButtonSidebar = (
+    tab: PortalTab,
+    icon: ReactNode,
+    label: string,
+    options?: { unreadBadge?: number },
+  ) => {
+    const n = options?.unreadBadge ?? 0;
+    const showBadge = tab === "applications" && n > 0;
+    return (
+      <button
+        type="button"
+        onClick={() => setPortalTabWithUrl(tab)}
+        aria-label={showBadge ? `${label}, ${n} unread` : label}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+          portalTab === tab
+            ? "bg-[#F8FAFC] text-[#0B1F3A] shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800/90 dark:text-slate-100 dark:ring-slate-600/70"
+            : "text-slate-600 hover:bg-slate-50 hover:text-[#0F172A] dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+        }`}
+      >
+        <span className="flex min-w-0 flex-1 items-center gap-2.5">
+          {icon}
+          <span className="truncate">{label}</span>
+        </span>
+        {showBadge ? (
+          <span
+            className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[#2563EB] px-1 text-[10px] font-bold leading-none text-white tabular-nums dark:bg-sky-500"
+            aria-hidden
+          >
+            {n > 99 ? "99+" : n}
+          </span>
+        ) : null}
+      </button>
+    );
+  };
 
   return (
     <div className="relative w-full min-h-screen flex-1 overflow-x-hidden bg-[#F8FAFC] dark:bg-background">
@@ -257,6 +354,7 @@ export function PortalDashboard({
             "applications",
             <Users className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
             "Applications",
+            { unreadBadge: applicationsUnreadCount },
           )}
           {tabButtonMobile(
             "analytics",
@@ -309,6 +407,7 @@ export function PortalDashboard({
             "applications",
             <Users className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
             "Applications",
+            { unreadBadge: applicationsUnreadCount },
           )}
           {tabButtonSidebar(
             "analytics",
@@ -388,6 +487,9 @@ export function PortalDashboard({
           jobs={jobs}
           initialVacancyId={searchParams.get("vacancy") ?? undefined}
           initialJobRef={searchParams.get("ref") ?? undefined}
+          viewedApplicationIds={viewedApplicationIds}
+          onMarkApplicantViewed={markApplicantViewed}
+          onApplicationRowsLoaded={onApplicationRowsLoaded}
         />
       ) : null}
 

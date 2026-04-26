@@ -4,7 +4,7 @@
  */
 export const PORTAL_COLOR_SCHEME_STORAGE_KEY = "recruiter-portal-color-scheme";
 
-/** Resolved preference: stored value, else system `prefers-color-scheme`. */
+/** Resolved preference: stored value only; new users default to light (no OS theme follow). */
 export function getResolvedPortalColorScheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light";
   try {
@@ -13,7 +13,7 @@ export function getResolvedPortalColorScheme(): "light" | "dark" {
   } catch {
     /* ignore */
   }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 export function applyPortalColorSchemeToDocument(mode: "light" | "dark") {

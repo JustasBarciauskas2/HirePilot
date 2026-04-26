@@ -80,7 +80,7 @@ type ApplicantRankedCardProps = {
   onDownloadCv: (id: string) => void | Promise<void>;
   jobPublicHref: string | null;
   pendingScreening: boolean;
-  /** Pipeline `new` and not yet opened in this browser — inbox-style indicator. */
+  /** Not yet opened in this browser — inbox-style indicator (any pipeline status). */
   unread?: boolean;
 };
 
