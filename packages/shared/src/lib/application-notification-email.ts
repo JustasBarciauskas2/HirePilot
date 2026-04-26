@@ -1,3 +1,7 @@
+import "server-only";
+
+import { filterRecruiterEmailsByNotificationPreference } from "@techrecruit/shared/lib/portal-user-settings";
+
 /**
  * Transactional emails when a candidate applies (marketing site → POST /api/job-applications).
  * Uses the Resend HTTP API. `RESEND_API_KEY` only authenticates; each request must include `from` (Resend
@@ -146,10 +150,19 @@ ${jobUrl ? `<p><a href="${escapeHtml(jobUrl)}">View the job listing</a></p>` : "
     console.error("[application-email] applicant notification failed", e);
   }
 
-  if (recruiterTos.length === 0) {
+  let recruiterRecipients = recruiterTos;
+  try {
+    recruiterRecipients = await filterRecruiterEmailsByNotificationPreference(recruiterTos);
+  } catch (e) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[application-email] could not filter recruiter prefs; sending to full list", e);
+    }
+  }
+
+  if (recruiterRecipients.length === 0) {
     if (process.env.NODE_ENV === "development") {
       console.info(
-        "[application-email] RECRUITER_APPLICATION_NOTIFY_EMAIL not set; skipping recruiter copy.",
+        "[application-email] No recruiter recipients after notify list / preferences; skipping recruiter copy.",
       );
     }
     return;
@@ -200,7 +213,7 @@ ${
     await postResendEmail({
       apiKey,
       from,
-      to: recruiterTos,
+      to: recruiterRecipients,
       subject: recSubject,
       text: recText,
       html: recHtml,

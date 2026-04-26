@@ -16,6 +16,7 @@ import {
   Copy,
   EnvelopeSimple,
   FileText,
+  GearSix,
   MagnifyingGlass,
   PencilSimple,
   SignOut,
@@ -41,10 +42,11 @@ import {
 } from "@/lib/application-inbox-storage";
 import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
 import { PortalAnalyticsPanel } from "@/components/portal/PortalAnalyticsPanel";
+import { PortalSettingsPanel } from "@/components/portal/PortalSettingsPanel";
 import { PortalThemeToggle } from "@/components/portal/PortalThemeToggle";
 
 type Flow = "choose" | "file" | "manual";
-type PortalTab = "vacancies" | "applications" | "analytics";
+type PortalTab = "vacancies" | "applications" | "analytics" | "settings";
 
 function jobMatchesOpenListingsFilter(job: JobDetail, q: string): boolean {
   const trimmed = q.trim().toLowerCase();
@@ -79,6 +81,7 @@ export function PortalDashboard({
   const [portalTab, setPortalTab] = useState<PortalTab>(() => {
     const t = searchParams.get("tab");
     if (t === "analytics") return "analytics";
+    if (t === "settings") return "settings";
     const open =
       t === "applications" ||
       Boolean(searchParams.get("vacancy")?.trim()) ||
@@ -177,6 +180,10 @@ export function PortalDashboard({
       setPortalTab("analytics");
       return;
     }
+    if (t === "settings") {
+      setPortalTab("settings");
+      return;
+    }
     const open =
       t === "applications" ||
       Boolean(searchParams.get("vacancy")?.trim()) ||
@@ -192,6 +199,10 @@ export function PortalDashboard({
         params.set("tab", "applications");
       } else if (tab === "analytics") {
         params.set("tab", "analytics");
+        params.delete("vacancy");
+        params.delete("ref");
+      } else if (tab === "settings") {
+        params.set("tab", "settings");
         params.delete("vacancy");
         params.delete("ref");
       } else {
@@ -288,13 +299,21 @@ export function PortalDashboard({
   }
 
   const pageTitle =
-    portalTab === "vacancies" ? "Vacancies" : portalTab === "analytics" ? "Analytics" : "Applications";
+    portalTab === "vacancies"
+      ? "Vacancies"
+      : portalTab === "analytics"
+        ? "Analytics"
+        : portalTab === "settings"
+          ? "Settings"
+          : "Applications";
   const pageSubtitle =
     portalTab === "vacancies"
       ? "Create and manage open roles and listings."
       : portalTab === "analytics"
         ? "Pipeline, intake, and applications by vacancy."
-        : "Review candidates and applications.";
+        : portalTab === "settings"
+          ? "Notifications, password, and team (admins)."
+          : "Review candidates and applications.";
 
   const tabButtonMobile = (
     tab: PortalTab,
@@ -392,6 +411,11 @@ export function PortalDashboard({
             <ChartLine className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
             "Analytics",
           )}
+          {tabButtonMobile(
+            "settings",
+            <GearSix className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
+            "Settings",
+          )}
         </div>
         <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2 text-xs dark:border-slate-700/80">
           {marketingRootHref ? (
@@ -446,6 +470,11 @@ export function PortalDashboard({
             "analytics",
             <ChartLine className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
             "Analytics",
+          )}
+          {tabButtonSidebar(
+            "settings",
+            <GearSix className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
+            "Settings",
           )}
         </nav>
         <div className="shrink-0 space-y-2 border-t border-slate-100 p-3 dark:border-slate-500/15">
@@ -537,6 +566,8 @@ export function PortalDashboard({
           onOpenApplicationsForJob={openApplicationsForJob}
         />
       ) : null}
+
+      {portalTab === "settings" ? <PortalSettingsPanel user={user} /> : null}
 
       {portalTab === "vacancies" && flow === "choose" ? (
         <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8 dark:border-slate-500/25 dark:bg-[#243144]/80 dark:shadow-[0_12px_40px_-20px_rgba(0,0,0,0.35)]">

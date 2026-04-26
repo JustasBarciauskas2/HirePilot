@@ -4,7 +4,7 @@ import { getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Image from "next/image";
 import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { friendlySignInError, PORTAL_CAPTCHA_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
 
 declare global {
@@ -51,14 +51,7 @@ export function PortalLogin({
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const mounted = useRef(true);
   const [recaptchaScriptReady, setRecaptchaScriptReady] = useState(!recaptchaSiteKey);
-
-  useEffect(() => {
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
 
   const formError = err;
   const sessionVerifyError = !formError && entrySyncErrorMessage?.trim() ? entrySyncErrorMessage.trim() : null;
@@ -98,7 +91,7 @@ export function PortalLogin({
     } catch (e) {
       setErr(friendlySignInError(e));
     } finally {
-      if (mounted.current) setPending(false);
+      setPending(false);
     }
   }
 
