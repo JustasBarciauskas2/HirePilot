@@ -180,10 +180,12 @@ export async function createJobApplicationDoc(data: {
   const db = getFirebaseAdminFirestore();
   const { vacancyId: rawVacancyId, ...rest } = data;
   const vacancyId = rawVacancyId?.trim();
+  const pipeline = await getApplicationPipelineForTenant(data.tenantId);
+  const initialStatus = (pipeline[0]?.id ?? "new").trim() || "new";
   const ref = await db.collection(JOB_APPLICATIONS_COLLECTION).add({
     ...rest,
     ...(vacancyId ? { vacancyId } : {}),
-    status: "new" satisfies JobApplicationStatus,
+    status: initialStatus satisfies JobApplicationStatus,
     createdAt: FieldValue.serverTimestamp(),
   });
   return ref.id;

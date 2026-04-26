@@ -45,18 +45,7 @@ export async function getApplicationPipelineForTenant(tenantId: string): Promise
   const parsed = mapPipelineFromDoc(doc.data()?.applicationPipelineStatuses);
   if (!parsed) return [...DEFAULT_APPLICATION_PIPELINE_STATUSES];
 
-  const withNew = ensureNewFirst(parsed);
-  return withNew;
-}
-
-function ensureNewFirst(rows: ApplicationPipelineStatus[]): ApplicationPipelineStatus[] {
-  const hasNew = rows.some((r) => r.id === "new");
-  if (!hasNew) {
-    return [{ id: "new", label: "New" }, ...rows];
-  }
-  const rest = rows.filter((r) => r.id !== "new");
-  const newRow = rows.find((r) => r.id === "new")!;
-  return [newRow, ...rest];
+  return parsed;
 }
 
 export type SetApplicationPipelineResult =
@@ -64,7 +53,7 @@ export type SetApplicationPipelineResult =
   | { ok: false; error: string };
 
 /**
- * Replace the tenant’s pipeline. Enforces stable `new` as the first stage id (applications are created with status `new`).
+ * Replace the tenant’s pipeline. New applications are assigned the **first** stage’s id (see {@link createJobApplicationDoc}).
  */
 export async function setApplicationPipelineForTenant(
   tenantId: string,
@@ -104,20 +93,11 @@ export async function setApplicationPipelineForTenant(
     normalized.push({ id, label });
   }
 
-  if (!normalized.some((r) => r.id === "new")) {
-    return { ok: false, error: 'A stage with id "new" is required — new applications always start there.' };
-  }
-
-  const ordered = ensureNewFirst(normalized);
-  if (ordered[0]?.id !== "new") {
-    return { ok: false, error: 'The "new" stage must be first in the list.' };
-  }
-
   const db = getFirebaseAdminFirestore();
   await db.collection(PORTAL_TENANT_SETTINGS_COLLECTION).doc(tid).set(
     {
       tenantId: tid,
-      applicationPipelineStatuses: ordered,
+      applicationPipelineStatuses: normalized,
       updatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true },
