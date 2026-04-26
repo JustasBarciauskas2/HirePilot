@@ -38,6 +38,7 @@ import { ApplicationsPanel } from "@/components/portal/ApplicationsPanel";
 import { FileUploadWizard } from "@/components/portal/FileUploadWizard";
 import {
   countUnreadApplications,
+  getOrInitInboxBaselineMs,
   loadViewedApplicationIds,
   persistViewedApplicationIds,
 } from "@/lib/application-inbox-storage";
@@ -100,6 +101,7 @@ export function PortalDashboard({
   const [viewedApplicationIds, setViewedApplicationIds] = useState<Set<string>>(() =>
     loadViewedApplicationIds(tenantId, user.uid),
   );
+  const [inboxBaselineMs, setInboxBaselineMs] = useState<number | null>(null);
 
   const [applicationPipeline, setApplicationPipeline] = useState<ApplicationPipelineStatus[]>(() => [
     ...DEFAULT_APPLICATION_PIPELINE_STATUSES,
@@ -132,6 +134,10 @@ export function PortalDashboard({
     setViewedApplicationIds(loadViewedApplicationIds(tenantId, user.uid));
   }, [tenantId, user.uid]);
 
+  useEffect(() => {
+    setInboxBaselineMs(getOrInitInboxBaselineMs(tenantId, user.uid));
+  }, [tenantId, user.uid]);
+
   const markApplicantViewed = useCallback(
     (applicationId: string) => {
       setViewedApplicationIds((prev) => {
@@ -148,6 +154,21 @@ export function PortalDashboard({
   const onApplicationRowsLoaded = useCallback((rows: JobApplicationRecordClient[] | null) => {
     setInboxApplicationRows(rows);
   }, []);
+
+  const markAllApplicantsViewed = useCallback(
+    (applicationIds: string[]) => {
+      if (!applicationIds.length) return;
+      setViewedApplicationIds((prev) => {
+        const next = new Set(prev);
+        for (const id of applicationIds) {
+          if (id) next.add(id);
+        }
+        persistViewedApplicationIds(tenantId, user.uid, next);
+        return next;
+      });
+    },
+    [tenantId, user.uid],
+  );
 
   const fetchInboxApplications = useCallback(async () => {
     try {
@@ -172,8 +193,8 @@ export function PortalDashboard({
   }, [portalTab, fetchInboxApplications]);
 
   const applicationsUnreadCount = useMemo(
-    () => countUnreadApplications(inboxApplicationRows, viewedApplicationIds),
-    [inboxApplicationRows, viewedApplicationIds],
+    () => countUnreadApplications(inboxApplicationRows, viewedApplicationIds, inboxBaselineMs),
+    [inboxApplicationRows, viewedApplicationIds, inboxBaselineMs],
   );
 
   useEffect(() => {
@@ -592,7 +613,9 @@ export function PortalDashboard({
           initialVacancyId={searchParams.get("vacancy") ?? undefined}
           initialJobRef={searchParams.get("ref") ?? undefined}
           viewedApplicationIds={viewedApplicationIds}
+          inboxBaselineMs={inboxBaselineMs}
           onMarkApplicantViewed={markApplicantViewed}
+          onMarkAllApplicantsViewed={markAllApplicantsViewed}
           onApplicationRowsLoaded={onApplicationRowsLoaded}
           applicationPipeline={applicationPipeline}
           onApplicationPipelineSaved={setApplicationPipeline}

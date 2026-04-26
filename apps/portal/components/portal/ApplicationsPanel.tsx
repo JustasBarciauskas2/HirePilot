@@ -3,7 +3,7 @@
 import { ApplicantRankedCard } from "@/components/portal/ApplicantRankedCard";
 import { ApplicationPipelineEditor } from "@/components/portal/ApplicationPipelineEditor";
 import { StatusFilterChips } from "@/components/portal/StatusFilterChips";
-import { countUnreadApplications } from "@/lib/application-inbox-storage";
+import { countUnreadApplications, isApplicationUnread } from "@/lib/application-inbox-storage";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
   type ApplicationPipelineStatus,
@@ -96,7 +96,9 @@ export function ApplicationsPanel({
   initialVacancyId,
   initialJobRef,
   viewedApplicationIds,
+  inboxBaselineMs,
   onMarkApplicantViewed,
+  onMarkAllApplicantsViewed,
   onApplicationRowsLoaded,
   applicationPipeline,
   onApplicationPipelineSaved,
@@ -107,7 +109,11 @@ export function ApplicationsPanel({
   initialVacancyId?: string;
   initialJobRef?: string;
   viewedApplicationIds: Set<string>;
+  /** Per-browser inbox start time: only applications newer than this can be unread (fresh users skip historical backlog). */
+  inboxBaselineMs: number | null;
   onMarkApplicantViewed: (applicationId: string) => void;
+  /** Marks every loaded application id as opened (full account list, not the filtered view). */
+  onMarkAllApplicantsViewed: (applicationIds: string[]) => void;
   /** Lets the shell keep an unread badge in sync with the same list the panel uses. */
   onApplicationRowsLoaded?: (rows: JobApplicationRecordClient[] | null) => void;
   applicationPipeline: ApplicationPipelineStatus[];
@@ -631,8 +637,8 @@ export function ApplicationsPanel({
 
   /** Full-list unread count (same basis as the sidebar badge). */
   const unreadInboxCount = useMemo(
-    () => countUnreadApplications(rows, viewedApplicationIds),
-    [rows, viewedApplicationIds],
+    () => countUnreadApplications(rows, viewedApplicationIds, inboxBaselineMs),
+    [rows, viewedApplicationIds, inboxBaselineMs],
   );
 
   /** AI match first when screening exists; else newest first. */
@@ -1076,7 +1082,7 @@ export function ApplicationsPanel({
                 {unreadInboxCount > 0 ? (
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full bg-[#2563EB]/10 px-2.5 py-0.5 text-xs font-semibold text-[#1d4ed8] ring-1 ring-[#2563EB]/20 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/25"
-                    title="Applications you have not opened yet in this browser"
+                    title="New applicants since you started using this inbox on this device, that you have not opened yet"
                     role="status"
                     aria-live="polite"
                     aria-atomic="true"
@@ -1084,6 +1090,17 @@ export function ApplicationsPanel({
                     <Tray className="h-3.5 w-3.5" weight="duotone" aria-hidden />
                     {unreadInboxCount} unread
                   </span>
+                ) : null}
+                {rows?.length ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onMarkAllApplicantsViewed(rows.map((r) => r.id).filter((id) => Boolean(id?.trim())))
+                    }
+                    className="text-xs font-semibold text-[#2563EB] underline decoration-[#2563EB]/35 underline-offset-2 transition hover:text-[#1d4ed8] hover:decoration-[#2563EB]/60 dark:text-sky-400 dark:decoration-sky-400/40 dark:hover:text-sky-300"
+                  >
+                    Mark all as read
+                  </button>
                 ) : null}
               </div>
             </div>
@@ -1101,8 +1118,9 @@ export function ApplicationsPanel({
             ) : null}
           </div>
           <p className="mt-3 text-xs text-zinc-400 dark:text-slate-500">
-            Open a row to read it—any applicant you have not opened yet shows a blue dot. Team notes, CV, and AI
-            screening live in the expanded panel.
+            Open a row to read it—new applicants (since this inbox started on this device) that you have not opened yet
+            show a blue dot. Use “Mark all as read” to clear the list. Team notes, CV, and AI screening live in the
+            expanded panel.
           </p>
           <ul className="mt-4 space-y-3">
             {sortedForCards.map((r) => (
@@ -1110,7 +1128,9 @@ export function ApplicationsPanel({
                 key={r.id}
                 r={r}
                 expanded={screeningExpandedId === r.id}
-                unread={!viewedApplicationIds.has(r.id)}
+                unread={
+                  inboxBaselineMs != null && isApplicationUnread(r, viewedApplicationIds, inboxBaselineMs)
+                }
                 onToggle={() => {
                   setScreeningExpandedId((cur) => {
                     if (cur === r.id) return null;

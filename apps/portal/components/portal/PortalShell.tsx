@@ -9,6 +9,7 @@ import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import { PORTAL_ENTRY_SYNC_FAILED_MESSAGE } from "@techrecruit/shared/lib/auth-error-message";
 import { PortalChrome } from "@/components/portal/PortalChrome";
 import { PortalDashboard } from "@/components/portal/PortalDashboard";
+import { PortalForcePasswordChange } from "@/components/portal/PortalForcePasswordChange";
 import { PortalLogin } from "@/components/portal/PortalLogin";
 import { PortalThemeProvider } from "@/components/portal/PortalThemeToggle";
 import { applyPortalColorSchemeToDocument, getResolvedPortalColorScheme } from "@/lib/portal-color-scheme";
@@ -103,6 +104,8 @@ export function PortalShell({
   const { user, loading, configured } = useFirebaseAuth();
   const [entrySyncError, setEntrySyncError] = useState<string | null>(null);
   const [claimAccessOk, setClaimAccessOk] = useState(!tenantClaimMode);
+  /** First-login password change from `mustChangePassword` custom claim. */
+  const [passwordGate, setPasswordGate] = useState<"pending" | "required" | "ok">("pending");
   const [bfcacheNonce, setBfcacheNonce] = useState(0);
   const lastVerifiedClaimUid = useRef<string | null>(null);
   const claimContextRef = useRef({ user: null as User | null, tenantClaimMode: false });
@@ -149,8 +152,43 @@ export function PortalShell({
     onAccessVerified,
   );
 
+  useEffect(() => {
+    if (!user) {
+      setPasswordGate("pending");
+      return;
+    }
+    if (tenantClaimMode && !claimAccessOk) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const r = await user.getIdTokenResult();
+        if (cancelled) return;
+        const claims = r.claims as Record<string, unknown>;
+        setPasswordGate(claims.mustChangePassword === true ? "required" : "ok");
+      } catch {
+        if (!cancelled) setPasswordGate("ok");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, user?.uid, tenantClaimMode, claimAccessOk]);
+
+  const onPasswordFlowComplete = useCallback(async () => {
+    const u = getAuth(getApp()).currentUser;
+    if (u) await u.getIdToken(true);
+    setPasswordGate("ok");
+  }, []);
+
   /** Login, loading, and pre-dashboard states use a light page background; restore saved theme in the app shell. */
-  const isAppShell = configured && !loading && Boolean(user) && (!tenantClaimMode || claimAccessOk);
+  const isAppShell =
+    configured &&
+    !loading &&
+    Boolean(user) &&
+    (!tenantClaimMode || claimAccessOk) &&
+    passwordGate === "ok";
   useLayoutEffect(() => {
     if (isAppShell) {
       applyPortalColorSchemeToDocument(getResolvedPortalColorScheme());
@@ -211,6 +249,26 @@ export function PortalShell({
       <PortalChrome tenantId={tenantId}>
         <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
           <PortalInterstitial title="Signing you in…" message="Verifying your organization" />
+        </main>
+      </PortalChrome>
+    );
+  }
+
+  if (user && passwordGate === "pending") {
+    return (
+      <PortalChrome tenantId={tenantId}>
+        <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+          <PortalInterstitial title="Loading…" message="Checking your account" />
+        </main>
+      </PortalChrome>
+    );
+  }
+
+  if (user && passwordGate === "required") {
+    return (
+      <PortalChrome tenantId={tenantId}>
+        <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+          <PortalForcePasswordChange user={user} onComplete={() => void onPasswordFlowComplete()} />
         </main>
       </PortalChrome>
     );

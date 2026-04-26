@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { UserRecord } from "firebase-admin/auth";
-import { isPortalAdminFromDecodedToken, PORTAL_ADMIN_CLAIM_NAME } from "@techrecruit/shared/lib/portal-admin";
+import {
+  isPortalAdminFromDecodedToken,
+  MUST_CHANGE_PASSWORD_CLAIM_NAME,
+  PORTAL_ADMIN_CLAIM_NAME,
+} from "@techrecruit/shared/lib/portal-admin";
 import {
   getPortalTenantFirebaseClaimName,
   getPortalTenantFromRequest,
@@ -128,7 +132,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     return NextResponse.json({ error: msg }, { status: 400, headers: noStore });
   }
 
-  const claims: Record<string, unknown> = { [claimName]: portalTenant.tenantId };
+  const claims: Record<string, unknown> = {
+    [claimName]: portalTenant.tenantId,
+    [MUST_CHANGE_PASSWORD_CLAIM_NAME]: true,
+  };
   if (makeAdmin) claims[PORTAL_ADMIN_CLAIM_NAME] = true;
 
   try {
@@ -144,7 +151,14 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json(
-    { ok: true, uid, email, portalAdmin: makeAdmin, message: "Share the password with the user securely; they should sign in and change it under Settings." },
+    {
+      ok: true,
+      uid,
+      email,
+      portalAdmin: makeAdmin,
+      message:
+        "Share the initial password securely. On first sign-in they must choose a new password before using the portal.",
+    },
     { status: 201, headers: noStore },
   );
 }
@@ -195,4 +209,80 @@ export async function DELETE(req: NextRequest): Promise<Response> {
   }
 
   return NextResponse.json({ ok: true }, { headers: noStore });
+}
+
+/** Set a new temporary password for a teammate (same tenant). Mirrors POST create: user must change password on next sign-in. */
+export async function PATCH(req: NextRequest): Promise<Response> {
+  const claimName = tenantClaimName();
+  if (!claimName) {
+    return NextResponse.json(
+      { error: "Team management requires PORTAL_TENANT_FIREBASE_CLAIM." },
+      { status: 503, headers: noStore },
+    );
+  }
+
+  const decoded = await getFirebaseUserFromRequest(req);
+  if (!decoded?.uid) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: noStore });
+  }
+  if (!isPortalAdminFromDecodedToken(decoded)) {
+    return NextResponse.json({ error: "Admin only." }, { status: 403, headers: noStore });
+  }
+  const portalTenant = getPortalTenantFromRequest(req, decoded);
+  if (!portalTenant.ok) return portalTenant.response;
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Expected JSON body." }, { status: 400, headers: noStore });
+  }
+  const o = body as Record<string, unknown>;
+  const targetUid = typeof o.uid === "string" ? o.uid.trim() : "";
+  const password = typeof o.password === "string" ? o.password : "";
+
+  if (!targetUid) {
+    return NextResponse.json({ error: "Missing uid." }, { status: 400, headers: noStore });
+  }
+  if (password.length < 8) {
+    return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400, headers: noStore });
+  }
+
+  const auth = getFirebaseAdminAuth();
+  let target: UserRecord;
+  try {
+    target = await auth.getUser(targetUid);
+  } catch {
+    return NextResponse.json({ error: "User not found." }, { status: 404, headers: noStore });
+  }
+  if (userTenantId(target) !== portalTenant.tenantId) {
+    return NextResponse.json({ error: "User is not in your organization." }, { status: 403, headers: noStore });
+  }
+
+  try {
+    await auth.updateUser(targetUid, { password });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Could not update password.";
+    return NextResponse.json({ error: msg }, { status: 400, headers: noStore });
+  }
+
+  const prevClaims = { ...(target.customClaims ?? {}) };
+  try {
+    await auth.setCustomUserClaims(targetUid, {
+      ...prevClaims,
+      [MUST_CHANGE_PASSWORD_CLAIM_NAME]: true,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Password was updated but could not require a password change on next login.";
+    return NextResponse.json({ error: msg }, { status: 500, headers: noStore });
+  }
+
+  return NextResponse.json(
+    {
+      ok: true,
+      message:
+        "Temporary password saved. Share it securely; on next sign-in they must choose a new password before using the portal.",
+    },
+    { headers: noStore },
+  );
 }

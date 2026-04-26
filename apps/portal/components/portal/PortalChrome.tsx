@@ -59,7 +59,7 @@ export function PortalChrome({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
 
       {layout === "default" ? (
-        <footer className="mt-auto shrink-0 border-t border-slate-200/70 bg-slate-50/50 py-6 text-center text-xs text-slate-500 sm:py-8">
+        <footer className="mt-auto shrink-0 border-t border-slate-200/60 py-6 text-center text-xs text-slate-500 sm:py-8 dark:border-slate-500/25 dark:text-slate-400">
           © {new Date().getFullYear()}{" "}
           <span className="font-sans">HirePilot</span>
         </footer>
