@@ -6,7 +6,8 @@ import {
 } from "@techrecruit/shared/lib/portal-tenant";
 import {
   getEmailNotificationsEnabledForUid,
-  setPortalUserEmailNotifications,
+  getPortalUserSettingsDoc,
+  updatePortalUserNotificationSettings,
 } from "@techrecruit/shared/lib/portal-user-settings";
 import { getFirebaseUserFromRequest } from "@techrecruit/shared/lib/verify-firebase-request";
 
@@ -23,10 +24,14 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!portalTenant.ok) return portalTenant.response;
 
   const emailNotificationsEnabled = await getEmailNotificationsEnabledForUid(decoded.uid);
+  const doc = await getPortalUserSettingsDoc(decoded.uid);
+  const applicationNotificationEmail = doc?.applicationNotificationEmail ?? null;
+
   return NextResponse.json(
     {
       email: decoded.email ?? null,
       emailNotificationsEnabled,
+      applicationNotificationEmail,
       isAdmin: isPortalAdminFromDecodedToken(decoded),
       teamManagementAvailable: Boolean(getPortalTenantFirebaseClaimName()),
     },
@@ -48,22 +53,55 @@ export async function PUT(req: NextRequest): Promise<Response> {
   } catch {
     return NextResponse.json({ error: "Expected JSON body." }, { status: 400, headers: noStore });
   }
-  const enabled =
-    typeof body === "object" &&
-    body !== null &&
-    "emailNotificationsEnabled" in body &&
-    typeof (body as { emailNotificationsEnabled: unknown }).emailNotificationsEnabled === "boolean"
-      ? (body as { emailNotificationsEnabled: boolean }).emailNotificationsEnabled
-      : null;
-  if (enabled === null) {
-    return NextResponse.json({ error: "Set emailNotificationsEnabled (boolean)." }, { status: 400, headers: noStore });
+  if (typeof body !== "object" || body === null) {
+    return NextResponse.json({ error: "Invalid body." }, { status: 400, headers: noStore });
+  }
+  const o = body as Record<string, unknown>;
+
+  const hasEnabled = "emailNotificationsEnabled" in o && typeof o.emailNotificationsEnabled === "boolean";
+  const hasNotifyEmail = "applicationNotificationEmail" in o;
+
+  if (!hasEnabled && !hasNotifyEmail) {
+    return NextResponse.json(
+      { error: "Provide emailNotificationsEnabled (boolean) and/or applicationNotificationEmail (string or null)." },
+      { status: 400, headers: noStore },
+    );
   }
 
-  await setPortalUserEmailNotifications({
-    uid: decoded.uid,
-    tenantId: portalTenant.tenantId,
-    enabled,
-  });
+  let applicationNotificationEmail: string | null | undefined;
+  if (hasNotifyEmail) {
+    const v = o.applicationNotificationEmail;
+    if (v === null) applicationNotificationEmail = null;
+    else if (typeof v === "string") applicationNotificationEmail = v.trim() === "" ? null : v.trim();
+    else {
+      return NextResponse.json(
+        { error: "applicationNotificationEmail must be a string, empty string, or null." },
+        { status: 400, headers: noStore },
+      );
+    }
+  }
 
-  return NextResponse.json({ ok: true, emailNotificationsEnabled: enabled }, { headers: noStore });
+  try {
+    await updatePortalUserNotificationSettings({
+      uid: decoded.uid,
+      tenantId: portalTenant.tenantId,
+      ...(hasEnabled ? { emailNotificationsEnabled: o.emailNotificationsEnabled as boolean } : {}),
+      ...(hasNotifyEmail ? { applicationNotificationEmail } : {}),
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Could not save settings.";
+    return NextResponse.json({ error: msg }, { status: 400, headers: noStore });
+  }
+
+  const emailNotificationsEnabled = await getEmailNotificationsEnabledForUid(decoded.uid);
+  const doc = await getPortalUserSettingsDoc(decoded.uid);
+
+  return NextResponse.json(
+    {
+      ok: true,
+      emailNotificationsEnabled,
+      applicationNotificationEmail: doc?.applicationNotificationEmail ?? null,
+    },
+    { headers: noStore },
+  );
 }

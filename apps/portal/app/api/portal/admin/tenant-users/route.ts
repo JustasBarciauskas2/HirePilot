@@ -25,13 +25,14 @@ function userTenantId(u: { customClaims?: object | null }): string | null {
   return typeof v === "string" && v.trim() ? v.trim() : null;
 }
 
+/** List portal users for your tenant. Any signed-in member of the tenant may call this; add/remove remain admin-only. */
 export async function GET(req: NextRequest): Promise<Response> {
   const claimName = tenantClaimName();
   if (!claimName) {
     return NextResponse.json(
       {
         error:
-          "Team management requires PORTAL_TENANT_FIREBASE_CLAIM so each account has a tenant id on the ID token.",
+          "Team directory requires PORTAL_TENANT_FIREBASE_CLAIM so each account has a tenant id on the ID token.",
       },
       { status: 503, headers: noStore },
     );
@@ -40,9 +41,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   const decoded = await getFirebaseUserFromRequest(req);
   if (!decoded?.uid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: noStore });
-  }
-  if (!isPortalAdminFromDecodedToken(decoded)) {
-    return NextResponse.json({ error: "Admin only." }, { status: 403, headers: noStore });
   }
   const portalTenant = getPortalTenantFromRequest(req, decoded);
   if (!portalTenant.ok) return portalTenant.response;

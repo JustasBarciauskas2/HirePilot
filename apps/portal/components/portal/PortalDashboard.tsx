@@ -23,6 +23,7 @@ import {
   Trash,
   UploadSimple,
   Users,
+  UsersThree,
 } from "@phosphor-icons/react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -43,10 +44,11 @@ import {
 import { ManualEntryWizard } from "@/components/portal/ManualEntryWizard";
 import { PortalAnalyticsPanel } from "@/components/portal/PortalAnalyticsPanel";
 import { PortalSettingsPanel } from "@/components/portal/PortalSettingsPanel";
+import { PortalTeamPanel } from "@/components/portal/PortalTeamPanel";
 import { PortalThemeToggle } from "@/components/portal/PortalThemeToggle";
 
 type Flow = "choose" | "file" | "manual";
-type PortalTab = "vacancies" | "applications" | "analytics" | "settings";
+type PortalTab = "vacancies" | "applications" | "analytics" | "users" | "settings";
 
 function jobMatchesOpenListingsFilter(job: JobDetail, q: string): boolean {
   const trimmed = q.trim().toLowerCase();
@@ -61,11 +63,14 @@ export function PortalDashboard({
   tenantId,
   user,
   displayName,
+  teamDirectoryEnabled,
 }: {
   initialJobs: JobDetail[];
   tenantId: string;
   user: User;
   displayName: string;
+  /** True when `PORTAL_TENANT_FIREBASE_CLAIM` is set — enables per-tenant team directory and admin user management. */
+  teamDirectoryEnabled: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -82,6 +87,7 @@ export function PortalDashboard({
     const t = searchParams.get("tab");
     if (t === "analytics") return "analytics";
     if (t === "settings") return "settings";
+    if (t === "users" && teamDirectoryEnabled) return "users";
     const open =
       t === "applications" ||
       Boolean(searchParams.get("vacancy")?.trim()) ||
@@ -184,12 +190,26 @@ export function PortalDashboard({
       setPortalTab("settings");
       return;
     }
+    if (t === "users") {
+      if (teamDirectoryEnabled) {
+        setPortalTab("users");
+      } else {
+        setPortalTab("vacancies");
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("tab");
+        params.delete("vacancy");
+        params.delete("ref");
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      }
+      return;
+    }
     const open =
       t === "applications" ||
       Boolean(searchParams.get("vacancy")?.trim()) ||
       Boolean(searchParams.get("ref")?.trim());
     setPortalTab(open ? "applications" : "vacancies");
-  }, [searchParams]);
+  }, [searchParams, teamDirectoryEnabled, pathname, router]);
 
   const setPortalTabWithUrl = useCallback(
     (tab: PortalTab) => {
@@ -199,6 +219,10 @@ export function PortalDashboard({
         params.set("tab", "applications");
       } else if (tab === "analytics") {
         params.set("tab", "analytics");
+        params.delete("vacancy");
+        params.delete("ref");
+      } else if (tab === "users") {
+        params.set("tab", "users");
         params.delete("vacancy");
         params.delete("ref");
       } else if (tab === "settings") {
@@ -303,17 +327,21 @@ export function PortalDashboard({
       ? "Vacancies"
       : portalTab === "analytics"
         ? "Analytics"
-        : portalTab === "settings"
-          ? "Settings"
-          : "Applications";
+        : portalTab === "users"
+          ? "Team"
+          : portalTab === "settings"
+            ? "Settings"
+            : "Applications";
   const pageSubtitle =
     portalTab === "vacancies"
       ? "Create and manage open roles and listings."
       : portalTab === "analytics"
         ? "Pipeline, intake, and applications by vacancy."
-        : portalTab === "settings"
-          ? "Notifications, password, and team (admins)."
-          : "Review candidates and applications.";
+        : portalTab === "users"
+          ? "Who has access to this portal for your organization."
+          : portalTab === "settings"
+            ? "Notifications and password."
+            : "Review candidates and applications.";
 
   const tabButtonMobile = (
     tab: PortalTab,
@@ -411,6 +439,13 @@ export function PortalDashboard({
             <ChartLine className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
             "Analytics",
           )}
+          {teamDirectoryEnabled
+            ? tabButtonMobile(
+                "users",
+                <UsersThree className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
+                "Team",
+              )
+            : null}
           {tabButtonMobile(
             "settings",
             <GearSix className="h-3.5 w-3.5 shrink-0" weight="duotone" aria-hidden />,
@@ -471,6 +506,13 @@ export function PortalDashboard({
             <ChartLine className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
             "Analytics",
           )}
+          {teamDirectoryEnabled
+            ? tabButtonSidebar(
+                "users",
+                <UsersThree className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
+                "Team",
+              )
+            : null}
           {tabButtonSidebar(
             "settings",
             <GearSix className="h-4 w-4 shrink-0" weight="duotone" aria-hidden />,
@@ -568,6 +610,8 @@ export function PortalDashboard({
       ) : null}
 
       {portalTab === "settings" ? <PortalSettingsPanel user={user} /> : null}
+
+      {portalTab === "users" && teamDirectoryEnabled ? <PortalTeamPanel user={user} tenantId={tenantId} /> : null}
 
       {portalTab === "vacancies" && flow === "choose" ? (
         <section className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)] sm:p-8 dark:border-slate-500/25 dark:bg-[#243144]/80 dark:shadow-[0_12px_40px_-20px_rgba(0,0,0,0.35)]">

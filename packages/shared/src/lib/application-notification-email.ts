@@ -1,6 +1,6 @@
 import "server-only";
 
-import { filterRecruiterEmailsByNotificationPreference } from "@techrecruit/shared/lib/portal-user-settings";
+import { resolveRecruiterApplicationNotifyRecipients } from "@techrecruit/shared/lib/portal-user-settings";
 
 /**
  * Transactional emails when a candidate applies (marketing site → POST /api/job-applications).
@@ -152,7 +152,7 @@ ${jobUrl ? `<p><a href="${escapeHtml(jobUrl)}">View the job listing</a></p>` : "
 
   let recruiterRecipients = recruiterTos;
   try {
-    recruiterRecipients = await filterRecruiterEmailsByNotificationPreference(recruiterTos);
+    recruiterRecipients = await resolveRecruiterApplicationNotifyRecipients(recruiterTos);
   } catch (e) {
     if (process.env.NODE_ENV === "development") {
       console.warn("[application-email] could not filter recruiter prefs; sending to full list", e);

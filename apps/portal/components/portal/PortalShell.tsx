@@ -232,6 +232,7 @@ export function PortalShell({
               tenantId={tenantId}
               user={user}
               displayName={user.displayName ?? user.email ?? "Recruiter"}
+              teamDirectoryEnabled={tenantClaimMode}
             />
           </PortalThemeProvider>
         </Suspense>
