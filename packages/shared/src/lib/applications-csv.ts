@@ -1,5 +1,6 @@
 import {
-  JOB_APPLICATION_STATUS_LABELS,
+  resolveApplicationStatusLabel,
+  type ApplicationPipelineStatus,
   type JobApplicationRecordClient,
 } from "@techrecruit/shared/lib/job-application-shared";
 
@@ -29,7 +30,6 @@ const HEADERS = [
   "Email",
   "Phone",
   "Job ref",
-  "Job slug",
   "Job title",
   "Company",
   "CV file name",
@@ -37,20 +37,22 @@ const HEADERS = [
 ] as const;
 
 /** Build a UTF-8 CSV string for spreadsheet apps (includes BOM for Excel). */
-export function buildApplicationsCsv(rows: JobApplicationRecordClient[]): string {
+export function buildApplicationsCsv(
+  rows: JobApplicationRecordClient[],
+  pipeline?: ApplicationPipelineStatus[] | null,
+): string {
   const lines: string[] = [];
   lines.push(HEADERS.map((h) => csvEscapeCell(h)).join(","));
 
   for (const r of rows) {
     const cells = [
       formatSubmittedForUser(r.createdAt),
-      JOB_APPLICATION_STATUS_LABELS[r.status] ?? r.status,
+      resolveApplicationStatusLabel(r.status, pipeline),
       r.firstName,
       r.lastName,
       r.email,
       r.phone,
       r.jobRef,
-      r.jobSlug,
       r.jobTitle,
       r.companyName,
       r.cvFileName,

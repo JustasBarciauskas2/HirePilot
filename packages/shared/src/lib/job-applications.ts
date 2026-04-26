@@ -5,13 +5,13 @@ import { FieldValue, Timestamp, type DocumentSnapshot } from "firebase-admin/fir
 import { getFirebaseAdminFirestore, getFirebaseStorageBucket } from "@techrecruit/shared/lib/firebase-admin";
 import {
   JOB_APPLICATIONS_COLLECTION,
-  JOB_APPLICATION_STATUSES,
   MAX_RECRUITER_COMMENT_CHARS,
   type JobApplicationRecord,
   type JobApplicationStatus,
   type RecruiterApplicationComment,
 } from "@techrecruit/shared/lib/job-application-shared";
 import { getTenantInstancePayload } from "@techrecruit/shared/lib/tenant-instance";
+import { getApplicationPipelineForTenant } from "@techrecruit/shared/lib/portal-tenant-settings";
 
 export {
   JOB_APPLICATIONS_COLLECTION,
@@ -21,6 +21,7 @@ export {
   type JobApplicationRecord,
   type JobApplicationStatus,
   type RecruiterApplicationComment,
+  type ApplicationPipelineStatus,
 } from "@techrecruit/shared/lib/job-application-shared";
 
 const MAX_CV_BYTES = 5 * 1024 * 1024;
@@ -53,8 +54,10 @@ function timestampToIso(t: Timestamp | undefined): string {
 
 const MAX_RECRUITER_COMMENTS_PER_APPLICATION = 100;
 
-function isJobApplicationStatus(v: unknown): v is JobApplicationStatus {
-  return typeof v === "string" && (JOB_APPLICATION_STATUSES as readonly string[]).includes(v);
+function normalizeStatusFromFirestore(v: unknown): JobApplicationStatus {
+  if (typeof v !== "string") return "new";
+  const s = v.trim();
+  return s || "new";
 }
 
 function mapRecruiterCommentFromFirestoreEntry(raw: unknown): RecruiterApplicationComment | null {
@@ -122,7 +125,7 @@ function docToRecord(doc: DocumentSnapshot): JobApplicationRecord {
     cvStoragePath: String(d.cvStoragePath ?? ""),
     cvFileName: String(d.cvFileName ?? ""),
     cvContentType: String(d.cvContentType ?? ""),
-    status: (isJobApplicationStatus(d.status) ? d.status : "new") as JobApplicationStatus,
+    status: normalizeStatusFromFirestore(d.status),
     createdAt: timestampToIso(d.createdAt as Timestamp | undefined),
     backendPersonId:
       typeof d.backendPersonId === "string" && d.backendPersonId.trim()
@@ -349,15 +352,20 @@ export async function updateJobApplicationStatusForTenant(
   id: string,
   tenantId: string,
   status: JobApplicationStatus,
-): Promise<boolean> {
+): Promise<"ok" | "not_found" | "invalid_status"> {
+  const pipeline = await getApplicationPipelineForTenant(tenantId);
+  const allowed = new Set(pipeline.map((p) => p.id));
+  const st = String(status ?? "").trim();
+  if (!allowed.has(st)) return "invalid_status";
+
   const db = getFirebaseAdminFirestore();
   const ref = db.collection(JOB_APPLICATIONS_COLLECTION).doc(id);
   const doc = await ref.get();
-  if (!doc.exists) return false;
+  if (!doc.exists) return "not_found";
   const d = doc.data();
-  if (!d || String(d.tenantId) !== tenantId) return false;
-  await ref.update({ status });
-  return true;
+  if (!d || String(d.tenantId) !== tenantId) return "not_found";
+  await ref.update({ status: st });
+  return "ok";
 }
 
 /**

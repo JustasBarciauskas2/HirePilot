@@ -3,14 +3,13 @@
 import { CandidateScreeningCard } from "@techrecruit/shared/components/jobs/CandidateScreeningCard";
 import {
   MAX_RECRUITER_COMMENT_CHARS,
+  type ApplicationPipelineStatus,
   type JobApplicationRecordClient,
-  type JobApplicationStatus,
   isScreeningPendingOnRecord,
-  JOB_APPLICATION_STATUS_LABELS,
-  JOB_APPLICATION_STATUSES,
+  resolveApplicationStatusLabel,
 } from "@techrecruit/shared/lib/job-application-shared";
 import { CaretRight, DownloadSimple, NotePencil, PencilSimple, Star, Trash } from "@phosphor-icons/react";
-import { useCallback, useState, type KeyboardEvent } from "react";
+import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
 
 const AVATAR_HUES = [
   "bg-[#2563EB]",
@@ -71,7 +70,9 @@ type ApplicantRankedCardProps = {
   r: JobApplicationRecordClient;
   expanded: boolean;
   onToggle: () => void;
-  onUpdateStatus: (id: string, next: JobApplicationStatus) => void | Promise<void>;
+  /** Ordered stages for the tenant; current row may still use a legacy id not in the list. */
+  statusSelectOptions: ApplicationPipelineStatus[];
+  onUpdateStatus: (id: string, next: string) => void | Promise<void>;
   onAddComment: (id: string, text: string) => Promise<boolean>;
   onUpdateComment: (applicationId: string, commentId: string, text: string) => Promise<boolean>;
   onDeleteComment: (applicationId: string, commentId: string) => Promise<boolean>;
@@ -88,6 +89,7 @@ export function ApplicantRankedCard({
   r,
   expanded,
   onToggle,
+  statusSelectOptions,
   onUpdateStatus,
   onAddComment,
   onUpdateComment,
@@ -109,6 +111,15 @@ export function ApplicantRankedCard({
   const highScore = hasScore && pct >= 90;
   const tags = skillPills(r);
   const hue = AVATAR_HUES[avatarColorKey(r.id)];
+
+  const optionsForSelect = useMemo(() => {
+    const ids = new Set(statusSelectOptions.map((x) => x.id));
+    if (ids.has(r.status)) return statusSelectOptions;
+    return [
+      ...statusSelectOptions,
+      { id: r.status, label: resolveApplicationStatusLabel(r.status, statusSelectOptions) },
+    ];
+  }, [r.status, statusSelectOptions]);
 
   const onRowKey = useCallback(
     (e: KeyboardEvent) => {
@@ -307,14 +318,14 @@ export function ApplicantRankedCard({
                 <p className="text-xs text-zinc-500 dark:text-slate-400">Status</p>
                 <select
                   value={r.status}
-                  title={JOB_APPLICATION_STATUS_LABELS[r.status]}
-                  onChange={(e) => void onUpdateStatus(r.id, e.target.value as JobApplicationStatus)}
+                  title={resolveApplicationStatusLabel(r.status, statusSelectOptions)}
+                  onChange={(e) => void onUpdateStatus(r.id, e.target.value)}
                   onClick={(e) => e.stopPropagation()}
                   className="mt-0.5 w-full max-w-xs rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm font-medium text-zinc-900 outline-none focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-200"
                 >
-                  {JOB_APPLICATION_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {JOB_APPLICATION_STATUS_LABELS[s]}
+                  {optionsForSelect.map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {row.label}
                     </option>
                   ))}
                 </select>

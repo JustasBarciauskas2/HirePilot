@@ -293,7 +293,7 @@ export function parseJobApplicationFormFields(formData: FormData): {
   const cv = formData.get("cv");
 
   if (!jobSlug) {
-    return { error: "jobSlug is required." };
+    return { error: "Please choose a vacancy." };
   }
   if (!firstName || !lastName) {
     return { error: "First name and last name are required." };

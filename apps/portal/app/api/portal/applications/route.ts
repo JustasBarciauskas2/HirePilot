@@ -124,7 +124,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return Response.json(
       {
         error:
-          "This vacancy is not open for applications, or the slug/reference does not match your tenant’s listings.",
+          "This vacancy is not open for applications, or it does not match any published listing for your account.",
       },
       { status: 404, headers: noStoreJson },
     );

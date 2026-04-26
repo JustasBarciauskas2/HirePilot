@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { isFirebaseAdminConfigured } from "@techrecruit/shared/lib/firebase-admin";
-import { isJobApplicationStatusString } from "@techrecruit/shared/lib/job-application-shared";
+import { isNonEmptyApplicationStatusId } from "@techrecruit/shared/lib/job-application-shared";
 import { updateJobApplicationStatusForTenant } from "@techrecruit/shared/lib/job-applications";
 import { getFirebaseUserFromRequest } from "@techrecruit/shared/lib/verify-firebase-request";
 import { getPortalTenantFromRequest } from "@techrecruit/shared/lib/portal-tenant";
@@ -34,14 +34,20 @@ export async function PATCH(
     return Response.json({ error: "Expected JSON body." }, { status: 400 });
   }
   const status = typeof body === "object" && body !== null ? (body as { status?: unknown }).status : undefined;
-  if (!isJobApplicationStatusString(status)) {
-    return Response.json({ error: "Expected { status: one of new|reviewing|shortlisted|rejected|hired }." }, { status: 400 });
+  if (!isNonEmptyApplicationStatusId(status)) {
+    return Response.json({ error: "Expected { status: string } with a non-empty pipeline stage id." }, { status: 400 });
   }
 
   const tenantId = portalTenant.tenantId;
-  const ok = await updateJobApplicationStatusForTenant(id, tenantId, status);
-  if (!ok) {
+  const result = await updateJobApplicationStatusForTenant(id, tenantId, status.trim());
+  if (result === "not_found") {
     return Response.json({ error: "Not found." }, { status: 404 });
+  }
+  if (result === "invalid_status") {
+    return Response.json(
+      { error: "That stage is not in your team pipeline. Update pipeline stages in Applications first." },
+      { status: 400 },
+    );
   }
   return Response.json({ ok: true });
 }

@@ -4,26 +4,16 @@ import { IntakeCalendarBlock } from "@/components/portal/IntakeCalendarBlock";
 import { StatusFilterChips } from "@/components/portal/StatusFilterChips";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
+  type ApplicationPipelineStatus,
   type JobApplicationRecordClient,
-  type JobApplicationStatus,
-  JOB_APPLICATION_STATUS_LABELS,
-  JOB_APPLICATION_STATUSES,
+  orderedStatusFilterOptions,
+  pipelineStageSwatchClass,
 } from "@techrecruit/shared/lib/job-application-shared";
 import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import { Users } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-const STATUS_ORDER: JobApplicationStatus[] = [...JOB_APPLICATION_STATUSES];
-
-const STAGE_STYLES: Record<JobApplicationStatus, string> = {
-  new: "bg-sky-500",
-  reviewing: "bg-amber-500",
-  shortlisted: "bg-violet-500",
-  rejected: "bg-rose-500",
-  hired: "bg-emerald-500",
-};
 
 type VacancyAgg = {
   key: string;
@@ -104,18 +94,20 @@ export function PortalAnalyticsPanel({
   user,
   tenantId,
   jobs,
+  applicationPipeline,
   onOpenApplicationsForJob,
 }: {
   user: User;
   tenantId: string;
   jobs: JobDetail[];
+  applicationPipeline: ApplicationPipelineStatus[];
   onOpenApplicationsForJob: (job: JobDetail) => void;
 }) {
   const [rows, setRows] = useState<JobApplicationRecordClient[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [statusIncluded, setStatusIncluded] = useState<Set<JobApplicationStatus>>(
-    () => new Set(JOB_APPLICATION_STATUSES),
+  const [statusIncluded, setStatusIncluded] = useState<Set<string>>(
+    () => new Set(applicationPipeline.map((s) => s.id)),
   );
   const [intakeView, setIntakeView] = useState<"chart" | "calendar">("chart");
 
@@ -153,6 +145,17 @@ export function PortalAnalyticsPanel({
     void load();
   }, [load]);
 
+  const statusAnalyticsOrder = useMemo(
+    () => orderedStatusFilterOptions(applicationPipeline, (rows ?? []).map((r) => r.status)),
+    [applicationPipeline, rows],
+  );
+
+  const statusAnalyticsKey = statusAnalyticsOrder.map((s) => s.id).join("\0");
+
+  useEffect(() => {
+    setStatusIncluded(new Set(statusAnalyticsOrder.map((s) => s.id)));
+  }, [statusAnalyticsKey]);
+
   const filteredRows = useMemo(
     () => (rows ?? []).filter((r) => statusIncluded.has(r.status)),
     [rows, statusIncluded],
@@ -161,14 +164,14 @@ export function PortalAnalyticsPanel({
   const total = filteredRows.length;
 
   const countsByStatus = useMemo(() => {
-    const m = new Map<JobApplicationStatus, number>();
-    for (const s of STATUS_ORDER) m.set(s, 0);
+    const m = new Map<string, number>();
+    for (const s of statusAnalyticsOrder) m.set(s.id, 0);
     for (const r of filteredRows) {
       const st = r.status;
       m.set(st, (m.get(st) ?? 0) + 1);
     }
     return m;
-  }, [filteredRows]);
+  }, [filteredRows, statusAnalyticsOrder]);
 
   const byVacancy = useMemo((): VacancyAgg[] => {
     const list = filteredRows;
@@ -266,6 +269,7 @@ export function PortalAnalyticsPanel({
       ) : rows === null ? null : (
         <div className="mt-6">
           <StatusFilterChips
+            statuses={statusAnalyticsOrder}
             included={statusIncluded}
             onChange={setStatusIncluded}
             id="analytics-status-filter"
@@ -300,27 +304,27 @@ export function PortalAnalyticsPanel({
               Counts among applicants matching the status filter above.
             </p>
             <div className="mt-4 flex h-4 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-slate-700/80">
-              {STATUS_ORDER.map((s) => {
-                const c = countsByStatus.get(s) ?? 0;
+              {statusAnalyticsOrder.map((row) => {
+                const c = countsByStatus.get(row.id) ?? 0;
                 if (total === 0 || c === 0) return null;
                 const w = (c / total) * 100;
                 return (
                   <div
-                    key={s}
-                    className={`h-full min-w-0 ${STAGE_STYLES[s]}`}
+                    key={row.id}
+                    className={`h-full min-w-0 ${pipelineStageSwatchClass(row.id)}`}
                     style={{ width: `${w}%` }}
-                    title={`${JOB_APPLICATION_STATUS_LABELS[s]}: ${c} (${w.toFixed(0)}%)`}
+                    title={`${row.label}: ${c} (${w.toFixed(0)}%)`}
                   />
                 );
               })}
             </div>
             <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
-              {STATUS_ORDER.map((s) => {
-                const c = countsByStatus.get(s) ?? 0;
+              {statusAnalyticsOrder.map((row) => {
+                const c = countsByStatus.get(row.id) ?? 0;
                 return (
-                  <li key={s} className="inline-flex items-center gap-1.5 text-zinc-600 dark:text-slate-300">
-                    <span className={`h-2 w-2 shrink-0 rounded-sm ${STAGE_STYLES[s]}`} aria-hidden />
-                    <span className="font-medium">{JOB_APPLICATION_STATUS_LABELS[s]}</span>
+                  <li key={row.id} className="inline-flex items-center gap-1.5 text-zinc-600 dark:text-slate-300">
+                    <span className={`h-2 w-2 shrink-0 rounded-sm ${pipelineStageSwatchClass(row.id)}`} aria-hidden />
+                    <span className="font-medium">{row.label}</span>
                     <span className="tabular-nums text-zinc-500 dark:text-slate-400">{c}</span>
                   </li>
                 );

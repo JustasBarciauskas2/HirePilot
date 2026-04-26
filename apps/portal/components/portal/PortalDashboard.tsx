@@ -1,7 +1,11 @@
 "use client";
 
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
-import type { JobApplicationRecordClient } from "@techrecruit/shared/lib/job-application-shared";
+import {
+  DEFAULT_APPLICATION_PIPELINE_STATUSES,
+  type ApplicationPipelineStatus,
+  type JobApplicationRecordClient,
+} from "@techrecruit/shared/lib/job-application-shared";
 import { getApp } from "firebase/app";
 import type { User } from "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
@@ -87,6 +91,33 @@ export function PortalDashboard({
   const [viewedApplicationIds, setViewedApplicationIds] = useState<Set<string>>(() =>
     loadViewedApplicationIds(tenantId, user.uid),
   );
+
+  const [applicationPipeline, setApplicationPipeline] = useState<ApplicationPipelineStatus[]>(() => [
+    ...DEFAULT_APPLICATION_PIPELINE_STATUSES,
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const headers = await portalAuthHeaders(user);
+        const res = await fetch("/api/portal/application-pipeline", {
+          headers,
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json().catch(() => ({}))) as { statuses?: ApplicationPipelineStatus[] };
+        if (cancelled || !Array.isArray(data.statuses) || !data.statuses.length) return;
+        setApplicationPipeline(data.statuses);
+      } catch {
+        /* keep defaults */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     setViewedApplicationIds(loadViewedApplicationIds(tenantId, user.uid));
@@ -490,6 +521,8 @@ export function PortalDashboard({
           viewedApplicationIds={viewedApplicationIds}
           onMarkApplicantViewed={markApplicantViewed}
           onApplicationRowsLoaded={onApplicationRowsLoaded}
+          applicationPipeline={applicationPipeline}
+          onApplicationPipelineSaved={setApplicationPipeline}
         />
       ) : null}
 
@@ -498,6 +531,7 @@ export function PortalDashboard({
           user={user}
           tenantId={tenantId}
           jobs={jobs}
+          applicationPipeline={applicationPipeline}
           onOpenApplicationsForJob={openApplicationsForJob}
         />
       ) : null}

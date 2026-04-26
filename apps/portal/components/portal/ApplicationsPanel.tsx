@@ -1,15 +1,16 @@
 "use client";
 
 import { ApplicantRankedCard } from "@/components/portal/ApplicantRankedCard";
+import { ApplicationPipelineEditor } from "@/components/portal/ApplicationPipelineEditor";
 import { StatusFilterChips } from "@/components/portal/StatusFilterChips";
 import { countUnreadApplications } from "@/lib/application-inbox-storage";
 import type { JobDetail } from "@techrecruit/shared/data/jobs";
 import {
+  type ApplicationPipelineStatus,
   type JobApplicationRecordClient,
-  type JobApplicationStatus,
   type RecruiterApplicationComment,
   isScreeningPendingOnRecord,
-  JOB_APPLICATION_STATUSES,
+  orderedStatusFilterOptions,
 } from "@techrecruit/shared/lib/job-application-shared";
 import { buildApplicationsCsv, triggerCsvDownload } from "@techrecruit/shared/lib/applications-csv";
 import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
@@ -18,6 +19,7 @@ import {
   CaretDown,
   FileCsv,
   Funnel,
+  ListBullets,
   MagnifyingGlass,
   Sparkle,
   Tray,
@@ -96,6 +98,8 @@ export function ApplicationsPanel({
   viewedApplicationIds,
   onMarkApplicantViewed,
   onApplicationRowsLoaded,
+  applicationPipeline,
+  onApplicationPipelineSaved,
 }: {
   user: User;
   tenantId: string;
@@ -106,6 +110,8 @@ export function ApplicationsPanel({
   onMarkApplicantViewed: (applicationId: string) => void;
   /** Lets the shell keep an unread badge in sync with the same list the panel uses. */
   onApplicationRowsLoaded?: (rows: JobApplicationRecordClient[] | null) => void;
+  applicationPipeline: ApplicationPipelineStatus[];
+  onApplicationPipelineSaved: (next: ApplicationPipelineStatus[]) => void;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -123,14 +129,26 @@ export function ApplicationsPanel({
   /** Filters visible rows by candidate name and job fields (title, ref, company, slug). */
   const [vacancyRowSearch, setVacancyRowSearch] = useState("");
   /** Pipeline stages to include; at least one remains selected (see `StatusFilterChips`). */
-  const [statusIncluded, setStatusIncluded] = useState<Set<JobApplicationStatus>>(
-    () => new Set(JOB_APPLICATION_STATUSES),
+  const [statusIncluded, setStatusIncluded] = useState<Set<string>>(
+    () => new Set(applicationPipeline.map((s) => s.id)),
   );
+  const [pipelineEditorOpen, setPipelineEditorOpen] = useState(false);
   const [rows, setRows] = useState<JobApplicationRecordClient[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   /** Expanded application row for AI screening details (recruiter-only). */
   const [screeningExpandedId, setScreeningExpandedId] = useState<string | null>(null);
+
+  const statusFilterOptions = useMemo(
+    () => orderedStatusFilterOptions(applicationPipeline, (rows ?? []).map((r) => r.status)),
+    [applicationPipeline, rows],
+  );
+
+  const statusFilterKey = statusFilterOptions.map((s) => s.id).join("\0");
+
+  useEffect(() => {
+    setStatusIncluded(new Set(statusFilterOptions.map((s) => s.id)));
+  }, [statusFilterKey]);
 
   useEffect(() => {
     setFilterKey(buildInitialFilterKey(initialVacancyId, initialJobRef));
@@ -303,8 +321,8 @@ export function ApplicationsPanel({
     };
   }, [hasPendingScreening, refreshApplicationsSilently]);
 
-  async function updateStatus(id: string, status: JobApplicationStatus) {
-    let previous: JobApplicationStatus | undefined;
+  async function updateStatus(id: string, status: string) {
+    let previous: string | undefined;
     // Controlled <select> reads `value` from state; commit before awaiting auth so the UI updates immediately.
     flushSync(() => {
       setRows((prev) => {
@@ -439,7 +457,7 @@ export function ApplicationsPanel({
 
   function downloadAllApplicationsCsv() {
     if (!rows?.length) return;
-    const csv = buildApplicationsCsv(rows);
+    const csv = buildApplicationsCsv(rows, applicationPipeline);
     const d = new Date();
     const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     triggerCsvDownload(csv, `applications-${stamp}`);
@@ -705,7 +723,7 @@ export function ApplicationsPanel({
                 onKeyDown={(e) => {
                   if (e.key === "Escape") setVacancyComboOpen(false);
                 }}
-                placeholder="Search by ref, title, company, or slug — then pick a row"
+                placeholder="Search by ref, title, company, or public page path — then pick a row"
                 className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-3 pr-20 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder:text-slate-500"
                 autoComplete="off"
               />
@@ -796,18 +814,28 @@ export function ApplicationsPanel({
               type="search"
               value={vacancyRowSearch}
               onChange={(e) => setVacancyRowSearch(e.target.value)}
-              placeholder="Match name, title, ref, company, or slug on each row…"
+              placeholder="Match name, title, ref, company, or public page path on each row…"
               className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/12 dark:border-slate-500/30 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder:text-slate-500"
               autoComplete="off"
             />
           </label>
           <StatusFilterChips
+            statuses={statusFilterOptions}
             included={statusIncluded}
             onChange={setStatusIncluded}
             id="applications-status-filter"
             className="w-full"
           />
           <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setPipelineEditorOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 dark:border-slate-500/25 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
+              title="Customize pipeline stages for your whole team"
+            >
+              <ListBullets className="h-4 w-4 text-[#2563EB]" weight="duotone" aria-hidden />
+              Pipeline stages
+            </button>
             <button
               type="button"
               onClick={() => void load()}
@@ -1090,6 +1118,7 @@ export function ApplicationsPanel({
                     return r.id;
                   });
                 }}
+                statusSelectOptions={statusFilterOptions}
                 onUpdateStatus={updateStatus}
                 onAddComment={addRecruiterComment}
                 onUpdateComment={updateRecruiterComment}
@@ -1103,6 +1132,14 @@ export function ApplicationsPanel({
           </ul>
         </>
       )}
+      <ApplicationPipelineEditor
+        open={pipelineEditorOpen}
+        onClose={() => setPipelineEditorOpen(false)}
+        pipeline={applicationPipeline}
+        rows={rows}
+        user={user}
+        onSaved={onApplicationPipelineSaved}
+      />
     </section>
   );
 }
