@@ -39,7 +39,7 @@ export function PortalChrome({
                 <span className="font-display text-sm font-semibold leading-tight tracking-tight text-[#0B1F3A] sm:text-base">
                   Recruiter portal
                 </span>
-                <span className="hidden text-[10px] font-medium tracking-[0.18em] text-slate-400 sm:block">
+                <span className="hidden font-sans text-[10px] font-medium tracking-[0.18em] text-slate-400 sm:block">
                   HirePilot
                 </span>
               </div>
@@ -60,7 +60,8 @@ export function PortalChrome({
 
       {layout === "default" ? (
         <footer className="mt-auto shrink-0 border-t border-slate-200/70 bg-slate-50/50 py-6 text-center text-xs text-slate-500 sm:py-8">
-          © {new Date().getFullYear()} Recruiter portal
+          © {new Date().getFullYear()}{" "}
+          <span className="font-sans">HirePilot</span>
         </footer>
       ) : null}
     </div>

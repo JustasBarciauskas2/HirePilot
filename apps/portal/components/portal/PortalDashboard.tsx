@@ -423,7 +423,9 @@ export function PortalDashboard({
             </span>
             <div className="min-w-0">
               <p className="font-display text-sm font-semibold text-[#0B1F3A] dark:text-slate-100">Recruiter portal</p>
-              <p className="text-[10px] font-medium tracking-[0.18em] text-slate-400 dark:text-slate-500">HirePilot</p>
+              <p className="font-sans text-[10px] font-medium tracking-[0.18em] text-slate-400 dark:text-slate-500">
+                HirePilot
+              </p>
             </div>
           </div>
           <p className="px-4 pt-4 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Recruitment</p>

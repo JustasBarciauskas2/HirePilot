@@ -36,6 +36,9 @@ function parseNotifyList(raw: string | undefined): string[] {
 
 const DEFAULT_APPLICATION_EMAIL_FROM = "HirePilot <notifications@gethirepilot.com>";
 
+/** HTML signature wordmark: Inter where supported (email clients fall back to system UI fonts). */
+const HIREPILOT_WORDMARK_HTML = `<span style="font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">HirePilot</span>`;
+
 /** "Name <a@b>" → a@b, else the whole string (for signature / mailto) */
 function senderAddressForFooter(from: string): string {
   const m = from.match(/<([^>]+)>\s*$/);
@@ -191,7 +194,7 @@ ${
     ? `<p><a href="${escapeHtml(portalLink)}">Open recruiter portal (Applications)</a></p>`
     : ""
 }
-<p style="color:#64748b;font-size:12px">— HirePilot</p>`;
+<p style="color:#64748b;font-size:12px">— ${HIREPILOT_WORDMARK_HTML}</p>`;
 
   try {
     await postResendEmail({
