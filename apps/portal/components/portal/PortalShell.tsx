@@ -103,13 +103,11 @@ export function PortalShell({
   initialJobs,
   tenantId,
   tenantClaimMode,
-  loginEntryGate,
 }: {
   initialJobs: JobDetail[];
   tenantId: string;
   /** When true, the dashboard is shown only after `POST /api/portal/auth/sync-tenant` succeeds (no flash of a logged-in portal on wrong-tenant). */
   tenantClaimMode: boolean;
-  loginEntryGate: { requireMarketingEntry: boolean; hasEntryTenantCookie: boolean };
 }) {
   const { user, loading, configured } = useFirebaseAuth();
   const [entrySyncFailed, setEntrySyncFailed] = useState(false);
@@ -205,15 +203,12 @@ export function PortalShell({
   }
 
   if (!user) {
-    const loginBlockedByMissingEntry =
-      loginEntryGate.requireMarketingEntry && !loginEntryGate.hasEntryTenantCookie;
     return (
       <PortalChrome tenantId={tenantId}>
         <main className="relative z-10 flex-1 px-4 pb-20 pt-28 sm:px-6 lg:px-8">
           <PortalLogin
             entrySyncFailed={entrySyncFailed}
             onClearEntrySyncFailed={() => setEntrySyncFailed(false)}
-            loginBlockedByMissingEntry={loginBlockedByMissingEntry}
           />
         </main>
       </PortalChrome>
