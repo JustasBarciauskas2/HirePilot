@@ -20,11 +20,12 @@ import {
   Funnel,
   MagnifyingGlass,
   Sparkle,
+  UserPlus,
   X,
 } from "@phosphor-icons/react";
 import type { User } from "firebase/auth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
 
 /** Canonical form for vacancy UUIDs in filter keys and comparisons (avoids case mismatches). */
@@ -504,6 +505,99 @@ export function ApplicationsPanel({
 
   const activeFilterLabel = filterLabel(jobs, filterKey);
 
+  const [addOpen, setAddOpen] = useState(false);
+  const [intakeJobSlug, setIntakeJobSlug] = useState("");
+  const [intakeFirst, setIntakeFirst] = useState("");
+  const [intakeLast, setIntakeLast] = useState("");
+  const [intakeEmail, setIntakeEmail] = useState("");
+  const [intakePhone, setIntakePhone] = useState("");
+  const [intakeFile, setIntakeFile] = useState<File | null>(null);
+  const [intakeSubmitting, setIntakeSubmitting] = useState(false);
+  const [intakeErr, setIntakeErr] = useState<string | null>(null);
+  const [intakeOk, setIntakeOk] = useState(false);
+  const intakeFileRef = useRef<HTMLInputElement>(null);
+
+  function openAddPanel() {
+    setIntakeErr(null);
+    setIntakeOk(false);
+    setAddOpen(true);
+    const j = jobFromFilterKey(filterKey, jobs) ?? (jobs.length ? jobs[0] : undefined);
+    setIntakeJobSlug(j?.slug?.trim() ?? "");
+  }
+
+  function closeAddPanel() {
+    setAddOpen(false);
+  }
+
+  useEffect(() => {
+    if (!addOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setAddOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [addOpen]);
+
+  async function submitIntake(e: FormEvent) {
+    e.preventDefault();
+    setIntakeErr(null);
+    setIntakeOk(false);
+    if (!intakeJobSlug.trim()) {
+      setIntakeErr("Choose a vacancy.");
+      return;
+    }
+    if (!intakeFirst.trim() || !intakeLast.trim()) {
+      setIntakeErr("First name and last name are required.");
+      return;
+    }
+    if (!intakeEmail.trim()) {
+      setIntakeErr("Email is required.");
+      return;
+    }
+    if (!intakeFile || intakeFile.size === 0) {
+      setIntakeErr("Attach a CV (PDF or Word).");
+      return;
+    }
+    setIntakeSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.set("jobSlug", intakeJobSlug.trim());
+      fd.set("firstName", intakeFirst.trim());
+      fd.set("lastName", intakeLast.trim());
+      fd.set("email", intakeEmail.trim());
+      fd.set("phone", intakePhone.trim());
+      fd.set("cv", intakeFile);
+      const doPost = async (forceRefresh: boolean) =>
+        fetch("/api/portal/applications", {
+          method: "POST",
+          body: fd,
+          headers: await portalAuthHeaders(user, { forceRefreshToken: forceRefresh }),
+          credentials: "include",
+        });
+      let res = await doPost(false);
+      if (res.status === 401) {
+        res = await doPost(true);
+      }
+      const data = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
+      if (!res.ok) {
+        setIntakeErr(typeof data.error === "string" && data.error.trim() ? data.error : `Failed (${res.status})`);
+        return;
+      }
+      setIntakeOk(true);
+      setIntakeFirst("");
+      setIntakeLast("");
+      setIntakeEmail("");
+      setIntakePhone("");
+      setIntakeFile(null);
+      if (intakeFileRef.current) intakeFileRef.current.value = "";
+      void load();
+    } catch (err) {
+      setIntakeErr(err instanceof Error ? err.message : "Could not add applicant.");
+    } finally {
+      setIntakeSubmitting(false);
+    }
+  }
+
   /** Notification banner: only while at least one visible row is still `new`. */
   const newApplicationCount = useMemo(
     () => displayed.filter((r) => r.status === "new").length,
@@ -700,7 +794,7 @@ export function ApplicationsPanel({
             id="applications-status-filter"
             className="w-full"
           />
-          <div className="flex w-full flex-wrap gap-3 sm:justify-end">
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => void load()}
@@ -708,6 +802,22 @@ export function ApplicationsPanel({
             >
               Refresh
             </button>
+            {!addOpen ? (
+              <button
+                type="button"
+                onClick={openAddPanel}
+                disabled={!jobs.length}
+                title={
+                  !jobs.length
+                    ? "Add at least one open vacancy to attach candidates."
+                    : "Add a candidate without using the public apply form."
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-2.5 text-sm font-semibold text-[#1d4ed8] transition hover:bg-[#2563EB]/12 disabled:cursor-not-allowed disabled:opacity-50 dark:border-sky-500/35 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/15"
+              >
+                <UserPlus className="h-4 w-4" weight="duotone" aria-hidden />
+                Add applicant
+              </button>
+            ) : null}
             <button
               type="button"
               disabled={loading || !rows?.length}
@@ -721,6 +831,166 @@ export function ApplicationsPanel({
           </div>
         </div>
       </div>
+
+      {addOpen ? (
+        <div className="mt-6 w-full min-w-0">
+          <form
+            onSubmit={(e) => void submitIntake(e)}
+            className="w-full overflow-hidden rounded-2xl border border-zinc-200/90 bg-zinc-50/90 shadow-sm ring-1 ring-zinc-950/[0.04] dark:border-slate-500/30 dark:bg-slate-800/40 dark:ring-slate-950/20"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-zinc-200/80 bg-white/80 px-4 py-4 sm:px-6 dark:border-slate-500/20 dark:bg-slate-900/20">
+              <div className="min-w-0 pr-2">
+                <h3 className="font-display text-base font-semibold text-zinc-950 dark:text-slate-100 sm:text-lg">
+                  Add applicant manually
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-zinc-500 dark:text-slate-400">
+                  Headhunters and internal teams: same flow as the public job page—CV, notifications, and AI screening.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeAddPanel}
+                className="shrink-0 rounded-xl border border-zinc-200/90 bg-white p-2.5 text-zinc-500 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-800 dark:border-slate-500/40 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                aria-label="Close form"
+              >
+                <X className="h-5 w-5" weight="bold" aria-hidden />
+              </button>
+            </div>
+
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
+              {intakeErr ? (
+                <p
+                  className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200"
+                  role="alert"
+                >
+                  {intakeErr}
+                </p>
+              ) : null}
+              {intakeOk ? (
+                <p
+                  className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200"
+                  role="status"
+                >
+                  Application saved. The list was refreshed; screening may take a few seconds to appear.
+                </p>
+              ) : null}
+
+              <div className="mx-auto flex max-w-4xl flex-col gap-6">
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="text-xs font-medium text-zinc-600 dark:text-slate-400"
+                    htmlFor="intake-vacancy-select"
+                  >
+                    Vacancy
+                  </label>
+                  <select
+                    id="intake-vacancy-select"
+                    value={intakeJobSlug}
+                    onChange={(e) => {
+                      setIntakeJobSlug(e.target.value);
+                      setIntakeErr(null);
+                      setIntakeOk(false);
+                    }}
+                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-100"
+                    required
+                  >
+                    {jobs.map((j) => (
+                      <option key={`${j.ref}-${j.id ?? j.slug}`} value={j.slug}>
+                        {formatJobLabel(j)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-slate-500">
+                    Candidate
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-3">
+                    <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-slate-400">
+                      First name
+                      <input
+                        value={intakeFirst}
+                        onChange={(e) => setIntakeFirst(e.target.value)}
+                        autoComplete="given-name"
+                        className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-100"
+                        required
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-slate-400">
+                      Last name
+                      <input
+                        value={intakeLast}
+                        onChange={(e) => setIntakeLast(e.target.value)}
+                        autoComplete="family-name"
+                        className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-100"
+                        required
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-slate-400">
+                      Email
+                      <input
+                        type="email"
+                        value={intakeEmail}
+                        onChange={(e) => setIntakeEmail(e.target.value)}
+                        autoComplete="email"
+                        className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-100"
+                        required
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-slate-400">
+                      Phone
+                      <input
+                        value={intakePhone}
+                        onChange={(e) => setIntakePhone(e.target.value)}
+                        autoComplete="tel"
+                        className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#2563EB]/50 focus:ring-2 focus:ring-[#2563EB]/15 dark:border-slate-500/30 dark:bg-slate-800/60 dark:text-slate-100"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-medium text-zinc-600 dark:text-slate-400">CV (PDF or Word, max 5MB)</span>
+                  <div className="flex flex-col gap-2 rounded-lg border border-dashed border-zinc-300/90 bg-white/60 px-3 py-3 dark:border-slate-500/35 dark:bg-slate-800/30">
+                    <input
+                      ref={intakeFileRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        setIntakeFile(f);
+                        setIntakeErr(null);
+                        setIntakeOk(false);
+                      }}
+                      className="text-sm text-zinc-800 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-800 dark:text-slate-200 dark:file:bg-slate-700 dark:file:text-slate-200"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 border-t border-zinc-200/80 bg-white/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6 dark:border-slate-500/20 dark:bg-slate-900/20">
+              <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                <button
+                  type="button"
+                  onClick={closeAddPanel}
+                  className="order-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 sm:order-1 dark:border-slate-500/35 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={intakeSubmitting}
+                  className="order-1 w-full rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 sm:w-auto dark:bg-sky-600 dark:hover:bg-sky-500"
+                >
+                  {intakeSubmitting ? "Saving…" : "Save application"}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
       {!loading && rows !== null && newApplicationCount > 0 ? (
         <div

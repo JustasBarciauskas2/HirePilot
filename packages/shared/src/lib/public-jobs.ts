@@ -65,6 +65,24 @@ export async function getPublicJobBySlug(slug: string): Promise<JobDetail | unde
 }
 
 /**
+ * Resolve a listing by URL slug or by `ref` (same fallbacks as {@link getPublicJobBySlug}) for a specific tenant —
+ * used by the recruiter portal when adding an applicant manually.
+ */
+export async function getPublicJobBySlugForTenant(
+  tenantId: string,
+  slug: string,
+): Promise<JobDetail | undefined> {
+  const jobs = await getPublicJobsForTenant(tenantId);
+  const key = slug.toLowerCase();
+  const fromList = jobs.find((j) => j.slug.toLowerCase() === key);
+  if (fromList) return fromList;
+  const fromFile = readJobsFileRowsForTenant(tenantId);
+  const bySlug = fromFile.find((j) => j.slug.toLowerCase() === key);
+  if (bySlug) return bySlug;
+  return fromFile.find((j) => j.ref.toLowerCase() === key);
+}
+
+/**
  * Backend row id for DELETE (path `/api/vacancy/{id}` + query `tenantId`, same UUID as `vacancy.id`).
  * Uses `JobDetail.id` from local `jobs.json` when present; otherwise loads the tenant list API
  * (same source as the portal) and matches by `ref` so root-level `id` from your list JSON is included.
