@@ -14,12 +14,12 @@ import { buildApplicationsCsv, triggerCsvDownload } from "@techrecruit/shared/li
 import { publicJobPageHttpHrefForPortalTenant } from "@techrecruit/shared/lib/portal-tenant";
 import { portalAuthHeaders } from "@techrecruit/shared/lib/portal-auth";
 import {
-  Bell,
   CaretDown,
   FileCsv,
   Funnel,
   MagnifyingGlass,
   Sparkle,
+  Tray,
   UserPlus,
   X,
 } from "@phosphor-icons/react";
@@ -86,6 +86,35 @@ function jobVacancyExternalHref(r: JobApplicationRecordClient, tenantId: string)
   return publicJobPageHttpHrefForPortalTenant(tenantId, slug);
 }
 
+const VIEWED_IDS_STORAGE_V = "v1";
+
+function viewedIdsStorageKey(tenantId: string, userId: string): string {
+  return `portal-app-viewed:${VIEWED_IDS_STORAGE_V}:${tenantId}:${userId}`;
+}
+
+function loadViewedApplicationIds(tenantId: string, userId: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(viewedIdsStorageKey(tenantId, userId));
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw) as unknown;
+    if (!Array.isArray(arr)) return new Set();
+    return new Set(arr.filter((x): x is string => typeof x === "string" && x.trim().length > 0));
+  } catch {
+    return new Set();
+  }
+}
+
+function persistViewedApplicationIds(tenantId: string, userId: string, ids: Set<string>): void {
+  try {
+    const arr = [...ids];
+    const capped = arr.length > 1000 ? arr.slice(arr.length - 1000) : arr;
+    localStorage.setItem(viewedIdsStorageKey(tenantId, userId), JSON.stringify(capped));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
 export function ApplicationsPanel({
   user,
   tenantId,
@@ -123,6 +152,27 @@ export function ApplicationsPanel({
   const [loading, setLoading] = useState(true);
   /** Expanded application row for AI screening details (recruiter-only). */
   const [screeningExpandedId, setScreeningExpandedId] = useState<string | null>(null);
+  /** Firestore ids the recruiter has opened (per browser); used for inbox-style unread on `new` applications. */
+  const [viewedApplicationIds, setViewedApplicationIds] = useState<Set<string>>(() =>
+    loadViewedApplicationIds(tenantId, user.uid),
+  );
+
+  useEffect(() => {
+    setViewedApplicationIds(loadViewedApplicationIds(tenantId, user.uid));
+  }, [tenantId, user.uid]);
+
+  const markApplicantViewed = useCallback(
+    (applicationId: string) => {
+      setViewedApplicationIds((prev) => {
+        if (prev.has(applicationId)) return prev;
+        const next = new Set(prev);
+        next.add(applicationId);
+        persistViewedApplicationIds(tenantId, user.uid, next);
+        return next;
+      });
+    },
+    [tenantId, user.uid],
+  );
 
   useEffect(() => {
     setFilterKey(buildInitialFilterKey(initialVacancyId, initialJobRef));
@@ -598,10 +648,10 @@ export function ApplicationsPanel({
     }
   }
 
-  /** Notification banner: only while at least one visible row is still `new`. */
-  const newApplicationCount = useMemo(
-    () => displayed.filter((r) => r.status === "new").length,
-    [displayed],
+  /** Inbox-style: `new` applications not yet opened in this browser (see localStorage-backed `viewedApplicationIds`). */
+  const unreadInboxCount = useMemo(
+    () => displayed.filter((r) => r.status === "new" && !viewedApplicationIds.has(r.id)).length,
+    [displayed, viewedApplicationIds],
   );
 
   /** AI match first when screening exists; else newest first. */
@@ -993,37 +1043,6 @@ export function ApplicationsPanel({
         </div>
       ) : null}
 
-      {!loading && rows !== null && newApplicationCount > 0 ? (
-        <div
-          className="mt-6 flex flex-col gap-2 rounded-2xl border border-[#2563EB]/25 bg-gradient-to-br from-[#2563EB]/[0.08] via-white to-amber-50/30 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 dark:border-sky-500/20 dark:from-sky-500/10 dark:via-slate-800/40 dark:to-slate-800/20"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/15 text-[#1d4ed8] dark:bg-sky-500/20 dark:text-sky-300">
-              <Bell className="h-5 w-5" weight="duotone" aria-hidden />
-            </span>
-            <div>
-              <p className="font-display text-lg font-semibold text-zinc-950 dark:text-slate-100">
-                {newApplicationCount} new {newApplicationCount === 1 ? "application" : "applications"}
-              </p>
-              <p className="mt-0.5 text-sm text-zinc-600 dark:text-slate-400">
-                {activeFilterLabel ? (
-                  <>
-                    In this filter: <span className="font-medium text-zinc-800 dark:text-slate-200">{activeFilterLabel}</span>
-                    {filterKey.startsWith("ref:") ? (
-                      <span className="text-zinc-400 dark:text-slate-500"> · by job reference</span>
-                    ) : null}
-                  </>
-                ) : (
-                  "Review or change status in the table below — this notice hides when nothing is still marked New."
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       {err ? (
         <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900" role="alert">
           {err}
@@ -1057,11 +1076,25 @@ export function ApplicationsPanel({
                   ? `${listHeaderJob.title} · ${displayed.length} applicant${displayed.length === 1 ? "" : "s"}`
                   : `All vacancies · ${displayed.length} applicant${displayed.length === 1 ? "" : "s"}`}
               </h3>
-              <p className="mt-0.5 text-sm text-zinc-500 dark:text-slate-400">
-                {hasAnyScreening
-                  ? "Ranked by AI match score"
-                  : "Sorted by application date (newest first)"}
-              </p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <p className="text-sm text-zinc-500 dark:text-slate-400">
+                  {hasAnyScreening
+                    ? "Ranked by AI match score"
+                    : "Sorted by application date (newest first)"}
+                </p>
+                {unreadInboxCount > 0 ? (
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#2563EB]/10 px-2.5 py-0.5 text-xs font-semibold text-[#1d4ed8] ring-1 ring-[#2563EB]/20 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/25"
+                    title="New applications you have not opened yet in this browser"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <Tray className="h-3.5 w-3.5" weight="duotone" aria-hidden />
+                    {unreadInboxCount} unread
+                  </span>
+                ) : null}
+              </div>
             </div>
             {displayed.length > 0 ? (
               <div
@@ -1077,7 +1110,8 @@ export function ApplicationsPanel({
             ) : null}
           </div>
           <p className="mt-3 text-xs text-zinc-400 dark:text-slate-500">
-            Click a candidate to open details, team notes, and AI screening. Change pipeline status in the expanded panel.
+            Open a row to read it—unread <span className="font-medium text-zinc-500 dark:text-slate-400">New</span>{" "}
+            applications show a blue dot until you do. Team notes, CV, and AI screening live in the expanded panel.
           </p>
           <ul className="mt-4 space-y-3">
             {sortedForCards.map((r) => (
@@ -1085,7 +1119,14 @@ export function ApplicationsPanel({
                 key={r.id}
                 r={r}
                 expanded={screeningExpandedId === r.id}
-                onToggle={() => setScreeningExpandedId((cur) => (cur === r.id ? null : r.id))}
+                unread={r.status === "new" && !viewedApplicationIds.has(r.id)}
+                onToggle={() => {
+                  setScreeningExpandedId((cur) => {
+                    if (cur === r.id) return null;
+                    markApplicantViewed(r.id);
+                    return r.id;
+                  });
+                }}
                 onUpdateStatus={updateStatus}
                 onAddComment={addRecruiterComment}
                 onUpdateComment={updateRecruiterComment}

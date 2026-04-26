@@ -80,6 +80,8 @@ type ApplicantRankedCardProps = {
   onDownloadCv: (id: string) => void | Promise<void>;
   jobPublicHref: string | null;
   pendingScreening: boolean;
+  /** Pipeline `new` and not yet opened in this browser — inbox-style indicator. */
+  unread?: boolean;
 };
 
 export function ApplicantRankedCard({
@@ -94,6 +96,7 @@ export function ApplicantRankedCard({
   onDownloadCv,
   jobPublicHref,
   pendingScreening,
+  unread = false,
 }: ApplicantRankedCardProps) {
   const [noteDraft, setNoteDraft] = useState("");
   const [noteSaving, setNoteSaving] = useState(false);
@@ -175,13 +178,18 @@ export function ApplicantRankedCard({
     <li
       className={`overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm transition dark:border-slate-500/25 dark:bg-slate-800/50 ${
         expanded ? "ring-2 ring-[#2563EB]/20 dark:ring-sky-500/25" : ""
-      }`}
+      } ${unread && !expanded ? "bg-[#2563EB]/[0.04] dark:bg-sky-500/[0.07]" : ""}`}
     >
       <button
         type="button"
         onClick={onToggle}
         onKeyDown={onRowKey}
         aria-expanded={expanded}
+        aria-label={
+          unread
+            ? `Unread application — ${r.firstName} ${r.lastName}, ${r.jobTitle}. Open details.`
+            : `${r.firstName} ${r.lastName}, ${r.jobTitle}. Open details.`
+        }
         className="flex w-full min-w-0 items-stretch gap-3 px-4 py-3.5 text-left transition hover:bg-zinc-50/90 dark:hover:bg-slate-800/80 sm:gap-4 sm:px-5 sm:py-4"
       >
         <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
@@ -192,8 +200,17 @@ export function ApplicantRankedCard({
             {initials(r.firstName, r.lastName)}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <span className="truncate font-semibold text-zinc-950 dark:text-slate-100">
+            <div className="flex min-w-0 items-center gap-2">
+              {unread ? (
+                <span
+                  className="h-2 w-2 shrink-0 rounded-full bg-[#2563EB] dark:bg-sky-400"
+                  title="Unread"
+                  aria-hidden
+                />
+              ) : null}
+              <span
+                className={`truncate dark:text-slate-100 ${unread ? "font-bold text-zinc-950" : "font-semibold text-zinc-950"}`}
+              >
                 {r.firstName} {r.lastName}
               </span>
               {r.status === "shortlisted" ? (
