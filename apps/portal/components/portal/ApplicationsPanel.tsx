@@ -1091,7 +1091,7 @@ export function ApplicationsPanel({
                     {unreadInboxCount} unread
                   </span>
                 ) : null}
-                {rows?.length ? (
+                {rows?.length && unreadInboxCount > 0 ? (
                   <button
                     type="button"
                     onClick={() =>
@@ -1119,8 +1119,9 @@ export function ApplicationsPanel({
           </div>
           <p className="mt-3 text-xs text-zinc-400 dark:text-slate-500">
             Open a row to read it—new applicants (since this inbox started on this device) that you have not opened yet
-            show a blue dot. Use “Mark all as read” to clear the list. Team notes, CV, and AI screening live in the
-            expanded panel.
+            show a blue dot.
+            {unreadInboxCount > 0 ? <> Use “Mark all as read” to clear the list.</> : null}{" "}
+            Team notes, CV, and AI screening live in the expanded panel.
           </p>
           <ul className="mt-4 space-y-3">
             {sortedForCards.map((r) => (
