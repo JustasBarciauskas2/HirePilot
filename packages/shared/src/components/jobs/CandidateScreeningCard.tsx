@@ -48,6 +48,13 @@ const RELEVANCE_RING: Record<"high" | "medium" | "low", string> = {
   low: "ring-zinc-200/60 bg-zinc-50 text-zinc-600 dark:ring-slate-600/50 dark:bg-slate-800/50 dark:text-slate-400",
 };
 
+/** Native hover `title`; duplicated in `sr-only` for assistive tech. */
+const MATCH_SCORE_TOOLTIP =
+  "Overall fit for this vacancy: skills, relevance, gaps, and years of experience rolled into one score. Use this as your main headline when comparing applicants quickly.";
+
+const EXPERIENCE_SCORE_TOOLTIP =
+  "How closely their CV matches what this job expects for seniority, job titles, and relevant tech or domain experience. Reach for this when the headline match score and their career story do not align.";
+
 type CandidateScreeningCardProps = {
   screening: CandidateScreeningResult;
   /** When set (e.g. portal), shows a footer control so recruiters can collapse without scrolling back to the row. */
@@ -100,18 +107,32 @@ export function CandidateScreeningCard({ screening, onClose }: CandidateScreenin
               {fit.label}
             </span>
             <div className="flex flex-wrap items-end gap-4">
-              <div>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-slate-500">
-                  Match score
+              <div
+                className="cursor-help rounded-md outline-offset-2"
+                title={MATCH_SCORE_TOOLTIP}
+              >
+                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-slate-500 inline-flex items-center gap-1">
+                  <span aria-hidden className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-[9px] font-bold text-zinc-500 dark:bg-slate-600 dark:text-slate-300">
+                    i
+                  </span>
+                  <span className="-mt-px">Match score</span>
+                  <span className="sr-only">{MATCH_SCORE_TOOLTIP}</span>
                 </p>
                 <p className="font-display text-3xl font-bold tabular-nums text-[#7107E7] dark:text-violet-300">
                   {Math.round(match.score)}
                   <span className="text-lg font-semibold text-zinc-400 dark:text-slate-500">/{max}</span>
                 </p>
               </div>
-              <div>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-slate-500">
-                  Experience
+              <div
+                className="cursor-help rounded-md outline-offset-2"
+                title={EXPERIENCE_SCORE_TOOLTIP}
+              >
+                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-slate-500 inline-flex items-center gap-1">
+                  <span aria-hidden className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-[9px] font-bold text-zinc-500 dark:bg-slate-600 dark:text-slate-300">
+                    i
+                  </span>
+                  <span className="-mt-px">Experience</span>
+                  <span className="sr-only">{EXPERIENCE_SCORE_TOOLTIP}</span>
                 </p>
                 <p className="font-display text-2xl font-semibold tabular-nums text-zinc-900 dark:text-slate-100">
                   {Math.round(match.experienceScore)}
