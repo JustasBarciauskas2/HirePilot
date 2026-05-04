@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type {
   CandidateMatchFitLabel,
   CandidateScreeningResult,
@@ -48,12 +49,41 @@ const RELEVANCE_RING: Record<"high" | "medium" | "low", string> = {
   low: "ring-zinc-200/60 bg-zinc-50 text-zinc-600 dark:ring-slate-600/50 dark:bg-slate-800/50 dark:text-slate-400",
 };
 
-/** Native hover `title`; duplicated in `sr-only` for assistive tech. */
+/** Explainer copy; shown in a hover panel and mirrored in `sr-only` for assistive tech. */
 const MATCH_SCORE_TOOLTIP =
   "Overall fit for this vacancy: skills, relevance, gaps, and years of experience rolled into one score. Use this as your main headline when comparing applicants quickly.";
 
 const EXPERIENCE_SCORE_TOOLTIP =
   "How closely their CV matches what this job expects for seniority, job titles, and relevant tech or domain experience. Reach for this when the headline match score and their career story do not align.";
+
+const SCORE_TOOLTIP_PANEL =
+  "pointer-events-none absolute top-full z-50 mt-2 w-[min(calc(100vw-2rem),17.5rem)] rounded-lg border border-zinc-200/90 bg-white px-3.5 py-2.5 text-xs font-normal normal-case leading-relaxed tracking-normal text-zinc-800 shadow-lg ring-1 ring-zinc-950/5 transition duration-150 ease-out invisible translate-y-0.5 opacity-0 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-950/40";
+
+/** Hover/focus tooltip panel for score metrics (readable vs native `title`). */
+function ScoreMetricHint({
+  tooltipText,
+  alignEnd,
+  children,
+}: {
+  tooltipText: string;
+  alignEnd?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={`group relative cursor-help rounded-md outline-offset-2 focus-within:outline-none focus-visible:ring-2 focus-visible:ring-[#7107E7]/35 focus-visible:ring-offset-2 dark:focus-visible:ring-violet-400/45 dark:focus-visible:ring-offset-[#1a2332] ${alignEnd ? "sm:ml-auto" : ""}`}
+      tabIndex={0}
+    >
+      {children}
+      <p
+        aria-hidden="true"
+        className={`${SCORE_TOOLTIP_PANEL} ${alignEnd ? "right-0 left-auto" : "left-0"}`}
+      >
+        {tooltipText}
+      </p>
+    </div>
+  );
+}
 
 type CandidateScreeningCardProps = {
   screening: CandidateScreeningResult;
@@ -107,10 +137,7 @@ export function CandidateScreeningCard({ screening, onClose }: CandidateScreenin
               {fit.label}
             </span>
             <div className="flex flex-wrap items-end gap-4">
-              <div
-                className="cursor-help rounded-md outline-offset-2"
-                title={MATCH_SCORE_TOOLTIP}
-              >
+              <ScoreMetricHint tooltipText={MATCH_SCORE_TOOLTIP} alignEnd>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-slate-500 inline-flex items-center gap-1">
                   <span aria-hidden className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-[9px] font-bold text-zinc-500 dark:bg-slate-600 dark:text-slate-300">
                     i
@@ -122,11 +149,8 @@ export function CandidateScreeningCard({ screening, onClose }: CandidateScreenin
                   {Math.round(match.score)}
                   <span className="text-lg font-semibold text-zinc-400 dark:text-slate-500">/{max}</span>
                 </p>
-              </div>
-              <div
-                className="cursor-help rounded-md outline-offset-2"
-                title={EXPERIENCE_SCORE_TOOLTIP}
-              >
+              </ScoreMetricHint>
+              <ScoreMetricHint tooltipText={EXPERIENCE_SCORE_TOOLTIP} alignEnd>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-slate-500 inline-flex items-center gap-1">
                   <span aria-hidden className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-[9px] font-bold text-zinc-500 dark:bg-slate-600 dark:text-slate-300">
                     i
@@ -138,7 +162,7 @@ export function CandidateScreeningCard({ screening, onClose }: CandidateScreenin
                   {Math.round(match.experienceScore)}
                   <span className="text-base font-medium text-zinc-400 dark:text-slate-500">/{max}</span>
                 </p>
-              </div>
+              </ScoreMetricHint>
             </div>
           </div>
         </div>
